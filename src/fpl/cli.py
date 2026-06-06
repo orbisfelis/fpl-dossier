@@ -10,9 +10,10 @@ import sys
 from pathlib import Path
 
 from .scrape import run_scrape
-from .report import generate_report
+from .report import generate_report, publish_reports
 
 DEFAULT_DB = Path(os.environ.get("FPL_DB", "/data/fpl.db"))
+DEFAULT_DOCS = Path(os.environ.get("FPL_DOCS", "docs"))
 DEFAULT_CONCURRENCY = 10
 
 
@@ -59,6 +60,22 @@ def main(argv: list[str] | None = None) -> int:
     rp.add_argument("--output", "-o", type=Path, default=None,
                     help="Output path (default: /data/reports/dossier_GW{N}.{fmt})")
 
+    # publish --------------------------------------------------------------
+    pp = subparsers.add_parser("publish", parents=[common],
+                               help="Render HTML report(s) into docs/ for GitHub Pages")
+    pp.add_argument("--league", type=int,
+                    default=_env_int("FPL_LEAGUE_ID"),
+                    required="FPL_LEAGUE_ID" not in os.environ,
+                    help="Classic league ID")
+    pp.add_argument("--gw", type=int, default=None,
+                    help="Gameweek to publish (default: latest scraped)")
+    pp.add_argument("--all", action="store_true", dest="all_gws",
+                    help="Publish every scraped gameweek (backfill an archive)")
+    pp.add_argument("--season", default=None,
+                    help="Season label for the docs/<season>/ folder (default: derived, e.g. 25-26)")
+    pp.add_argument("--docs", type=Path, default=DEFAULT_DOCS,
+                    help=f"GitHub Pages output dir (default: {DEFAULT_DOCS})")
+
     # shell ----------------------------------------------------------------
     subparsers.add_parser("shell", parents=[common],
                           help="Open a sqlite3 shell on the DB")
@@ -88,6 +105,13 @@ def main(argv: list[str] | None = None) -> int:
         path = generate_report(args.db, output, args.league, args.gw,
                                fmt=args.fmt)
         print(f"Report written: {path}")
+
+    elif args.command == "publish":
+        season_dir = publish_reports(
+            args.db, args.league, args.docs,
+            season=args.season, event=args.gw, all_gws=args.all_gws,
+        )
+        print(f"Published to: {season_dir} (manifest + index.html updated)")
 
     elif args.command == "shell":
         import subprocess

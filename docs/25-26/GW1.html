@@ -1,0 +1,4302 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Dossier &mdash; TML GW1</title>
+<style>
+  :root {
+    --slate: #2d3e50;
+    --dark: #1e2a38;
+    --green: #37a76b;
+    --green-soft: rgba(55,167,107,0.08);
+    --red: #b03a2e;
+    --red-soft: rgba(176,58,46,0.08);
+    --accent: #00ff87;
+    --text: #2c3e50;
+    --muted: #888;
+    --border: #e0e0e0;
+    --row-alt: #f8f9fb;
+    --bg: #f4f5f7;
+    --card: #fff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px; line-height: 1.5; color: var(--text); background: var(--bg);
+  }
+
+  /* ==================== NAV ==================== */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--slate); padding: 0 24px;
+    display: flex; align-items: center; gap: 20px; height: 44px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .nav-brand { font-weight: 900; font-style: italic; font-size: 15px; color: #fff; text-decoration: none; }
+  .nav-brand span { color: var(--accent); }
+  .nav a { color: rgba(255,255,255,0.65); text-decoration: none; font-size: 12px; font-weight: 500; transition: color .15s; }
+  .nav a:hover { color: var(--accent); }
+  .nav-links { display: contents; }
+  .nav-tools { display: contents; }
+  .nav-picker { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  .nav-picker select {
+    background: rgba(255,255,255,0.08); color: #fff;
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;
+    padding: 3px 6px; font-family: inherit; font-size: 12px; cursor: pointer;
+  }
+  .nav-picker select:hover { border-color: var(--accent); }
+  .nav-picker select option { color: #000; }
+
+  /* ==================== LAYOUT ==================== */
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+
+  /* ==================== COVER ==================== */
+  .cover {
+    background: linear-gradient(145deg, var(--dark) 0%, #0d1117 55%, var(--dark) 100%);
+    color: #fff; padding: 100px 24px 80px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .cover::after {
+    content: ""; position: absolute; bottom: 0; right: 0; width: 45%; height: 35%;
+    background: repeating-linear-gradient(-30deg, transparent, transparent 10px, rgba(0,255,135,0.06) 10px, rgba(0,255,135,0.06) 12px);
+  }
+  .cover::before {
+    content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+    background: repeating-linear-gradient(to bottom, transparent, transparent 14px, rgba(255,255,255,0.08) 14px, rgba(255,255,255,0.08) 28px);
+  }
+  .cover h1 {
+    font-size: clamp(40px, 6vw, 72px); font-weight: 900; font-style: italic;
+    letter-spacing: 2px; position: relative;
+  }
+  .cover h1 span { color: var(--accent); }
+  .cover h2 {
+    font-size: clamp(18px, 2.5vw, 28px); font-weight: 400; font-style: italic;
+    color: var(--accent); margin-bottom: 40px; position: relative;
+  }
+  .cover-meta { display: inline-block; text-align: left; position: relative; font-family: "SF Mono", "Consolas", "Menlo", monospace; }
+  .cover-meta td { padding: 5px 18px; font-size: 15px; }
+  .cover-meta td:first-child { color: rgba(255,255,255,0.45); }
+  .cover-meta td:last-child { color: #fff; font-weight: 600; }
+
+  /* ==================== SECTION HEADERS ==================== */
+  .section-hdr {
+    background: var(--slate); color: #fff;
+    padding: 12px 20px; margin-bottom: 20px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+  }
+  .section-title { font-size: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
+  .section-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .section-right { font-size: 12px; color: rgba(255,255,255,0.5); white-space: nowrap; }
+
+  .fame-hdr {
+    background: linear-gradient(135deg, #0d5e2c 0%, #1a8a45 50%, #26a35a 100%);
+    text-align: center; padding: 24px; margin-bottom: 20px;
+    border-left: 5px solid #00ff87;
+  }
+  .fame-hdr .hdr-title { font-size: 28px; font-weight: 700; font-style: italic; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .fame-hdr .hdr-sub { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+
+  .shame-hdr {
+    background: linear-gradient(135deg, #6b1a1a 0%, #a32626 50%, #c0392b 100%);
+    text-align: center; padding: 24px; margin-bottom: 20px;
+    border-left: 5px solid #ff4444;
+  }
+  .shame-hdr .hdr-title { font-size: 28px; font-weight: 700; font-style: italic; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .shame-hdr .hdr-sub { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+
+  .section { padding: 28px 0; }
+
+  /* ==================== AWARD CARDS ==================== */
+  .cards-row { display: grid; gap: 14px; margin-bottom: 14px; }
+  .cards-3 { grid-template-columns: repeat(3, 1fr); }
+  .cards-4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 900px) { .cards-3, .cards-4 { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 2px;
+    padding: 14px 16px;
+    transition: box-shadow .15s;
+  }
+  .card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+
+  .card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+  .card-title { font-size: 16px; font-weight: 800; color: var(--text); }
+  .card-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .card-icon {
+    width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; flex-shrink: 0; background: #fff;
+    color: var(--slate); font-family: Georgia, "Times New Roman", serif;
+  }
+  .sm-icon { width: 30px; height: 30px; font-size: 12px; }
+
+  .card-body { display: flex; align-items: center; justify-content: space-between; padding: 14px 0 8px; }
+  .card-winner { text-align: center; flex: 1; }
+  .winner-name { font-size: 22px; font-weight: 900; font-style: italic; color: var(--text); line-height: 1.2; }
+  .winner-mgr { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .winner-val { font-size: 28px; font-weight: 900; color: var(--slate); flex-shrink: 0; padding-left: 16px; }
+
+  .sm-winner { text-align: center; padding: 12px 0 6px; }
+  .sm-winner .winner-name { font-size: 18px; }
+  .sm-winner-val { font-size: 20px; font-weight: 900; color: var(--slate); margin-top: 2px; }
+
+  .card-runners { border-top: 1px solid var(--border); padding-top: 8px; margin-top: 6px; }
+  .runner-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; font-size: 11px; color: var(--muted); }
+  .runner-pos { font-weight: 700; color: var(--text); min-width: 16px; }
+  .runner-info { flex: 1; }
+  .runner-val { font-weight: 600; color: var(--text); }
+
+  /* Combined wheeler/rogue card */
+  .combo-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 2px;
+    border-left: 4px solid var(--green); display: flex; flex-direction: column;
+    transition: box-shadow .15s;
+  }
+  .combo-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .combo-half { padding: 14px 16px; }
+  .combo-half + .combo-half { border-top: 2px solid var(--border); border-left-color: var(--red); }
+  .combo-top { background: var(--green-soft); }
+  .combo-bot { background: var(--red-soft); border-left: 4px solid var(--red); margin-left: -4px; padding-left: 20px; }
+
+  /* ==================== TABLES ==================== */
+  .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 2px; overflow-x: auto; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th {
+    background: var(--slate); color: #fff; font-weight: 600;
+    text-align: left; padding: 8px 10px; font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap;
+  }
+  thead th.num { text-align: right; }
+  thead th.ctr { text-align: center; }
+  thead th.group-hdr {
+    background: #3a4f63; text-align: center;
+    border-left: 1px solid rgba(255,255,255,0.15);
+    border-right: 1px solid rgba(255,255,255,0.15);
+    font-size: 9px; padding: 4px 6px;
+  }
+  thead th.sub-hdr {
+    font-size: 9px; padding: 5px 8px;
+    border-left: 1px solid rgba(255,255,255,0.08);
+  }
+  tbody td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+  tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody td.ctr { text-align: center; }
+  tbody tr:nth-child(even) { background: var(--row-alt); }
+  tbody tr:hover { background: rgba(0,255,135,0.05); }
+  tbody tr.top3 td { background: rgba(0,255,135,0.05); font-weight: 500; }
+  tbody tr.top3:hover td { background: rgba(0,255,135,0.08); }
+  tbody td.wrap { white-space: normal; min-width: 160px; }
+
+  .pos { color: var(--green); font-weight: 600; }
+  .neg { color: var(--red); font-weight: 600; }
+  .bold { font-weight: 700; }
+  .muted { color: var(--muted); }
+
+  .rank-cell { font-weight: 700; color: var(--slate); text-align: center; width: 28px; }
+  .move-cell { font-size: 11px; width: 20px; text-align: center; }
+  .move-cell .up { color: var(--green); }
+  .move-cell .dn { color: var(--red); }
+  .move-cell .flat { color: var(--muted); }
+
+  /* ==================== TWO-COL LAYOUT ==================== */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
+
+  .stat-box { background: var(--card); border: 1px solid var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 16px; }
+  .stat-box-hdr { background: var(--slate); color: #fff; padding: 8px 14px; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .3px; }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: var(--muted); }
+  .stat-val { font-weight: 700; }
+
+  h3.sub-title {
+    font-size: 13px; font-weight: 700; color: var(--slate);
+    margin: 14px 0 8px; border-bottom: 3px solid var(--accent);
+    padding-bottom: 4px; display: inline-block;
+  }
+  h3.sub-title:first-child { margin-top: 0; }
+
+  /* ==================== BAR CHARTS (CSS) ==================== */
+  .bar-chart { background: var(--card); border: 1px solid var(--border); border-radius: 2px; padding: 14px; margin-bottom: 16px; }
+  .bar-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+  .bar-label { width: 140px; font-size: 11px; font-weight: 600; text-align: right; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-track { flex: 1; height: 22px; background: var(--row-alt); border-radius: 2px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease; min-width: 2px; }
+  .bar-fill.green { background: var(--green); }
+  .bar-fill.red { background: var(--red); }
+  .bar-fill.slate { background: var(--slate); }
+
+  /* Stacked bar segments (GW breakdown) */
+  .bar-stack { display: flex; height: 100%; }
+  .bar-seg { height: 100%; min-width: 1px; }
+  .bar-seg.base { background: var(--slate); }
+  .bar-seg.captain { background: #3498db; }
+  .bar-seg.tx-gain { background: var(--green); }
+  .bar-seg.tx-loss { background: #f39c12; }
+  .bar-seg.hits { background: var(--red); }
+  .bar-neg { position: absolute; right: 0; top: 0; height: 100%; display: flex; justify-content: flex-end; }
+  .bar-neg .bar-seg { border-radius: 0; }
+  .bar-val { width: 36px; font-size: 11px; font-weight: 700; text-align: right; flex-shrink: 0; }
+
+  /* ==================== CHART CONTAINERS ==================== */
+  .chart-container { position: relative; width: 100%; margin-bottom: 16px; }
+  .chart-container canvas { width: 100% !important; }
+
+  /* ==================== CHIP TABLE ==================== */
+  .chip-used { background: var(--green); color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; display: inline-block; }
+  .chip-unused { color: var(--muted); font-size: 11px; }
+
+  /* ==================== MONTHLY WINNERS ==================== */
+  .month-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .month-card { background: var(--card); border: 1px solid var(--border); border-radius: 2px; padding: 12px; border-left: 3px solid var(--green); }
+  .month-card .month-name { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 600; }
+  .month-card .month-winner { font-size: 14px; font-weight: 800; margin-top: 4px; }
+  .month-card .month-pts { font-size: 18px; font-weight: 900; color: var(--green); margin-top: 2px; }
+  .month-card .month-runners { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+  .month-card .month-runner { font-size: 10px; color: var(--text); line-height: 1.5; }
+
+  /* ==================== xPts DIFF ==================== */
+  .luck-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  @media (max-width: 700px) { .luck-cards { grid-template-columns: 1fr; } }
+
+  /* ==================== GW SUMMARY ==================== */
+  .gw-summary { padding: 20px 0 0; }
+  .gw-bullets { list-style: none; padding: 0; margin: 8px 0 0; }
+  .gw-bullets li {
+    padding: 6px 10px; font-size: 12px; color: var(--text);
+    border-left: 3px solid var(--accent); margin-bottom: 6px;
+    background: var(--card); border-radius: 0 2px 2px 0;
+  }
+
+  .footer {
+    padding: 20px 0; border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--muted); text-align: center;
+  }
+
+  /* ==================== MOBILE ==================== */
+  @media (max-width: 600px) {
+    .wrap { padding: 0 6px; }
+
+    /* --- Nav: hamburger toggle --- */
+    .nav { flex-wrap: wrap; padding: 6px 10px; gap: 0; justify-content: space-between; }
+    .nav-brand { font-size: 13px; margin-right: auto; }
+    .nav-toggle { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;
+      background: none; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: #fff;
+      font-size: 18px; cursor: pointer; order: 2; }
+    .nav-links { display: none; width: 100%; order: 3; flex-direction: column; gap: 0;
+      padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 6px; }
+    .nav-links.open { display: flex; }
+    .nav-links a { font-size: 12px; padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.06);
+      min-height: 44px; display: flex; align-items: center; }
+    .nav-tools { display: flex; align-items: center; gap: 6px; order: 2; }
+    .nav-picker { order: 1; margin-left: 0; margin-right: 8px; }
+    .nav-picker select { font-size: 11px; padding: 4px 5px; }
+
+    /* --- Cover --- */
+    .cover { padding: 60px 12px 50px; }
+    .cover h1 { font-size: 28px; }
+    .cover h2 { font-size: 14px; margin-bottom: 24px; }
+    .cover-meta td { padding: 3px 8px; font-size: 11px; }
+
+    /* --- Sections --- */
+    .section-hdr { padding: 8px 12px; }
+    .section-title { font-size: 16px; }
+
+    /* --- Tables --- */
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; position: relative; }
+    .table-wrap::after {
+      content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 20px;
+      background: linear-gradient(to right, transparent, rgba(0,0,0,0.06));
+      pointer-events: none; z-index: 1;
+    }
+    table { font-size: 11px; }
+    table.wide-table { min-width: 700px; }
+    tbody td { white-space: normal; padding: 5px 6px; }
+    thead th { white-space: normal; padding: 5px 6px; font-size: 9px; }
+    thead th.group-hdr { font-size: 8px; padding: 3px 4px; }
+    thead th.sub-hdr { font-size: 8px; padding: 4px 5px; }
+
+    /* --- Cards --- */
+    .cards-row.cards-3, .cards-row.cards-4 { grid-template-columns: 1fr; }
+    .card { padding: 10px 12px; }
+    .card-title { font-size: 14px; }
+    .card-body { flex-direction: column; text-align: center; }
+    .winner-val { padding-left: 0; margin-top: 6px; font-size: 22px; }
+    .winner-name { font-size: 17px; overflow-wrap: break-word; word-break: break-word; }
+    .sm-winner .winner-name { font-size: 15px; }
+    .combo-card .winner-name { font-size: 15px !important; }
+    .combo-card .winner-val { font-size: 18px !important; padding-left: 0; }
+
+    /* --- Fame/Shame headers --- */
+    .fame-hdr, .shame-hdr { padding: 16px 12px; }
+    .hdr-title { font-size: 22px; }
+
+    /* --- Bar charts --- */
+    .bar-label { width: 90px; font-size: 10px; }
+    .bar-val { width: 30px; font-size: 10px; }
+
+    /* --- Chart containers --- */
+    .chart-container { min-height: 250px; }
+
+    /* --- Hide xPts bar chart on mobile (table below has same info) --- */
+    #xpts-bars { display: none !important; }
+    #xpts-bars + .chart-container { display: none !important; }
+
+    /* --- Stat rows --- */
+    .stat-row { flex-wrap: wrap; gap: 2px; }
+    .stat-label { font-size: 11px; }
+    .stat-val { font-size: 12px; }
+
+    /* --- Two-col layout --- */
+    .two-col { grid-template-columns: 1fr; }
+
+    /* --- Monthly cards --- */
+    .month-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .luck-cards { grid-template-columns: 1fr; }
+
+    /* --- GW summary --- */
+    .gw-bullets li { font-size: 11px; padding: 5px 8px; }
+
+    /* --- Chip table scroll hint --- */
+    .chip-used { font-size: 9px; padding: 1px 5px; }
+  }
+
+  /* Hamburger hidden on desktop */
+  .nav-toggle { display: none; }
+
+  /* ==================== PRINT ==================== */
+  @media print {
+    .nav, .gw-summary { display: none; }
+    .section-hdr { cursor: default; break-after: avoid; }
+    .chart-container { break-inside: avoid; page-break-inside: avoid; }
+    .table-wrap { overflow: visible; }
+    .table-wrap::after { display: none; }
+    table { min-width: 0; font-size: 9px; }
+    table.wide-table { min-width: 0; }
+    .hm { display: table-cell !important; }
+    body { font-size: 11px; background: #fff; }
+    .cover { padding: 40px 24px 30px; }
+    .section { page-break-before: auto; }
+  }
+</style>
+</head>
+<body>
+
+
+<nav class="nav">
+  <a class="nav-brand" href="#">THE <span>DOSSIER</span></a>
+  <div class="nav-links">
+    <a href="#fame">Fame</a>
+    <a href="#shame">Shame</a>
+    <a href="#leaderboard">Table</a>
+    <a href="#review">Review</a>
+    <a href="#transfers">Transfers</a>
+    <a href="#captains">Captains</a>
+    <a href="#chips">Chips</a>
+    <a href="#motm">MOTM</a>
+    <a href="#scout">Scout</a>
+    <a href="#xpts">xPts</a>
+    <a href="#progression">Season</a>
+  </div>
+  <div class="nav-picker" id="nav-picker" hidden>
+    <select id="season-select" aria-label="Season"></select>
+    <select id="gw-select" aria-label="Gameweek"></select>
+  </div>
+  <div class="nav-tools"></div>
+  <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+</nav>
+<script>
+  window.__DOSSIER = {season: "25-26", gw: 1};
+</script>
+
+
+<div class="cover">
+  <h1>THE <span>DOSSIER</span></h1>
+  <h2>TML &mdash; Gameweek 1</h2>
+  <table class="cover-meta">
+    <tr><td>League:</td><td>TML (59720)</td></tr>
+    <tr><td>Managers:</td><td>21</td></tr>
+    <tr>
+      <td>League Average:</td>
+      <td>58.8 pts
+        
+          
+          (<span style="color:var(--accent)">+5</span> vs FPL avg 54)
+        
+      </td>
+    </tr>
+    <tr><td>Generated:</td><td>2026-06-06 07:51 UTC</td></tr>
+  </table>
+</div>
+
+<div class="wrap">
+
+
+<div id="fame" class="section">
+  <div class="fame-hdr">
+    <div class="hdr-title">Hall of Fame</div>
+    <div class="hdr-sub">TML &mdash; GW1</div>
+  </div>
+
+  <div class="cards-row cards-3">
+    
+
+
+<div class="card big-card" style="border-left: 4px solid var(--green); background: rgba(39,174,96,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Top of the Pile"</div>
+      <div class="card-sub">Highest overall points</div>
+    </div>
+    <div class="card-icon" style="border-color: var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v2H5zm0 2v5a7 7 0 004 6.32V18H7v2h10v-2h-2v-1.68A7 7 0 0019 10V5h2V3H3v2h2zm2 0h10v5a5 5 0 01-10 0V5z"/></svg>
+</div>
+  </div>
+  
+  <div class="card-body">
+    <div class="card-winner">
+      <div class="winner-name">Livin&#39; Saliba Loca</div>
+      <div class="winner-mgr">Darius Goodarzi</div>
+    </div>
+    <div class="winner-val">
+      
+        92
+      
+    </div>
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">TML ⭐️⭐️ - Aman Sharma</span>
+      <span class="runner-val">
+        76
+      </span>
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">Bluehomie (YouTube) - Bluehomie -YouTube-</span>
+      <span class="runner-val">
+        75
+      </span>
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+
+    
+    <div class="combo-card">
+      <div class="combo-half combo-top">
+        <div class="card-head">
+          <div>
+            <div class="card-title">"Wheeler Dealer"</div>
+            <div class="card-sub">Most points from transfers this GW</div>
+          </div>
+          <div class="card-icon" style="border-color: var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
+</div>
+        </div>
+        
+      </div>
+      <div class="combo-half combo-bot">
+        <div class="card-head">
+          <div>
+            <div class="card-title">"Rogue Trader"</div>
+            <div class="card-sub">Fewest points from transfers this GW</div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+
+    
+
+
+<div class="card big-card" style="border-left: 4px solid var(--green); background: rgba(39,174,96,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Sheikh Mansour"</div>
+      <div class="card-sub">Most valuable squad</div>
+    </div>
+    <div class="card-icon" style="border-color: var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><text x="12" y="18" text-anchor="middle" font-size="18" font-weight="700" font-family="Georgia,serif">&pound;</text></svg>
+</div>
+  </div>
+  
+  <div class="card-body">
+    <div class="card-winner">
+      <div class="winner-name">Pamparam ⭐️ ⭐️ ⭐️</div>
+      <div class="winner-mgr">Milen Kindekov</div>
+    </div>
+    <div class="winner-val">
+      
+        &pound;100.0m
+      
+    </div>
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">Caesar ⭐ - Sunny Sharma</span>
+      <span class="runner-val">
+        &pound;100.0m
+        
+      </span>
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">Vault 101 XI - ALEXIS DRITSAS</span>
+      <span class="runner-val">
+        &pound;100.0m
+        
+      </span>
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+  </div>
+
+  <div class="cards-row cards-4">
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--green); background: rgba(39,174,96,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Manager of the Week"</div>
+      <div class="card-sub">Highest GW points</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">Livin&#39; Saliba Loca</div>
+    <div class="winner-mgr">Darius Goodarzi</div>
+    
+    <div class="sm-winner-val">
+      92
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">TML ⭐️⭐️ - Aman Sharma</span>
+      
+      <span class="runner-val">
+        76
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">Bluehomie (YouTube) - Bluehomie -YouTube-</span>
+      
+      <span class="runner-val">
+        75
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--green); background: rgba(39,174,96,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"On a Hot Streak"</div>
+      <div class="card-sub">Most points last 1 GWs</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 23c-3.6 0-7-2.4-7-7 0-3 1.8-5.4 3.5-7.5.8-1 1.5-2 2-3 .3-.5 1-.5 1.2 0 .3.7.6 1.3 1 2a9.5 9.5 0 011.8-2.5c.4-.4 1-.2 1.2.3.5 1.5.8 3 .8 4.2 0 0 .2-.3.5-.8.4-.5 1.1-.4 1.3.2C19.3 12 19 15 19 16c0 4.6-3.4 7-7 7zm0-12c-1 1.5-3 4-3 5.5a3 3 0 006 0c0-1.5-2-4-3-5.5z"/></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">Livin&#39; Saliba Loca</div>
+    <div class="winner-mgr">Darius Goodarzi</div>
+    
+    <div class="sm-winner-val">
+      92
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">TML ⭐️⭐️ - Aman Sharma</span>
+      
+      <span class="runner-val">
+        76
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">No Name - Akash Patel</span>
+      
+      <span class="runner-val">
+        75
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--green); background: rgba(39,174,96,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Teacher&#39;s Pet"</div>
+      <div class="card-sub">Most captain points (season)</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><text x="12" y="18" text-anchor="middle" font-size="18" font-weight="900" font-family="-apple-system,sans-serif">C</text></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">No Name</div>
+    <div class="winner-mgr">Akash Patel</div>
+    
+    <div class="sm-winner-val">
+      26
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">Bluehomie (YouTube) - Bluehomie -YouTube-</span>
+      
+      <span class="runner-val">
+        26
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">Caesar ⭐ - Sunny Sharma</span>
+      
+      <span class="runner-val">
+        26
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--green); background: rgba(39,174,96,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Balls of Steel"</div>
+      <div class="card-sub">Most differential captain picks</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm0 4a2 2 0 110 4 2 2 0 010-4zm0 10c-2 0-4-1-4-2.5 0-1.5 2.67-2.5 4-2.5s4 1 4 2.5c0 1.5-2 2.5-4 2.5z"/></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">AntiAlgoFPL</div>
+    <div class="winner-mgr">Amit Putty</div>
+    
+    <div class="sm-winner-val">
+      6%
+      
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">Vault 101 XI - ALEXIS DRITSAS</span>
+      
+      <span class="runner-val">
+        10%
+        
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">Saka FC - Chris B</span>
+      
+      <span class="runner-val">
+        14%
+        
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+  </div>
+</div>
+
+
+<div id="shame" class="section">
+  <div class="shame-hdr">
+    <div class="hdr-title">Hall of Shame</div>
+    <div class="hdr-sub">TML &mdash; GW1</div>
+  </div>
+
+  <div class="cards-row cards-3">
+    
+
+
+<div class="card big-card" style="border-left: 4px solid var(--red); background: rgba(192,57,43,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Bottom Feeders"</div>
+      <div class="card-sub">Fewest overall points</div>
+    </div>
+    <div class="card-icon" style="border-color: var(--red);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 16l-6-6h12z"/></svg>
+</div>
+  </div>
+  
+  <div class="card-body">
+    <div class="card-winner">
+      <div class="winner-name">AntiAlgoFPL</div>
+      <div class="winner-mgr">Amit Putty</div>
+    </div>
+    <div class="winner-val">
+      
+        33
+      
+    </div>
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">Vault 101 XI - ALEXIS DRITSAS</span>
+      <span class="runner-val">
+        41
+      </span>
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">Change Name - Jay Curtis</span>
+      <span class="runner-val">
+        43
+      </span>
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+
+    
+    <div class="combo-card" style="border-left-color: var(--green);">
+      <div class="combo-half combo-top">
+        <div class="card-head">
+          <div>
+            <div class="card-title">"Wheeler Dealer"</div>
+            <div class="card-sub">Most points from transfers this GW</div>
+          </div>
+        </div>
+        
+      </div>
+      <div class="combo-half combo-bot">
+        <div class="card-head">
+          <div>
+            <div class="card-title">"Rogue Trader"</div>
+            <div class="card-sub">Fewest points from transfers this GW</div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+
+    
+
+
+<div class="card big-card" style="border-left: 4px solid var(--red); background: rgba(192,57,43,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Rodney Trotter"</div>
+      <div class="card-sub">Least valuable squad</div>
+    </div>
+    <div class="card-icon" style="border-color: var(--red);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><text x="12" y="18" text-anchor="middle" font-size="18" font-weight="700" font-family="Georgia,serif">&pound;</text></svg>
+</div>
+  </div>
+  
+  <div class="card-body">
+    <div class="card-winner">
+      <div class="winner-name">Pamparam ⭐️ ⭐️ ⭐️</div>
+      <div class="winner-mgr">Milen Kindekov</div>
+    </div>
+    <div class="winner-val">
+      
+        &pound;100.0m
+      
+    </div>
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">Caesar ⭐ - Sunny Sharma</span>
+      <span class="runner-val">
+        &pound;100.0m
+        
+      </span>
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">Vault 101 XI - ALEXIS DRITSAS</span>
+      <span class="runner-val">
+        &pound;100.0m
+        
+      </span>
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+  </div>
+
+  <div class="cards-row cards-4">
+    
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--red); background: rgba(192,57,43,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Worst of the Week"</div>
+      <div class="card-sub">Fewest GW points</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--red);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 16l-6-6h12z"/></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">AntiAlgoFPL</div>
+    <div class="winner-mgr">Amit Putty</div>
+    
+    <div class="sm-winner-val">
+      33
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--red); background: rgba(192,57,43,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Must be on Holiday"</div>
+      <div class="card-sub">Fewest points last 1 GWs</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--red);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11 1h2v5.17l3.59-3.58 1.41 1.41L13 9v2.17l3.88-2.24 1 1.73L14 13l3.88 2.24-1 1.73L13 12.83V15l5 5-1.41 1.41L13 17.83V23h-2v-5.17l-3.59 3.58L6 20l5-5v-2.17l-3.88 2.24-1-1.73L10 11 6.12 8.76l1-1.73L11 9.27V7L6 2l1.41-1.41L11 4.17V1z"/></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">AntiAlgoFPL</div>
+    <div class="winner-mgr">Amit Putty</div>
+    
+    <div class="sm-winner-val">
+      33
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">Vault 101 XI - ALEXIS DRITSAS</span>
+      
+      <span class="runner-val">
+        41
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">Change Name - Jay Curtis</span>
+      
+      <span class="runner-val">
+        43
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--red); background: rgba(192,57,43,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Lost the Dressing Room"</div>
+      <div class="card-sub">Fewest captain points (season)</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--red);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><text x="12" y="18" text-anchor="middle" font-size="18" font-weight="900" font-family="-apple-system,sans-serif">C</text></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">Vault 101 XI</div>
+    <div class="winner-mgr">ALEXIS DRITSAS</div>
+    
+    <div class="sm-winner-val">
+      4
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">AntiAlgoFPL - Amit Putty</span>
+      
+      <span class="runner-val">
+        6
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">Saka FC - Chris B</span>
+      
+      <span class="runner-val">
+        6
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--red); background: rgba(192,57,43,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Balls of Cotton Wool"</div>
+      <div class="card-sub">Most template captain picks</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--red);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4a4.5 4.5 0 00-4.35 3.38A3.5 3.5 0 004 10.5 3.5 3.5 0 007.5 14h9a3.5 3.5 0 003.5-3.5 3.5 3.5 0 00-3.65-3.12A4.5 4.5 0 0012 4z"/><path d="M8 15v2m4-2v3m4-3v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">No Name</div>
+    <div class="winner-mgr">Akash Patel</div>
+    
+    <div class="sm-winner-val">
+      88%
+      
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">Bluehomie (YouTube) - Bluehomie -YouTube-</span>
+      
+      <span class="runner-val">
+        88%
+        
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">Caesar ⭐ - Sunny Sharma</span>
+      
+      <span class="runner-val">
+        88%
+        
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+  </div>
+</div>
+
+
+<div class="gw-summary">
+  <h3 class="sub-title">GW1 Headlines</h3>
+  <ul class="gw-bullets">
+    
+    
+    
+    
+    
+    
+    <li>Chips played: Bluehomie (YouTube) (<span class="chip-used" style="background:#f39c12; font-size:10px; padding:1px 5px;">Bench Boost</span>), Livin&#39; Saliba Loca (<span class="chip-used" style="background:#f39c12; font-size:10px; padding:1px 5px;">Bench Boost</span>)</li>
+    
+    
+  </ul>
+</div>
+
+
+<div id="leaderboard" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">1. Leaderboard</div>
+    <div class="section-sub">TML</div>
+  </div>
+  <div class="section-right">Gameweek 1</div>
+</div>
+
+
+  <div class="table-wrap">
+  <table class="wide-table">
+    <thead>
+      <tr>
+        <th class="ctr" rowspan="2" style="width:30px">Pos</th>
+        <th rowspan="2" style="width:18px"></th>
+        <th rowspan="2">Team</th>
+        <th rowspan="2">Manager</th>
+        <th class="group-hdr" colspan="2">Rank</th>
+        <th class="group-hdr" colspan="4">Points (Net)</th>
+        <th class="group-hdr" colspan="4">Transfers</th>
+        <th class="group-hdr" colspan="3">Captain</th>
+        <th class="group-hdr" colspan="2">Squad</th>
+      </tr>
+      <tr>
+        <th class="sub-hdr num">Overall</th>
+        <th class="sub-hdr num">+/&minus;</th>
+        <th class="sub-hdr num">Total</th>
+        <th class="sub-hdr num">Form*</th>
+        <th class="sub-hdr num">Week</th>
+        <th class="sub-hdr ctr">#</th>
+        <th class="sub-hdr ctr">TM</th>
+        <th class="sub-hdr num">Cost</th>
+        <th class="sub-hdr num">Net</th>
+        <th class="sub-hdr num">Hits&dagger;</th>
+        <th class="sub-hdr">Name</th>
+        <th class="sub-hdr num">Pts</th>
+        <th class="sub-hdr num">Season&Dagger;</th>
+        <th class="sub-hdr num">Bench</th>
+        <th class="sub-hdr num">Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      <tr class="top3" data-manager="livin&#39; saliba loca">
+        <td class="rank-cell">1</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">Livin&#39; Saliba Loca</td>
+        <td>Darius Goodarzi</td>
+        <td class="num">19k</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">92</td>
+        <td class="num">92</td>
+        <td class="num">92</td>
+        <td class="ctr muted">1</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>Haaland</td>
+        <td class="num">26</td>
+        <td class="num">26</td>
+        <td class="num">0</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr class="top3" data-manager="tml ⭐️⭐️">
+        <td class="rank-cell">2</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">TML ⭐️⭐️</td>
+        <td>Aman Sharma</td>
+        <td class="num">401k</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">76</td>
+        <td class="num">76</td>
+        <td class="num">76</td>
+        <td class="ctr muted">2</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>Haaland</td>
+        <td class="num">26</td>
+        <td class="num">26</td>
+        <td class="num">12</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr class="top3" data-manager="bluehomie (youtube)">
+        <td class="rank-cell">3</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">Bluehomie (YouTube)</td>
+        <td>Bluehomie -YouTube-</td>
+        <td class="num">468k</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">75</td>
+        <td class="num">75</td>
+        <td class="num">75</td>
+        <td class="ctr muted">3</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>Haaland</td>
+        <td class="num">26</td>
+        <td class="num">26</td>
+        <td class="num">0</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="no name">
+        <td class="rank-cell">4</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">No Name</td>
+        <td>Akash Patel</td>
+        <td class="num">468k</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">75</td>
+        <td class="num">75</td>
+        <td class="num">75</td>
+        <td class="ctr muted">4</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>Haaland</td>
+        <td class="num">26</td>
+        <td class="num">26</td>
+        <td class="num">6</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="releven tigers fc">
+        <td class="rank-cell">5</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">Releven Tigers FC</td>
+        <td>Stephen Rudd</td>
+        <td class="num">1.1m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">69</td>
+        <td class="num">69</td>
+        <td class="num">69</td>
+        <td class="ctr muted">5</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>M.Salah</td>
+        <td class="num">16</td>
+        <td class="num">16</td>
+        <td class="num">4</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="son of a doge ⭐️⭐️">
+        <td class="rank-cell">6</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">son of a doge ⭐️⭐️</td>
+        <td>M B</td>
+        <td class="num">1.2m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">68</td>
+        <td class="num">68</td>
+        <td class="num">68</td>
+        <td class="ctr muted">6</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>M.Salah</td>
+        <td class="num">16</td>
+        <td class="num">16</td>
+        <td class="num">24</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="caesar ⭐">
+        <td class="rank-cell">7</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">Caesar ⭐</td>
+        <td>Sunny Sharma</td>
+        <td class="num">1.9m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">64</td>
+        <td class="num">64</td>
+        <td class="num">64</td>
+        <td class="ctr muted">7</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>Haaland</td>
+        <td class="num">26</td>
+        <td class="num">26</td>
+        <td class="num">4</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="luceros">
+        <td class="rank-cell">8</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">Luceros</td>
+        <td>Claude-Noel Tamakloe</td>
+        <td class="num">1.9m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">64</td>
+        <td class="num">64</td>
+        <td class="num">64</td>
+        <td class="ctr muted">8</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>Haaland</td>
+        <td class="num">26</td>
+        <td class="num">26</td>
+        <td class="num">9</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="skill mcgill">
+        <td class="rank-cell">9</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">Skill McGill</td>
+        <td>Kartar Gill</td>
+        <td class="num">2.6m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">61</td>
+        <td class="num">61</td>
+        <td class="num">61</td>
+        <td class="ctr muted">9</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>M.Salah</td>
+        <td class="num">16</td>
+        <td class="num">16</td>
+        <td class="num">7</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="arteta ballers">
+        <td class="rank-cell">10</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">Arteta Ballers</td>
+        <td>Kelvin Ampene</td>
+        <td class="num">2.6m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">61</td>
+        <td class="num">61</td>
+        <td class="num">61</td>
+        <td class="ctr muted">10</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>Haaland</td>
+        <td class="num">26</td>
+        <td class="num">26</td>
+        <td class="num">9</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="pamparam ⭐️ ⭐️ ⭐️">
+        <td class="rank-cell">11</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">Pamparam ⭐️ ⭐️ ⭐️</td>
+        <td>Milen Kindekov</td>
+        <td class="num">3.7m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">57</td>
+        <td class="num">57</td>
+        <td class="num">57</td>
+        <td class="ctr muted">11</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>M.Salah</td>
+        <td class="num">16</td>
+        <td class="num">16</td>
+        <td class="num">10</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="todhfodh fc">
+        <td class="rank-cell">12</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">TODHFODH FC</td>
+        <td>Sahil Vora</td>
+        <td class="num">3.7m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">57</td>
+        <td class="num">57</td>
+        <td class="num">57</td>
+        <td class="ctr muted">12</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>M.Salah</td>
+        <td class="num">16</td>
+        <td class="num">16</td>
+        <td class="num">3</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="twickers united">
+        <td class="rank-cell">13</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">Twickers United</td>
+        <td>Martin Borizanov</td>
+        <td class="num">4.2m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">55</td>
+        <td class="num">55</td>
+        <td class="num">55</td>
+        <td class="ctr muted">13</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>M.Salah</td>
+        <td class="num">16</td>
+        <td class="num">16</td>
+        <td class="num">4</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="fc marrow">
+        <td class="rank-cell">14</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">FC MarRow</td>
+        <td>Kris McCarthy</td>
+        <td class="num">4.2m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">55</td>
+        <td class="num">55</td>
+        <td class="num">55</td>
+        <td class="ctr muted">14</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>M.Salah</td>
+        <td class="num">16</td>
+        <td class="num">16</td>
+        <td class="num">3</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="the refugees">
+        <td class="rank-cell">15</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">The Refugees</td>
+        <td>Aarif Kassam</td>
+        <td class="num">4.6m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">54</td>
+        <td class="num">54</td>
+        <td class="num">54</td>
+        <td class="ctr muted">15</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>M.Salah</td>
+        <td class="num">16</td>
+        <td class="num">16</td>
+        <td class="num">2</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="papua new quinney">
+        <td class="rank-cell">16</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">Papua New Quinney</td>
+        <td>Adam Quinney</td>
+        <td class="num">6.9m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">46</td>
+        <td class="num">46</td>
+        <td class="num">46</td>
+        <td class="ctr muted">16</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>M.Salah</td>
+        <td class="num">16</td>
+        <td class="num">16</td>
+        <td class="num">10</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="project x">
+        <td class="rank-cell">17</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">Project X</td>
+        <td>Nnaemeka Ezugwu</td>
+        <td class="num">7.2m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">45</td>
+        <td class="num">45</td>
+        <td class="num">45</td>
+        <td class="ctr muted">17</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>M.Salah</td>
+        <td class="num">16</td>
+        <td class="num">16</td>
+        <td class="num">9</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="saka fc">
+        <td class="rank-cell">18</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">Saka FC</td>
+        <td>Chris B</td>
+        <td class="num">7.4m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">44</td>
+        <td class="num">44</td>
+        <td class="num">44</td>
+        <td class="ctr muted">18</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>Saka</td>
+        <td class="num">6</td>
+        <td class="num">6</td>
+        <td class="num">4</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="change name">
+        <td class="rank-cell">19</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">Change Name</td>
+        <td>Jay Curtis</td>
+        <td class="num">7.6m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">43</td>
+        <td class="num">43</td>
+        <td class="num">43</td>
+        <td class="ctr muted">19</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>M.Salah</td>
+        <td class="num">16</td>
+        <td class="num">16</td>
+        <td class="num">2</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="vault 101 xi">
+        <td class="rank-cell">20</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">Vault 101 XI</td>
+        <td>ALEXIS DRITSAS</td>
+        <td class="num">8.0m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">41</td>
+        <td class="num">41</td>
+        <td class="num">41</td>
+        <td class="ctr muted">20</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>Wirtz</td>
+        <td class="num">4</td>
+        <td class="num">4</td>
+        <td class="num">3</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+      <tr data-manager="antialgofpl">
+        <td class="rank-cell">21</td>
+        <td class="move-cell">
+          <span class="flat">&#9679;</span>
+        </td>
+        <td class="bold">AntiAlgoFPL</td>
+        <td>Amit Putty</td>
+        <td class="num">9.1m</td>
+        <td class="num">
+          &mdash;
+        </td>
+        <td class="num bold">33</td>
+        <td class="num">33</td>
+        <td class="num">33</td>
+        <td class="ctr muted">21</td>
+        <td class="ctr">0</td>
+        <td class="num ">0</td>
+        <td class="num">
+          <span class="muted">0</span>
+        </td>
+        <td class="num ">0</td>
+        <td>Palmer</td>
+        <td class="num">6</td>
+        <td class="num">6</td>
+        <td class="num">11</td>
+        <td class="num">£100.0m</td>
+      </tr>
+      
+    </tbody>
+  </table>
+  </div>
+  <div style="font-size:11px; color:var(--muted); margin-top:-10px;">* Form = last 1 GWs &nbsp;&bull;&nbsp; &dagger; Season total hits &nbsp;&bull;&nbsp; &Dagger; Season captain total</div>
+</div>
+
+
+<div id="review" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">2. GW1: The Review</div>
+    <div class="section-sub">TML</div>
+  </div>
+  <div class="section-right">Gameweek 1</div>
+</div>
+
+
+  <div class="two-col">
+    <div>
+      
+      <h3 class="sub-title">Top FPL Scorers &mdash; GW1</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th style="width:28px">#</th><th>Player</th><th>Team</th><th class="num">Points</th></tr></thead>
+        <tbody>
+          
+          <tr><td class="rank-cell">1</td><td class="bold">Ballard</td><td>SUN</td><td class="num bold">17</td></tr>
+          
+          <tr><td class="rank-cell">2</td><td class="bold">Semenyo</td><td>MCI</td><td class="num bold">15</td></tr>
+          
+          <tr><td class="rank-cell">3</td><td class="bold">Calafiori</td><td>ARS</td><td class="num bold">13</td></tr>
+          
+          <tr><td class="rank-cell">4</td><td class="bold">Haaland</td><td>MCI</td><td class="num bold">13</td></tr>
+          
+          <tr><td class="rank-cell">5</td><td class="bold">Wood</td><td>NFO</td><td class="num bold">13</td></tr>
+          
+          <tr><td class="rank-cell">6</td><td class="bold">Richarlison</td><td>TOT</td><td class="num bold">13</td></tr>
+          
+        </tbody>
+      </table>
+      </div>
+      
+
+      
+      <h3 class="sub-title">Most Captained in League</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Player</th><th class="num">Picks</th><th class="num">%</th></tr></thead>
+        <tbody>
+          
+          <tr><td class="bold">M.Salah</td><td class="num">11</td><td class="num">52%</td></tr>
+          
+          <tr><td class="bold">Haaland</td><td class="num">7</td><td class="num">33%</td></tr>
+          
+          <tr><td class="bold">Wirtz</td><td class="num">1</td><td class="num">5%</td></tr>
+          
+          <tr><td class="bold">Saka</td><td class="num">1</td><td class="num">5%</td></tr>
+          
+          <tr><td class="bold">Palmer</td><td class="num">1</td><td class="num">5%</td></tr>
+          
+        </tbody>
+      </table>
+      </div>
+      
+    </div>
+
+    <div>
+      <div class="stat-box">
+        <div class="stat-box-hdr">The Gameweek by Numbers</div>
+        <div class="stat-row" style="background:var(--row-alt);">
+          <span class="stat-label">Gameweek 1</span><span></span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Manager of the Week</span>
+          <span class="stat-val">Darius Goodarzi <span class="muted" style="font-weight:400">92 pts</span></span>
+        </div>
+        
+        
+        
+        
+        
+        <div class="stat-row">
+          <span class="stat-label">Mini League Avg vs FPL</span>
+          
+          <span class="stat-val pos">+5</span>
+        </div>
+        
+        <div class="stat-row">
+          <span class="stat-label">League Average</span>
+          <span class="stat-val">58.8 pts</span>
+        </div>
+        
+        <div class="stat-row">
+          <span class="stat-label">FPL Average</span>
+          <span class="stat-val">54 pts</span>
+        </div>
+        
+        <div class="stat-row">
+          <span class="stat-label">Average Captain Return</span>
+          <span class="stat-val">17.8 pts</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <h3 class="sub-title">GW1 Score Breakdown</h3>
+  
+  
+  
+  <div class="bar-chart" id="gw-breakdown-bars">
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">Livin&#39; Saliba Loca</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:100.0%">
+          <div class="bar-seg base" style="flex:79" title="Base: 79"></div>
+          <div class="bar-seg captain" style="flex:13" title="Captain: +13"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">92 <span style="font-size:9px;color:var(--muted)">bboost</span></span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">TML ⭐️⭐️</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:82.6%">
+          <div class="bar-seg base" style="flex:63" title="Base: 63"></div>
+          <div class="bar-seg captain" style="flex:13" title="Captain: +13"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">76</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">Bluehomie (YouTube)</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:81.5%">
+          <div class="bar-seg base" style="flex:62" title="Base: 62"></div>
+          <div class="bar-seg captain" style="flex:13" title="Captain: +13"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">75 <span style="font-size:9px;color:var(--muted)">bboost</span></span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">No Name</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:81.5%">
+          <div class="bar-seg base" style="flex:62" title="Base: 62"></div>
+          <div class="bar-seg captain" style="flex:13" title="Captain: +13"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">75</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">Releven Tigers FC</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:75.0%">
+          <div class="bar-seg base" style="flex:61" title="Base: 61"></div>
+          <div class="bar-seg captain" style="flex:8" title="Captain: +8"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">69</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">son of a doge ⭐️⭐️</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:73.9%">
+          <div class="bar-seg base" style="flex:60" title="Base: 60"></div>
+          <div class="bar-seg captain" style="flex:8" title="Captain: +8"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">68</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">Caesar ⭐</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:69.6%">
+          <div class="bar-seg base" style="flex:51" title="Base: 51"></div>
+          <div class="bar-seg captain" style="flex:13" title="Captain: +13"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">64</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">Luceros</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:69.6%">
+          <div class="bar-seg base" style="flex:51" title="Base: 51"></div>
+          <div class="bar-seg captain" style="flex:13" title="Captain: +13"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">64</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">Skill McGill</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:66.3%">
+          <div class="bar-seg base" style="flex:53" title="Base: 53"></div>
+          <div class="bar-seg captain" style="flex:8" title="Captain: +8"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">61</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">Arteta Ballers</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:66.3%">
+          <div class="bar-seg base" style="flex:48" title="Base: 48"></div>
+          <div class="bar-seg captain" style="flex:13" title="Captain: +13"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">61</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">Pamparam ⭐️ ⭐️ ⭐️</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:62.0%">
+          <div class="bar-seg base" style="flex:49" title="Base: 49"></div>
+          <div class="bar-seg captain" style="flex:8" title="Captain: +8"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">57</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">TODHFODH FC</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:62.0%">
+          <div class="bar-seg base" style="flex:49" title="Base: 49"></div>
+          <div class="bar-seg captain" style="flex:8" title="Captain: +8"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">57</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">Twickers United</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:59.8%">
+          <div class="bar-seg base" style="flex:47" title="Base: 47"></div>
+          <div class="bar-seg captain" style="flex:8" title="Captain: +8"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">55</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">FC MarRow</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:59.8%">
+          <div class="bar-seg base" style="flex:47" title="Base: 47"></div>
+          <div class="bar-seg captain" style="flex:8" title="Captain: +8"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">55</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">The Refugees</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:58.7%">
+          <div class="bar-seg base" style="flex:46" title="Base: 46"></div>
+          <div class="bar-seg captain" style="flex:8" title="Captain: +8"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">54</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">Papua New Quinney</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:50.0%">
+          <div class="bar-seg base" style="flex:38" title="Base: 38"></div>
+          <div class="bar-seg captain" style="flex:8" title="Captain: +8"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">46</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">Project X</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:48.9%">
+          <div class="bar-seg base" style="flex:37" title="Base: 37"></div>
+          <div class="bar-seg captain" style="flex:8" title="Captain: +8"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">45</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">Saka FC</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:47.8%">
+          <div class="bar-seg base" style="flex:41" title="Base: 41"></div>
+          <div class="bar-seg captain" style="flex:3" title="Captain: +3"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">44</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">Change Name</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:46.7%">
+          <div class="bar-seg base" style="flex:35" title="Base: 35"></div>
+          <div class="bar-seg captain" style="flex:8" title="Captain: +8"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">43</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">Vault 101 XI</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:44.6%">
+          <div class="bar-seg base" style="flex:39" title="Base: 39"></div>
+          <div class="bar-seg captain" style="flex:2" title="Captain: +2"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">41</span>
+    </div>
+    
+    
+    
+    <div class="bar-row">
+      <span class="bar-label">AntiAlgoFPL</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:35.9%">
+          <div class="bar-seg base" style="flex:30" title="Base: 30"></div>
+          <div class="bar-seg captain" style="flex:3" title="Captain: +3"></div>
+          
+        </div>
+        
+      </div>
+      <span class="bar-val">33</span>
+    </div>
+    
+    <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:8px; font-size:10px; color:var(--muted);">
+      <span><span style="display:inline-block;width:10px;height:8px;background:var(--slate);border-radius:1px;"></span> Base</span>
+      <span><span style="display:inline-block;width:10px;height:8px;background:#3498db;border-radius:1px;"></span> Captain</span>
+      <span><span style="display:inline-block;width:10px;height:8px;background:var(--green);border-radius:1px;"></span> Tx Gain</span>
+      <span><span style="display:inline-block;width:10px;height:8px;background:#f39c12;border-radius:1px;"></span> Tx Loss</span>
+      <span><span style="display:inline-block;width:10px;height:8px;background:var(--red);border-radius:1px;"></span> Hits</span>
+    </div>
+  </div>
+
+  
+  <div class="chart-container" id="gw-breakdown-container" style="height:752px; display:none;">
+    <canvas id="chart-gw-breakdown"></canvas>
+  </div>
+</div>
+
+
+<div id="transfers" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">3. Transfer Roundup</div>
+    <div class="section-sub">TML</div>
+  </div>
+  <div class="section-right">Gameweek 1</div>
+</div>
+
+
+  
+  <p class="muted">No transfers this gameweek.</p>
+  
+</div>
+
+
+<div id="captains" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">4. Captain&#39;s Corner</div>
+    <div class="section-sub">TML</div>
+  </div>
+  <div class="section-right">Gameweek 1</div>
+</div>
+
+
+  <div class="two-col">
+    <div>
+      
+      <h3 class="sub-title">Most Captained in League since GW1</h3>
+      <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Player</th><th class="num">Captained</th><th class="num">Percent</th><th class="num">Avg Pts*</th></tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td class="bold">M.Salah</td>
+            <td class="num">11 times</td>
+            <td class="num">52.4%</td>
+            <td class="num">8.0</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Haaland</td>
+            <td class="num">7 times</td>
+            <td class="num">33.3%</td>
+            <td class="num">13.0</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Saka</td>
+            <td class="num">1 times</td>
+            <td class="num">4.8%</td>
+            <td class="num">3.0</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Palmer</td>
+            <td class="num">1 times</td>
+            <td class="num">4.8%</td>
+            <td class="num">3.0</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Wirtz</td>
+            <td class="num">1 times</td>
+            <td class="num">4.8%</td>
+            <td class="num">2.0</td>
+          </tr>
+          
+        </tbody>
+      </table>
+      </div>
+      <div style="font-size:11px; color:var(--muted); margin-top:-10px;">*Average points when captained in mini-league</div>
+      
+    </div>
+
+    <div>
+      
+      <h3 class="sub-title">GW1 Captain Picks</h3>
+      <p style="margin-bottom:8px; font-size:12px;">League average captain return: <strong>17.8</strong> pts</p>
+      <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Manager</th><th>Captain</th><th class="num">Raw</th><th class="num">Effective</th></tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td>Sunny Sharma</td>
+            <td class="bold">Haaland</td>
+            <td class="num">13</td>
+            <td class="num bold">26</td>
+          </tr>
+          
+          <tr>
+            <td>Bluehomie -YouTube-</td>
+            <td class="bold">Haaland</td>
+            <td class="num">13</td>
+            <td class="num bold">26</td>
+          </tr>
+          
+          <tr>
+            <td>Aman Sharma</td>
+            <td class="bold">Haaland</td>
+            <td class="num">13</td>
+            <td class="num bold">26</td>
+          </tr>
+          
+          <tr>
+            <td>Claude-Noel Tamakloe</td>
+            <td class="bold">Haaland</td>
+            <td class="num">13</td>
+            <td class="num bold">26</td>
+          </tr>
+          
+          <tr>
+            <td>Darius Goodarzi</td>
+            <td class="bold">Haaland</td>
+            <td class="num">13</td>
+            <td class="num bold">26</td>
+          </tr>
+          
+          <tr>
+            <td>Akash Patel</td>
+            <td class="bold">Haaland</td>
+            <td class="num">13</td>
+            <td class="num bold">26</td>
+          </tr>
+          
+          <tr>
+            <td>Kelvin Ampene</td>
+            <td class="bold">Haaland</td>
+            <td class="num">13</td>
+            <td class="num bold">26</td>
+          </tr>
+          
+          <tr>
+            <td>Milen Kindekov</td>
+            <td class="bold">M.Salah</td>
+            <td class="num">8</td>
+            <td class="num bold">16</td>
+          </tr>
+          
+          <tr>
+            <td>Kartar Gill</td>
+            <td class="bold">M.Salah</td>
+            <td class="num">8</td>
+            <td class="num bold">16</td>
+          </tr>
+          
+          <tr>
+            <td>Nnaemeka Ezugwu</td>
+            <td class="bold">M.Salah</td>
+            <td class="num">8</td>
+            <td class="num bold">16</td>
+          </tr>
+          
+          <tr>
+            <td>Sahil Vora</td>
+            <td class="bold">M.Salah</td>
+            <td class="num">8</td>
+            <td class="num bold">16</td>
+          </tr>
+          
+          <tr>
+            <td>Stephen Rudd</td>
+            <td class="bold">M.Salah</td>
+            <td class="num">8</td>
+            <td class="num bold">16</td>
+          </tr>
+          
+          <tr>
+            <td>Jay Curtis</td>
+            <td class="bold">M.Salah</td>
+            <td class="num">8</td>
+            <td class="num bold">16</td>
+          </tr>
+          
+          <tr>
+            <td>M B</td>
+            <td class="bold">M.Salah</td>
+            <td class="num">8</td>
+            <td class="num bold">16</td>
+          </tr>
+          
+          <tr>
+            <td>Martin Borizanov</td>
+            <td class="bold">M.Salah</td>
+            <td class="num">8</td>
+            <td class="num bold">16</td>
+          </tr>
+          
+          <tr>
+            <td>Adam Quinney</td>
+            <td class="bold">M.Salah</td>
+            <td class="num">8</td>
+            <td class="num bold">16</td>
+          </tr>
+          
+          <tr>
+            <td>Aarif Kassam</td>
+            <td class="bold">M.Salah</td>
+            <td class="num">8</td>
+            <td class="num bold">16</td>
+          </tr>
+          
+          <tr>
+            <td>Kris McCarthy</td>
+            <td class="bold">M.Salah</td>
+            <td class="num">8</td>
+            <td class="num bold">16</td>
+          </tr>
+          
+          <tr>
+            <td>Chris B</td>
+            <td class="bold">Saka</td>
+            <td class="num">3</td>
+            <td class="num bold">6</td>
+          </tr>
+          
+          <tr>
+            <td>Amit Putty</td>
+            <td class="bold">Palmer</td>
+            <td class="num">3</td>
+            <td class="num bold">6</td>
+          </tr>
+          
+          <tr>
+            <td>ALEXIS DRITSAS</td>
+            <td class="bold">Wirtz</td>
+            <td class="num">2</td>
+            <td class="num bold">4</td>
+          </tr>
+          
+        </tbody>
+      </table>
+      </div>
+      
+    </div>
+  </div>
+
+  
+  <h3 class="sub-title">Teacher's Pets &mdash; Season Captain Points</h3>
+  
+  <div class="bar-chart">
+    
+    <div class="bar-row">
+      <span class="bar-label">No Name</span>
+      <div class="bar-track">
+        <div class="bar-fill green"
+             style="width: 100%"></div>
+      </div>
+      <span class="bar-val">26</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">Bluehomie (YouTube)</span>
+      <div class="bar-track">
+        <div class="bar-fill green"
+             style="width: 100%"></div>
+      </div>
+      <span class="bar-val">26</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">Caesar ⭐</span>
+      <div class="bar-track">
+        <div class="bar-fill green"
+             style="width: 100%"></div>
+      </div>
+      <span class="bar-val">26</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">TML ⭐️⭐️</span>
+      <div class="bar-track">
+        <div class="bar-fill slate"
+             style="width: 100%"></div>
+      </div>
+      <span class="bar-val">26</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">Livin&#39; Saliba Loca</span>
+      <div class="bar-track">
+        <div class="bar-fill slate"
+             style="width: 100%"></div>
+      </div>
+      <span class="bar-val">26</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">Luceros</span>
+      <div class="bar-track">
+        <div class="bar-fill slate"
+             style="width: 100%"></div>
+      </div>
+      <span class="bar-val">26</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">Arteta Ballers</span>
+      <div class="bar-track">
+        <div class="bar-fill slate"
+             style="width: 100%"></div>
+      </div>
+      <span class="bar-val">26</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">Project X</span>
+      <div class="bar-track">
+        <div class="bar-fill slate"
+             style="width: 61%"></div>
+      </div>
+      <span class="bar-val">16</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">Pamparam ⭐️ ⭐️ ⭐️</span>
+      <div class="bar-track">
+        <div class="bar-fill slate"
+             style="width: 61%"></div>
+      </div>
+      <span class="bar-val">16</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">son of a doge ⭐️⭐️</span>
+      <div class="bar-track">
+        <div class="bar-fill slate"
+             style="width: 61%"></div>
+      </div>
+      <span class="bar-val">16</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">Releven Tigers FC</span>
+      <div class="bar-track">
+        <div class="bar-fill slate"
+             style="width: 61%"></div>
+      </div>
+      <span class="bar-val">16</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">Twickers United</span>
+      <div class="bar-track">
+        <div class="bar-fill slate"
+             style="width: 61%"></div>
+      </div>
+      <span class="bar-val">16</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">Skill McGill</span>
+      <div class="bar-track">
+        <div class="bar-fill slate"
+             style="width: 61%"></div>
+      </div>
+      <span class="bar-val">16</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">Papua New Quinney</span>
+      <div class="bar-track">
+        <div class="bar-fill slate"
+             style="width: 61%"></div>
+      </div>
+      <span class="bar-val">16</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">FC MarRow</span>
+      <div class="bar-track">
+        <div class="bar-fill slate"
+             style="width: 61%"></div>
+      </div>
+      <span class="bar-val">16</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">The Refugees</span>
+      <div class="bar-track">
+        <div class="bar-fill slate"
+             style="width: 61%"></div>
+      </div>
+      <span class="bar-val">16</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">TODHFODH FC</span>
+      <div class="bar-track">
+        <div class="bar-fill slate"
+             style="width: 61%"></div>
+      </div>
+      <span class="bar-val">16</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">Change Name</span>
+      <div class="bar-track">
+        <div class="bar-fill slate"
+             style="width: 61%"></div>
+      </div>
+      <span class="bar-val">16</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">AntiAlgoFPL</span>
+      <div class="bar-track">
+        <div class="bar-fill red"
+             style="width: 23%"></div>
+      </div>
+      <span class="bar-val">6</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">Saka FC</span>
+      <div class="bar-track">
+        <div class="bar-fill red"
+             style="width: 23%"></div>
+      </div>
+      <span class="bar-val">6</span>
+    </div>
+    
+    <div class="bar-row">
+      <span class="bar-label">Vault 101 XI</span>
+      <div class="bar-track">
+        <div class="bar-fill red"
+             style="width: 15%"></div>
+      </div>
+      <span class="bar-val">4</span>
+    </div>
+    
+  </div>
+  
+</div>
+
+
+<div id="chips" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">5. The Croupier</div>
+    <div class="section-sub">Chip usage across the league</div>
+  </div>
+  <div class="section-right">Gameweek 1</div>
+</div>
+
+
+  
+  
+  
+  <h3 class="sub-title">Chip Usage &amp; Value</h3>
+  <p style="font-size:10px; color:var(--muted); margin-bottom:8px;">WC = 5-GW gain over old team &middot; FH = GW pts over previous team &middot; BB = bench pts &middot; TC = extra captain multiplier. Ranked by total chip value.</p>
+  <div class="table-wrap">
+  <table class="wide-table">
+    <thead>
+      <tr>
+        <th rowspan="3" style="vertical-align:bottom">#</th>
+        <th rowspan="3" style="vertical-align:bottom">Team</th>
+        <th colspan="4" class="ctr" style="border-bottom:2px solid #3498db">Wild Card</th>
+        <th colspan="4" class="ctr" style="border-bottom:2px solid #e74c3c">Free Hit</th>
+        <th colspan="4" class="ctr" style="border-bottom:2px solid #9b59b6">Triple Captain</th>
+        <th colspan="4" class="ctr" style="border-bottom:2px solid #f39c12">Bench Boost</th>
+        <th rowspan="3" class="num" style="vertical-align:bottom">Total</th>
+      </tr>
+      <tr>
+        
+        <th colspan="2" class="ctr" style="font-size:9px">1</th>
+        <th colspan="2" class="ctr" style="font-size:9px">2</th>
+        
+        <th colspan="2" class="ctr" style="font-size:9px">1</th>
+        <th colspan="2" class="ctr" style="font-size:9px">2</th>
+        
+        <th colspan="2" class="ctr" style="font-size:9px">1</th>
+        <th colspan="2" class="ctr" style="font-size:9px">2</th>
+        
+        <th colspan="2" class="ctr" style="font-size:9px">1</th>
+        <th colspan="2" class="ctr" style="font-size:9px">2</th>
+        
+      </tr>
+      <tr>
+        
+        <th class="ctr" style="font-size:8px">GW</th>
+        <th class="num" style="font-size:8px">Pts</th>
+        
+        <th class="ctr" style="font-size:8px">GW</th>
+        <th class="num" style="font-size:8px">Pts</th>
+        
+        <th class="ctr" style="font-size:8px">GW</th>
+        <th class="num" style="font-size:8px">Pts</th>
+        
+        <th class="ctr" style="font-size:8px">GW</th>
+        <th class="num" style="font-size:8px">Pts</th>
+        
+        <th class="ctr" style="font-size:8px">GW</th>
+        <th class="num" style="font-size:8px">Pts</th>
+        
+        <th class="ctr" style="font-size:8px">GW</th>
+        <th class="num" style="font-size:8px">Pts</th>
+        
+        <th class="ctr" style="font-size:8px">GW</th>
+        <th class="num" style="font-size:8px">Pts</th>
+        
+        <th class="ctr" style="font-size:8px">GW</th>
+        <th class="num" style="font-size:8px">Pts</th>
+        
+      </tr>
+    </thead>
+    <tbody>
+      
+      
+      <tr data-manager="livin&#39; saliba loca">
+        <td class="ctr bold">1</td>
+        <td class="bold">Livin&#39; Saliba Loca</td>
+        
+        
+        <td class="ctr">&mdash;</td>
+        <td class="num">&mdash;</td>
+        
+        <td class="ctr">&mdash;</td>
+        <td class="num">&mdash;</td>
+        
+        
+        <td class="ctr">&mdash;</td>
+        <td class="num">&mdash;</td>
+        
+        <td class="ctr">&mdash;</td>
+        <td class="num">&mdash;</td>
+        
+        
+        <td class="ctr">&mdash;</td>
+        <td class="num">&mdash;</td>
+        
+        <td class="ctr">&mdash;</td>
+        <td class="num">&mdash;</td>
+        
+        
+        <td class="ctr"><span class="chip-used" style="background:#f39c12">GW1</span></td>
+        <td class="num">24</td>
+        
+        <td class="ctr">&mdash;</td>
+        <td class="num">&mdash;</td>
+        
+        <td class="num bold">24</td>
+      </tr>
+      
+      
+      <tr data-manager="bluehomie (youtube)">
+        <td class="ctr bold">2</td>
+        <td class="bold">Bluehomie (YouTube)</td>
+        
+        
+        <td class="ctr">&mdash;</td>
+        <td class="num">&mdash;</td>
+        
+        <td class="ctr">&mdash;</td>
+        <td class="num">&mdash;</td>
+        
+        
+        <td class="ctr">&mdash;</td>
+        <td class="num">&mdash;</td>
+        
+        <td class="ctr">&mdash;</td>
+        <td class="num">&mdash;</td>
+        
+        
+        <td class="ctr">&mdash;</td>
+        <td class="num">&mdash;</td>
+        
+        <td class="ctr">&mdash;</td>
+        <td class="num">&mdash;</td>
+        
+        
+        <td class="ctr"><span class="chip-used" style="background:#f39c12">GW1</span></td>
+        <td class="num">20</td>
+        
+        <td class="ctr">&mdash;</td>
+        <td class="num">&mdash;</td>
+        
+        <td class="num bold">20</td>
+      </tr>
+      
+    </tbody>
+  </table>
+  </div>
+  
+
+  
+  
+  <h3 class="sub-title">Chip Rankings</h3>
+  <div style="margin-bottom:10px;">
+    <label for="chip-filter" style="font-size:12px; font-weight:600; color:var(--slate);">Filter by chip:</label>
+    <select id="chip-filter" style="padding:4px 8px; font-size:12px; border:1px solid var(--border); border-radius:3px; background:var(--card); color:var(--text);">
+      <option value="all">All Chips</option>
+      <option value="wildcard">Wildcard</option>
+      <option value="freehit">Free Hit</option>
+      <option value="bboost">Bench Boost</option>
+      <option value="3xc">Triple Captain</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+  <table id="chip-ranking-table">
+    <thead>
+      <tr>
+        <th class="ctr">#</th>
+        <th>Team</th>
+        <th>Chip</th>
+        <th class="ctr">Usage</th>
+        <th class="ctr">GW</th>
+        <th class="num">Points</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      <tr data-chip="bboost">
+        <td class="ctr bold">1</td>
+        <td class="bold">Livin&#39; Saliba Loca</td>
+        <td><span class="chip-used" style="background:#f39c12">Bench Boost</span></td>
+        <td class="ctr">1st</td>
+        <td class="ctr">1</td>
+        <td class="num bold">24</td>
+      </tr>
+      
+      <tr data-chip="bboost">
+        <td class="ctr bold">2</td>
+        <td class="bold">Bluehomie (YouTube)</td>
+        <td><span class="chip-used" style="background:#f39c12">Bench Boost</span></td>
+        <td class="ctr">1st</td>
+        <td class="ctr">1</td>
+        <td class="num bold">20</td>
+      </tr>
+      
+    </tbody>
+  </table>
+  </div>
+  
+
+  
+  
+  <h3 class="sub-title">Top 5 Chip Scores (Season)</h3>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="ctr">#</th>
+        <th>Team</th>
+        <th>Chip</th>
+        <th class="ctr">GW</th>
+        <th class="num">Points</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      <tr>
+        <td class="ctr bold">1</td>
+        <td class="bold">Livin&#39; Saliba Loca</td>
+        <td><span class="chip-used" style="background:#f39c12">Bench Boost</span></td>
+        <td class="ctr">1</td>
+        <td class="num bold">24</td>
+      </tr>
+      
+      <tr>
+        <td class="ctr bold">2</td>
+        <td class="bold">Bluehomie (YouTube)</td>
+        <td><span class="chip-used" style="background:#f39c12">Bench Boost</span></td>
+        <td class="ctr">1</td>
+        <td class="num bold">20</td>
+      </tr>
+      
+    </tbody>
+  </table>
+  </div>
+  
+
+  
+  
+</div>
+
+
+<div id="ticker" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">6. Transfer Ticker</div>
+    <div class="section-sub">Individual transfers ranked by net points</div>
+  </div>
+  <div class="section-right">Gameweek 1</div>
+</div>
+
+
+  
+  <p class="muted">No transfers this gameweek.</p>
+  
+</div>
+
+
+<div id="motm" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">7. Manager of the Month</div>
+    <div class="section-sub">Based on GW deadline date</div>
+  </div>
+  <div class="section-right">Gameweek 1</div>
+</div>
+
+
+  
+  <div class="month-grid">
+    
+    <div class="month-card">
+      <div class="month-name">August</div>
+      <div class="month-winner">Livin&#39; Saliba Loca</div>
+      <div style="font-size:10px; color:var(--muted);">Darius Goodarzi</div>
+      <div class="month-pts">92 pts <span style="font-size:11px; font-weight:600; color:var(--muted);">(92.0/gw)</span></div>
+      
+      <div class="month-runners">
+        
+        <div class="month-runner">2. TML ⭐️⭐️ <span class="muted">76</span></div>
+        
+        <div class="month-runner">3. No Name <span class="muted">75</span></div>
+        
+      </div>
+      
+    </div>
+    
+  </div>
+  
+</div>
+
+
+<div id="scout" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">8. Scout Report</div>
+    <div class="section-sub">xG-based performance analysis</div>
+  </div>
+  <div class="section-right">Gameweek 1</div>
+</div>
+
+
+  <div class="two-col">
+    <div>
+      <h3 class="sub-title">Over-Performers &mdash; GW1</h3>
+      <p style="font-size:11px; color:var(--muted); margin-bottom:8px;">Players who scored more than expected (actual &minus; xPts)</p>
+      
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Player</th><th>Team</th><th class="num">Actual</th><th class="num">xPts</th><th class="num">Diff</th></tr></thead>
+        <tbody>
+          
+          <tr>
+            <td class="bold">Ballard</td>
+            <td>SUN</td>
+            <td class="num">17</td>
+            <td class="num muted">8.1</td>
+            <td class="num pos bold">+8.9</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Reijnders</td>
+            <td>MCI</td>
+            <td class="num">10</td>
+            <td class="num muted">3.0</td>
+            <td class="num pos bold">+7.0</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Mitchell</td>
+            <td>CRY</td>
+            <td class="num">9</td>
+            <td class="num muted">3.0</td>
+            <td class="num pos bold">+6.0</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Lacroix</td>
+            <td>CRY</td>
+            <td class="num">8</td>
+            <td class="num muted">2.0</td>
+            <td class="num pos bold">+6.0</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Saliba</td>
+            <td>ARS</td>
+            <td class="num">9</td>
+            <td class="num muted">3.1</td>
+            <td class="num pos bold">+5.9</td>
+          </tr>
+          
+        </tbody>
+      </table>
+      </div>
+      
+    </div>
+
+    <div>
+      <h3 class="sub-title">Under-Performers &mdash; GW1</h3>
+      <p style="font-size:11px; color:var(--muted); margin-bottom:8px;">Players who scored less than expected (actual &minus; xPts)</p>
+      
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Player</th><th>Team</th><th class="num">Actual</th><th class="num">xPts</th><th class="num">Diff</th></tr></thead>
+        <tbody>
+          
+          <tr>
+            <td class="bold">Diouf</td>
+            <td>WHU</td>
+            <td class="num">1</td>
+            <td class="num muted">4.9</td>
+            <td class="num neg bold">-3.9</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Anthony</td>
+            <td>BUR</td>
+            <td class="num">2</td>
+            <td class="num muted">5.4</td>
+            <td class="num neg bold">-3.4</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Elanga</td>
+            <td>NEW</td>
+            <td class="num">3</td>
+            <td class="num muted">5.9</td>
+            <td class="num neg bold">-2.9</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Wan-Bissaka</td>
+            <td>WHU</td>
+            <td class="num">1</td>
+            <td class="num muted">3.9</td>
+            <td class="num neg bold">-2.9</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Todibo</td>
+            <td>WHU</td>
+            <td class="num">1</td>
+            <td class="num muted">3.8</td>
+            <td class="num neg bold">-2.8</td>
+          </tr>
+          
+        </tbody>
+      </table>
+      </div>
+      
+    </div>
+  </div>
+
+  
+  <h3 class="sub-title">Season xGI Leaders</h3>
+  <p style="font-size:11px; color:var(--muted); margin-bottom:8px;">Top 20 players by expected goal involvements &mdash; &ldquo;League Owners&rdquo; = managers in your league who own them</p>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:28px">#</th>
+        <th>Player</th>
+        <th>Team</th>
+        <th class="num">xG</th>
+        <th class="num">xA</th>
+        <th class="num">xGI</th>
+        <th class="num">Actual Pts</th>
+        <th class="num">League Owners</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      <tr>
+        <td class="rank-cell">1</td>
+        <td class="bold">Haaland</td>
+        <td>MCI</td>
+        <td class="num">2.0</td>
+        <td class="num">0.0</td>
+        <td class="num bold">2.0</td>
+        <td class="num">13</td>
+        <td class="num">8</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">2</td>
+        <td class="bold">Ekitiké</td>
+        <td>LIV</td>
+        <td class="num">1.1</td>
+        <td class="num">0.0</td>
+        <td class="num bold">1.2</td>
+        <td class="num">11</td>
+        <td class="num">3</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">3</td>
+        <td class="bold">Wood</td>
+        <td>NFO</td>
+        <td class="num">0.9</td>
+        <td class="num">0.0</td>
+        <td class="num bold">1.0</td>
+        <td class="num">13</td>
+        <td class="num">1</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">4</td>
+        <td class="bold">O&#39;Riley</td>
+        <td>BHA</td>
+        <td class="num">0.8</td>
+        <td class="num">0.1</td>
+        <td class="num bold">0.9</td>
+        <td class="num">10</td>
+        <td class="num">0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">5</td>
+        <td class="bold">Semenyo</td>
+        <td>MCI</td>
+        <td class="num">0.9</td>
+        <td class="num">0.0</td>
+        <td class="num bold">0.9</td>
+        <td class="num">15</td>
+        <td class="num">2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">6</td>
+        <td class="bold">Thiago</td>
+        <td>BRE</td>
+        <td class="num">0.9</td>
+        <td class="num">0.0</td>
+        <td class="num bold">0.9</td>
+        <td class="num">6</td>
+        <td class="num">0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">7</td>
+        <td class="bold">Calafiori</td>
+        <td>ARS</td>
+        <td class="num">0.9</td>
+        <td class="num">0.0</td>
+        <td class="num bold">0.9</td>
+        <td class="num">13</td>
+        <td class="num">0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">8</td>
+        <td class="bold">Nmecha</td>
+        <td>LEE</td>
+        <td class="num">0.8</td>
+        <td class="num">0.0</td>
+        <td class="num bold">0.9</td>
+        <td class="num">5</td>
+        <td class="num">0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">9</td>
+        <td class="bold">Anthony</td>
+        <td>BUR</td>
+        <td class="num">0.4</td>
+        <td class="num">0.4</td>
+        <td class="num bold">0.8</td>
+        <td class="num">2</td>
+        <td class="num">0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">10</td>
+        <td class="bold">Richarlison</td>
+        <td>TOT</td>
+        <td class="num">0.8</td>
+        <td class="num">0.0</td>
+        <td class="num bold">0.8</td>
+        <td class="num">13</td>
+        <td class="num">1</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">11</td>
+        <td class="bold">Estêvão</td>
+        <td>CHE</td>
+        <td class="num">0.3</td>
+        <td class="num">0.4</td>
+        <td class="num bold">0.7</td>
+        <td class="num">0</td>
+        <td class="num">0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">12</td>
+        <td class="bold">Anderson</td>
+        <td>NFO</td>
+        <td class="num">0.4</td>
+        <td class="num">0.3</td>
+        <td class="num bold">0.7</td>
+        <td class="num">6</td>
+        <td class="num">5</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">13</td>
+        <td class="bold">Gibbs-White</td>
+        <td>NFO</td>
+        <td class="num">0.4</td>
+        <td class="num">0.3</td>
+        <td class="num bold">0.7</td>
+        <td class="num">5</td>
+        <td class="num">0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">14</td>
+        <td class="bold">Kudus</td>
+        <td>TOT</td>
+        <td class="num">0.1</td>
+        <td class="num">0.6</td>
+        <td class="num bold">0.6</td>
+        <td class="num">10</td>
+        <td class="num">8</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">15</td>
+        <td class="bold">Gakpo</td>
+        <td>LIV</td>
+        <td class="num">0.2</td>
+        <td class="num">0.4</td>
+        <td class="num bold">0.6</td>
+        <td class="num">7</td>
+        <td class="num">1</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">16</td>
+        <td class="bold">Elanga</td>
+        <td>NEW</td>
+        <td class="num">0.6</td>
+        <td class="num">0.1</td>
+        <td class="num bold">0.6</td>
+        <td class="num">3</td>
+        <td class="num">1</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">17</td>
+        <td class="bold">Van de Ven</td>
+        <td>TOT</td>
+        <td class="num">0.6</td>
+        <td class="num">0.0</td>
+        <td class="num bold">0.6</td>
+        <td class="num">6</td>
+        <td class="num">10</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">18</td>
+        <td class="bold">Lewis</td>
+        <td>MCI</td>
+        <td class="num">0.0</td>
+        <td class="num">0.6</td>
+        <td class="num bold">0.6</td>
+        <td class="num">11</td>
+        <td class="num">0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">19</td>
+        <td class="bold">Gordon</td>
+        <td>NEW</td>
+        <td class="num">0.6</td>
+        <td class="num">0.0</td>
+        <td class="num bold">0.6</td>
+        <td class="num">3</td>
+        <td class="num">0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">20</td>
+        <td class="bold">Stach</td>
+        <td>LEE</td>
+        <td class="num">0.3</td>
+        <td class="num">0.3</td>
+        <td class="num bold">0.6</td>
+        <td class="num">8</td>
+        <td class="num">1</td>
+      </tr>
+      
+    </tbody>
+  </table>
+  </div>
+  
+</div>
+
+
+<div id="xpts" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">9. Who Should Be Top</div>
+    <div class="section-sub">Expected Points (xPts) Leaderboard</div>
+  </div>
+  <div class="section-right">Gameweek 1</div>
+</div>
+
+
+  <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">
+    xPts uses expected goals, assists, and clean sheet probability (Poisson model) plus actual defensive stats (saves, bonus, cards).
+    Positive diff = <span class="pos">overperforming</span>, negative = <span class="neg">underperforming</span>.
+  </p>
+
+  <div class="luck-cards">
+    <div class="stat-box">
+      <div class="stat-box-hdr" style="background:var(--green);">Luckiest Managers</div>
+      
+      <div class="stat-row">
+        <span class="stat-label">son of a doge ⭐️⭐️</span>
+        <span class="stat-val pos">+19.3</span>
+      </div>
+      
+      <div class="stat-row">
+        <span class="stat-label">Releven Tigers FC</span>
+        <span class="stat-val pos">+18.2</span>
+      </div>
+      
+      <div class="stat-row">
+        <span class="stat-label">Skill McGill</span>
+        <span class="stat-val pos">+12.4</span>
+      </div>
+      
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-hdr" style="background:var(--red);">Unluckiest Managers</div>
+      
+      <div class="stat-row">
+        <span class="stat-label">Bluehomie (YouTube)</span>
+        <span class="stat-val neg">2.0</span>
+      </div>
+      
+      <div class="stat-row">
+        <span class="stat-label">Vault 101 XI</span>
+        <span class="stat-val neg">-0.8</span>
+      </div>
+      
+      <div class="stat-row">
+        <span class="stat-label">AntiAlgoFPL</span>
+        <span class="stat-val neg">-5.3</span>
+      </div>
+      
+    </div>
+  </div>
+
+  
+  
+  
+  <h3 class="sub-title">xPts vs Actual</h3>
+  <div class="bar-chart" id="xpts-bars">
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Livin&#39; Saliba Loca</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:87%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:100%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+11</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Bluehomie (YouTube)</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:79%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:81%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+2</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">No Name</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:72%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:81%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+8</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">TML ⭐️⭐️</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:69%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:82%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+12</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Caesar ⭐</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:66%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:69%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+2</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Luceros</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:65%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:69%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+3</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Releven Tigers FC</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:55%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:75%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+18</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Arteta Ballers</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:54%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:66%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+11</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">son of a doge ⭐️⭐️</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:52%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:73%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+19</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Pamparam ⭐️ ⭐️ ⭐️</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:52%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:61%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+8</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Skill McGill</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:52%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:66%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+12</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">TODHFODH FC</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:52%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:61%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+9</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">FC MarRow</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:50%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:59%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+8</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Twickers United</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:48%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:59%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+10</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">The Refugees</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:48%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:58%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+10</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Vault 101 XI</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:45%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill red" style="width:44%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val neg">-1</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Papua New Quinney</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:43%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:50%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+6</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">AntiAlgoFPL</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:41%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill red" style="width:35%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val neg">-5</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Saka FC</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:39%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:47%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+8</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Project X</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:37%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:48%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+10</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Change Name</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:37%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:46%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+9</span>
+    </div>
+    
+    <div style="display:flex; gap:16px; justify-content:center; margin-top:8px; font-size:10px; color:var(--muted);">
+      <span><span style="display:inline-block;width:12px;height:8px;background:var(--muted);opacity:0.35;border-radius:1px;"></span> xPts</span>
+      <span><span style="display:inline-block;width:12px;height:8px;background:var(--green);border-radius:1px;"></span> Actual (lucky)</span>
+      <span><span style="display:inline-block;width:12px;height:8px;background:var(--red);border-radius:1px;"></span> Actual (unlucky)</span>
+    </div>
+  </div>
+  
+
+  
+  <div class="chart-container" id="xpts-scatter-container" style="height:400px; display:none;">
+    <canvas id="chart-xpts-scatter"></canvas>
+  </div>
+
+  
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="ctr" style="width:28px">xRank</th>
+        <th>Team</th>
+        <th>Manager</th>
+        <th class="num">xPts</th>
+        <th class="num">Actual</th>
+        <th class="num">Diff</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      <tr>
+        <td class="rank-cell">1</td>
+        <td class="bold">Livin&#39; Saliba Loca</td>
+        <td>Darius Goodarzi</td>
+        <td class="num">80.9</td>
+        <td class="num bold">92</td>
+        <td class="num bold pos">+11.1</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">2</td>
+        <td class="bold">Bluehomie (YouTube)</td>
+        <td>Bluehomie -YouTube-</td>
+        <td class="num">73.0</td>
+        <td class="num bold">75</td>
+        <td class="num bold pos">+2.0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">3</td>
+        <td class="bold">No Name</td>
+        <td>Akash Patel</td>
+        <td class="num">66.9</td>
+        <td class="num bold">75</td>
+        <td class="num bold pos">+8.1</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">4</td>
+        <td class="bold">TML ⭐️⭐️</td>
+        <td>Aman Sharma</td>
+        <td class="num">64.1</td>
+        <td class="num bold">76</td>
+        <td class="num bold pos">+11.9</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">5</td>
+        <td class="bold">Caesar ⭐</td>
+        <td>Sunny Sharma</td>
+        <td class="num">61.5</td>
+        <td class="num bold">64</td>
+        <td class="num bold pos">+2.5</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">6</td>
+        <td class="bold">Luceros</td>
+        <td>Claude-Noel Tamakloe</td>
+        <td class="num">60.6</td>
+        <td class="num bold">64</td>
+        <td class="num bold pos">+3.4</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">7</td>
+        <td class="bold">Releven Tigers FC</td>
+        <td>Stephen Rudd</td>
+        <td class="num">50.8</td>
+        <td class="num bold">69</td>
+        <td class="num bold pos">+18.2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">8</td>
+        <td class="bold">Arteta Ballers</td>
+        <td>Kelvin Ampene</td>
+        <td class="num">50.2</td>
+        <td class="num bold">61</td>
+        <td class="num bold pos">+10.8</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">9</td>
+        <td class="bold">son of a doge ⭐️⭐️</td>
+        <td>M B</td>
+        <td class="num">48.7</td>
+        <td class="num bold">68</td>
+        <td class="num bold pos">+19.3</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">10</td>
+        <td class="bold">Pamparam ⭐️ ⭐️ ⭐️</td>
+        <td>Milen Kindekov</td>
+        <td class="num">48.6</td>
+        <td class="num bold">57</td>
+        <td class="num bold pos">+8.4</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">11</td>
+        <td class="bold">Skill McGill</td>
+        <td>Kartar Gill</td>
+        <td class="num">48.6</td>
+        <td class="num bold">61</td>
+        <td class="num bold pos">+12.4</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">12</td>
+        <td class="bold">TODHFODH FC</td>
+        <td>Sahil Vora</td>
+        <td class="num">47.9</td>
+        <td class="num bold">57</td>
+        <td class="num bold pos">+9.1</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">13</td>
+        <td class="bold">FC MarRow</td>
+        <td>Kris McCarthy</td>
+        <td class="num">46.8</td>
+        <td class="num bold">55</td>
+        <td class="num bold pos">+8.2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">14</td>
+        <td class="bold">Twickers United</td>
+        <td>Martin Borizanov</td>
+        <td class="num">45.0</td>
+        <td class="num bold">55</td>
+        <td class="num bold pos">+10.0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">15</td>
+        <td class="bold">The Refugees</td>
+        <td>Aarif Kassam</td>
+        <td class="num">44.5</td>
+        <td class="num bold">54</td>
+        <td class="num bold pos">+9.5</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">16</td>
+        <td class="bold">Vault 101 XI</td>
+        <td>ALEXIS DRITSAS</td>
+        <td class="num">41.8</td>
+        <td class="num bold">41</td>
+        <td class="num bold neg">-0.8</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">17</td>
+        <td class="bold">Papua New Quinney</td>
+        <td>Adam Quinney</td>
+        <td class="num">40.0</td>
+        <td class="num bold">46</td>
+        <td class="num bold pos">+6.0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">18</td>
+        <td class="bold">AntiAlgoFPL</td>
+        <td>Amit Putty</td>
+        <td class="num">38.3</td>
+        <td class="num bold">33</td>
+        <td class="num bold neg">-5.3</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">19</td>
+        <td class="bold">Saka FC</td>
+        <td>Chris B</td>
+        <td class="num">36.4</td>
+        <td class="num bold">44</td>
+        <td class="num bold pos">+7.6</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">20</td>
+        <td class="bold">Project X</td>
+        <td>Nnaemeka Ezugwu</td>
+        <td class="num">34.7</td>
+        <td class="num bold">45</td>
+        <td class="num bold pos">+10.3</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">21</td>
+        <td class="bold">Change Name</td>
+        <td>Jay Curtis</td>
+        <td class="num">34.3</td>
+        <td class="num bold">43</td>
+        <td class="num bold pos">+8.7</td>
+      </tr>
+      
+    </tbody>
+  </table>
+  </div>
+  
+</div>
+
+
+<div id="progression" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">10. Season Progression</div>
+    <div class="section-sub">Per-manager journey through the season</div>
+  </div>
+  <div class="section-right">Gameweek 1</div>
+</div>
+
+
+  <div style="margin-bottom:12px;">
+    <label for="progression-select" style="font-size:12px; font-weight:600; color:var(--slate);">Select manager:</label>
+    <select id="progression-select" style="padding:4px 8px; font-size:12px; border:1px solid var(--border); border-radius:3px; background:var(--card); color:var(--text);">
+      
+      <option value="688665">Livin&#39; Saliba Loca (Darius Goodarzi)</option>
+      
+      <option value="353210">TML ⭐️⭐️ (Aman Sharma)</option>
+      
+      <option value="283505">Bluehomie (YouTube) (Bluehomie -YouTube-)</option>
+      
+      <option value="183289">No Name (Akash Patel)</option>
+      
+      <option value="783862">Releven Tigers FC (Stephen Rudd)</option>
+      
+      <option value="399887">son of a doge ⭐️⭐️ (M B)</option>
+      
+      <option value="332468">Caesar ⭐ (Sunny Sharma)</option>
+      
+      <option value="2552017">Luceros (Claude-Noel Tamakloe)</option>
+      
+      <option value="1368884">Skill McGill (Kartar Gill)</option>
+      
+      <option value="2844638">Arteta Ballers (Kelvin Ampene)</option>
+      
+      <option value="319258">Pamparam ⭐️ ⭐️ ⭐️ (Milen Kindekov)</option>
+      
+      <option value="6967740">TODHFODH FC (Sahil Vora)</option>
+      
+      <option value="939296">Twickers United (Martin Borizanov)</option>
+      
+      <option value="2875908">FC MarRow (Kris McCarthy)</option>
+      
+      <option value="6621143">The Refugees (Aarif Kassam)</option>
+      
+      <option value="2169092">Papua New Quinney (Adam Quinney)</option>
+      
+      <option value="44049">Project X (Nnaemeka Ezugwu)</option>
+      
+      <option value="4725749">Saka FC (Chris B)</option>
+      
+      <option value="7490363">Change Name (Jay Curtis)</option>
+      
+      <option value="3919386">Vault 101 XI (ALEXIS DRITSAS)</option>
+      
+      <option value="239187">AntiAlgoFPL (Amit Putty)</option>
+      
+    </select>
+  </div>
+
+  <div class="table-wrap">
+  <table id="progression-table">
+    <thead>
+      <tr>
+        <th class="ctr" style="width:50px">GW</th>
+        <th class="num">Points</th>
+        <th class="num">Total</th>
+        <th class="num">Overall Rank</th>
+        <th class="num">TML Rank</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      
+      <tr>
+        <td class="ctr">1</td>
+        <td class="num">92</td>
+        <td class="num">92</td>
+        <td class="num">19k</td>
+        <td class="num">1st</td>
+      </tr>
+      
+      
+    </tbody>
+  </table>
+  </div>
+</div>
+
+
+<div class="footer">
+  Generated by <strong>fpl-scraper</strong> &middot; Data: fantasy.premierleague.com &middot; 2026-06-06 07:51 UTC
+</div>
+
+</div>
+
+
+<script>
+(function() {
+  "use strict";
+
+  /* ---- data from Jinja ---- */
+  var seasonTable    = [{"entry_id": 688665, "entry_name": "Livin\u0027 Saliba Loca", "event": 1, "overall_rank": 19060, "player_name": "Darius Goodarzi", "points": 92, "tml_rank": 1, "total_points": 92}, {"entry_id": 353210, "entry_name": "TML \u2b50\ufe0f\u2b50\ufe0f", "event": 1, "overall_rank": 400600, "player_name": "Aman Sharma", "points": 76, "tml_rank": 2, "total_points": 76}, {"entry_id": 183289, "entry_name": "No Name", "event": 1, "overall_rank": 468092, "player_name": "Akash Patel", "points": 75, "tml_rank": 3, "total_points": 75}, {"entry_id": 283505, "entry_name": "Bluehomie (YouTube)", "event": 1, "overall_rank": 468092, "player_name": "Bluehomie -YouTube-", "points": 75, "tml_rank": 4, "total_points": 75}, {"entry_id": 783862, "entry_name": "Releven Tigers FC", "event": 1, "overall_rank": 1090649, "player_name": "Stephen Rudd", "points": 69, "tml_rank": 5, "total_points": 69}, {"entry_id": 399887, "entry_name": "son of a doge \u2b50\ufe0f\u2b50\ufe0f", "event": 1, "overall_rank": 1235729, "player_name": "M B", "points": 68, "tml_rank": 6, "total_points": 68}, {"entry_id": 332468, "entry_name": "Caesar \u2b50", "event": 1, "overall_rank": 1939861, "player_name": "Sunny Sharma", "points": 64, "tml_rank": 7, "total_points": 64}, {"entry_id": 2552017, "entry_name": "Luceros", "event": 1, "overall_rank": 1939861, "player_name": "Claude-Noel Tamakloe", "points": 64, "tml_rank": 8, "total_points": 64}, {"entry_id": 1368884, "entry_name": "Skill McGill", "event": 1, "overall_rank": 2607687, "player_name": "Kartar Gill", "points": 61, "tml_rank": 9, "total_points": 61}, {"entry_id": 2844638, "entry_name": "Arteta Ballers", "event": 1, "overall_rank": 2607687, "player_name": "Kelvin Ampene", "points": 61, "tml_rank": 10, "total_points": 61}, {"entry_id": 319258, "entry_name": "Pamparam \u2b50\ufe0f \u2b50\ufe0f \u2b50\ufe0f", "event": 1, "overall_rank": 3654196, "player_name": "Milen Kindekov", "points": 57, "tml_rank": 11, "total_points": 57}, {"entry_id": 6967740, "entry_name": "TODHFODH FC", "event": 1, "overall_rank": 3654196, "player_name": "Sahil Vora", "points": 57, "tml_rank": 12, "total_points": 57}, {"entry_id": 939296, "entry_name": "Twickers United", "event": 1, "overall_rank": 4223898, "player_name": "Martin Borizanov", "points": 55, "tml_rank": 13, "total_points": 55}, {"entry_id": 2875908, "entry_name": "FC MarRow", "event": 1, "overall_rank": 4223898, "player_name": "Kris McCarthy", "points": 55, "tml_rank": 14, "total_points": 55}, {"entry_id": 6621143, "entry_name": "The Refugees", "event": 1, "overall_rank": 4551053, "player_name": "Aarif Kassam", "points": 54, "tml_rank": 15, "total_points": 54}, {"entry_id": 2169092, "entry_name": "Papua New Quinney", "event": 1, "overall_rank": 6908093, "player_name": "Adam Quinney", "points": 46, "tml_rank": 16, "total_points": 46}, {"entry_id": 44049, "entry_name": "Project X", "event": 1, "overall_rank": 7165709, "player_name": "Nnaemeka Ezugwu", "points": 45, "tml_rank": 17, "total_points": 45}, {"entry_id": 4725749, "entry_name": "Saka FC", "event": 1, "overall_rank": 7400945, "player_name": "Chris B", "points": 44, "tml_rank": 18, "total_points": 44}, {"entry_id": 7490363, "entry_name": "Change Name", "event": 1, "overall_rank": 7620845, "player_name": "Jay Curtis", "points": 43, "tml_rank": 19, "total_points": 43}, {"entry_id": 3919386, "entry_name": "Vault 101 XI", "event": 1, "overall_rank": 8019944, "player_name": "ALEXIS DRITSAS", "points": 41, "tml_rank": 20, "total_points": 41}, {"entry_id": 239187, "entry_name": "AntiAlgoFPL", "event": 1, "overall_rank": 9060345, "player_name": "Amit Putty", "points": 33, "tml_rank": 21, "total_points": 33}];
+
+  /* ===== 0. Hamburger Nav Toggle ===== */
+  (function() {
+    var toggle = document.querySelector('.nav-toggle');
+    var links = document.querySelector('.nav-links');
+    if (!toggle || !links) return;
+    toggle.addEventListener('click', function() {
+      links.classList.toggle('open');
+      toggle.textContent = links.classList.contains('open') ? '\u2715' : '\u2630';
+    });
+    links.querySelectorAll('a').forEach(function(a) {
+      a.addEventListener('click', function() {
+        links.classList.remove('open');
+        toggle.textContent = '\u2630';
+      });
+    });
+  })();
+
+  /* ===== 1. Season Progression Table (dropdown-driven) ===== */
+  try {
+    (function() {
+      var select = document.getElementById('progression-select');
+      var table = document.getElementById('progression-table');
+      if (!select || !table || !seasonTable.length) return;
+
+      var tbody = table.querySelector('tbody');
+      if (!tbody) return;
+
+      function fmtRank(n) {
+        if (!n) return '-';
+        var s = String(n), suffix = 'th', last2 = n % 100;
+        if (last2 < 11 || last2 > 13) {
+          var last1 = n % 10;
+          if (last1 === 1) suffix = 'st';
+          else if (last1 === 2) suffix = 'nd';
+          else if (last1 === 3) suffix = 'rd';
+        }
+        return s.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + suffix;
+      }
+
+      function populate(entryId) {
+        var rows = seasonTable.filter(function(r) { return r.entry_id === entryId; });
+        rows.sort(function(a, b) { return a.event - b.event; });
+        tbody.innerHTML = '';
+        rows.forEach(function(r) {
+          var tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td class="ctr">' + r.event + '</td>' +
+            '<td class="num">' + r.points + '</td>' +
+            '<td class="num">' + r.total_points + '</td>' +
+            '<td class="num">' + fmtRank(r.overall_rank) + '</td>' +
+            '<td class="num">' + fmtRank(r.tml_rank) + '</td>';
+          tbody.appendChild(tr);
+        });
+      }
+
+      select.addEventListener('change', function() {
+        populate(parseInt(select.value));
+      });
+    })();
+  } catch(e) { console.warn('Season progression error:', e); }
+
+  /* ===== 2. Chip Ranking Filter (filters pre-rendered rows) ===== */
+  try {
+    (function() {
+      var select = document.getElementById('chip-filter');
+      var table = document.getElementById('chip-ranking-table');
+      if (!select || !table) return;
+      var tbody = table.querySelector('tbody');
+      if (!tbody) return;
+      var allRows = Array.prototype.slice.call(tbody.querySelectorAll('tr[data-chip]'));
+
+      function filterChips(chipType) {
+        var rank = 0;
+        allRows.forEach(function(tr) {
+          var show = chipType === 'all' || tr.getAttribute('data-chip') === chipType;
+          tr.style.display = show ? '' : 'none';
+          if (show) {
+            rank++;
+            tr.cells[0].textContent = rank;
+          }
+        });
+      }
+
+      select.addEventListener('change', function() { filterChips(select.value); });
+    })();
+  } catch(e) { console.warn('Chip filter error:', e); }
+
+  /* ============================================================ */
+  /*                  INTERACTIVE FEATURES                        */
+  /* ============================================================ */
+
+  /* ===== Sortable Tables ===== */
+  try {
+    document.querySelectorAll('table').forEach(function(table) {
+      if (table.id === 'progression-table' || table.id === 'chip-ranking-table') return;
+
+      var thead = table.querySelector('thead');
+      if (!thead) return;
+      var headerRows = thead.querySelectorAll('tr');
+      if (!headerRows.length) return;
+
+      var lastRow = headerRows[headerRows.length - 1];
+      var ths = lastRow.querySelectorAll('th');
+
+      var tbody = table.querySelector('tbody');
+      if (!tbody) return;
+      var firstBodyRow = tbody.querySelector('tr');
+      if (!firstBodyRow) return;
+      var numCols = firstBodyRow.querySelectorAll('td').length;
+
+      var firstRowThs = headerRows[0].querySelectorAll('th');
+      var colOffset = 0;
+      if (headerRows.length > 1) {
+        for (var k = 0; k < firstRowThs.length; k++) {
+          if (firstRowThs[k].rowSpan > 1) colOffset++;
+          else break;
+        }
+      }
+
+      ths.forEach(function(th, idx) {
+        if (th.colSpan > 1) return;
+        th.style.cursor = 'pointer';
+        th.title = 'Click to sort';
+        var asc = true;
+        th.addEventListener('click', function() {
+          var tdIdx = colOffset + idx;
+          if (tdIdx >= numCols) return;
+          var rowsArr = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+          rowsArr.sort(function(a, b) {
+            var aVal = (a.querySelectorAll('td')[tdIdx] || {}).textContent || '';
+            var bVal = (b.querySelectorAll('td')[tdIdx] || {}).textContent || '';
+            aVal = aVal.trim(); bVal = bVal.trim();
+            var aNum = parseFloat(aVal.replace(/[^0-9.\-+]/g, ''));
+            var bNum = parseFloat(bVal.replace(/[^0-9.\-+]/g, ''));
+            if (!isNaN(aNum) && !isNaN(bNum)) return asc ? aNum - bNum : bNum - aNum;
+            return asc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+          });
+          rowsArr.forEach(function(r) { tbody.appendChild(r); });
+          asc = !asc;
+        });
+      });
+    });
+  } catch(e) { console.warn('Sortable tables error:', e); }
+
+  /* ===== Collapsible Sections ===== */
+  try {
+    document.querySelectorAll('.section-hdr').forEach(function(hdr) {
+      hdr.style.cursor = 'pointer';
+      var chevron = document.createElement('span');
+      chevron.textContent = ' \u25BE';
+      chevron.style.cssText = 'transition:transform .2s;display:inline-block;margin-left:6px;font-size:14px;';
+      var titleEl = hdr.querySelector('.section-title');
+      if (titleEl) titleEl.appendChild(chevron);
+
+      hdr.addEventListener('click', function() {
+        var section = hdr.parentElement;
+        var children = Array.prototype.slice.call(section.children);
+        var content = children.filter(function(el) { return el !== hdr; });
+        var hidden = content[0] && content[0].style.display === 'none';
+        content.forEach(function(el) { el.style.display = hidden ? '' : 'none'; });
+        chevron.style.transform = hidden ? '' : 'rotate(-90deg)';
+      });
+    });
+  } catch(e) { console.warn('Collapsible sections error:', e); }
+
+  /* ===== Dark Mode Toggle ===== */
+  try {
+    (function() {
+      var btn = document.createElement('a');
+      btn.href = '#';
+      btn.title = 'Toggle dark mode';
+      btn.style.cssText = 'font-size:16px;cursor:pointer;color:#fff;text-decoration:none;display:flex;align-items:center;justify-content:center;width:32px;height:32px;';
+      var tools = document.querySelector('.nav-tools');
+      if (tools) tools.appendChild(btn);
+
+      var dark = {
+        '--slate': '#1a1a2e', '--dark': '#0f0f1a', '--green': '#2ecc71',
+        '--red': '#e74c3c', '--accent': '#00ff87', '--text': '#e0e0e0',
+        '--muted': '#999', '--border': '#333', '--row-alt': '#1e1e30',
+        '--bg': '#121220', '--card': '#1a1a2e',
+      };
+      var light = {};
+      var root = document.documentElement;
+      Object.keys(dark).forEach(function(k) {
+        light[k] = getComputedStyle(root).getPropertyValue(k).trim();
+      });
+
+      var isDark = localStorage.getItem('fpl-dark') === '1';
+      function apply() {
+        var theme = isDark ? dark : light;
+        Object.keys(theme).forEach(function(k) { root.style.setProperty(k, theme[k]); });
+        btn.textContent = isDark ? '\u263E' : '\u2600';
+        localStorage.setItem('fpl-dark', isDark ? '1' : '0');
+      }
+      apply();
+      btn.addEventListener('click', function(e) { e.preventDefault(); isDark = !isDark; apply(); });
+    })();
+  } catch(e) { console.warn('Dark mode error:', e); }
+
+  /* ===== Manager Search / Filter ===== */
+  try {
+    (function() {
+      var tools = document.querySelector('.nav-tools');
+      if (!tools) return;
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Search\u2026';
+      input.style.cssText = 'background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:4px 8px;border-radius:3px;font-size:11px;width:100px;';
+      tools.appendChild(input);
+
+      input.addEventListener('input', function() {
+        var q = input.value.toLowerCase();
+        document.querySelectorAll('tbody tr').forEach(function(tr) {
+          var table = tr.closest('table');
+          if (table && (table.id === 'progression-table' || table.id === 'chip-ranking-table')) return;
+          var text = tr.textContent.toLowerCase();
+          tr.style.display = (!q || text.indexOf(q) !== -1) ? '' : 'none';
+        });
+      });
+    })();
+  } catch(e) { console.warn('Search filter error:', e); }
+
+})();
+</script>
+
+
+<script>
+  function _initCharts() {
+    if (typeof Chart === 'undefined') return;
+    var GREEN = '#37a76b', RED = '#b03a2e', SLATE = '#2d3e50',
+        BLUE = '#3498db', ORANGE = '#f39c12';
+    var gwBreakdown = [{"base": 79, "captain_bonus": 13, "chip": "bboost", "entry_name": "Livin\u0027 Saliba Loca", "gross": 92, "hits": 0, "net": 92, "player_name": "Darius Goodarzi", "transfer_net": 0}, {"base": 63, "captain_bonus": 13, "chip": "", "entry_name": "TML \u2b50\ufe0f\u2b50\ufe0f", "gross": 76, "hits": 0, "net": 76, "player_name": "Aman Sharma", "transfer_net": 0}, {"base": 62, "captain_bonus": 13, "chip": "bboost", "entry_name": "Bluehomie (YouTube)", "gross": 75, "hits": 0, "net": 75, "player_name": "Bluehomie -YouTube-", "transfer_net": 0}, {"base": 62, "captain_bonus": 13, "chip": "", "entry_name": "No Name", "gross": 75, "hits": 0, "net": 75, "player_name": "Akash Patel", "transfer_net": 0}, {"base": 61, "captain_bonus": 8, "chip": "", "entry_name": "Releven Tigers FC", "gross": 69, "hits": 0, "net": 69, "player_name": "Stephen Rudd", "transfer_net": 0}, {"base": 60, "captain_bonus": 8, "chip": "", "entry_name": "son of a doge \u2b50\ufe0f\u2b50\ufe0f", "gross": 68, "hits": 0, "net": 68, "player_name": "M B", "transfer_net": 0}, {"base": 51, "captain_bonus": 13, "chip": "", "entry_name": "Caesar \u2b50", "gross": 64, "hits": 0, "net": 64, "player_name": "Sunny Sharma", "transfer_net": 0}, {"base": 51, "captain_bonus": 13, "chip": "", "entry_name": "Luceros", "gross": 64, "hits": 0, "net": 64, "player_name": "Claude-Noel Tamakloe", "transfer_net": 0}, {"base": 53, "captain_bonus": 8, "chip": "", "entry_name": "Skill McGill", "gross": 61, "hits": 0, "net": 61, "player_name": "Kartar Gill", "transfer_net": 0}, {"base": 48, "captain_bonus": 13, "chip": "", "entry_name": "Arteta Ballers", "gross": 61, "hits": 0, "net": 61, "player_name": "Kelvin Ampene", "transfer_net": 0}, {"base": 49, "captain_bonus": 8, "chip": "", "entry_name": "Pamparam \u2b50\ufe0f \u2b50\ufe0f \u2b50\ufe0f", "gross": 57, "hits": 0, "net": 57, "player_name": "Milen Kindekov", "transfer_net": 0}, {"base": 49, "captain_bonus": 8, "chip": "", "entry_name": "TODHFODH FC", "gross": 57, "hits": 0, "net": 57, "player_name": "Sahil Vora", "transfer_net": 0}, {"base": 47, "captain_bonus": 8, "chip": "", "entry_name": "Twickers United", "gross": 55, "hits": 0, "net": 55, "player_name": "Martin Borizanov", "transfer_net": 0}, {"base": 47, "captain_bonus": 8, "chip": "", "entry_name": "FC MarRow", "gross": 55, "hits": 0, "net": 55, "player_name": "Kris McCarthy", "transfer_net": 0}, {"base": 46, "captain_bonus": 8, "chip": "", "entry_name": "The Refugees", "gross": 54, "hits": 0, "net": 54, "player_name": "Aarif Kassam", "transfer_net": 0}, {"base": 38, "captain_bonus": 8, "chip": "", "entry_name": "Papua New Quinney", "gross": 46, "hits": 0, "net": 46, "player_name": "Adam Quinney", "transfer_net": 0}, {"base": 37, "captain_bonus": 8, "chip": "", "entry_name": "Project X", "gross": 45, "hits": 0, "net": 45, "player_name": "Nnaemeka Ezugwu", "transfer_net": 0}, {"base": 41, "captain_bonus": 3, "chip": "", "entry_name": "Saka FC", "gross": 44, "hits": 0, "net": 44, "player_name": "Chris B", "transfer_net": 0}, {"base": 35, "captain_bonus": 8, "chip": "", "entry_name": "Change Name", "gross": 43, "hits": 0, "net": 43, "player_name": "Jay Curtis", "transfer_net": 0}, {"base": 39, "captain_bonus": 2, "chip": "", "entry_name": "Vault 101 XI", "gross": 41, "hits": 0, "net": 41, "player_name": "ALEXIS DRITSAS", "transfer_net": 0}, {"base": 30, "captain_bonus": 3, "chip": "", "entry_name": "AntiAlgoFPL", "gross": 33, "hits": 0, "net": 33, "player_name": "Amit Putty", "transfer_net": 0}];
+    var xptsData    = [{"diff": 11.1, "entry_id": 688665, "entry_name": "Livin\u0027 Saliba Loca", "player_name": "Darius Goodarzi", "total_actual": 92, "total_xpts": 80.9, "xpts_rank": 1}, {"diff": 2.0, "entry_id": 283505, "entry_name": "Bluehomie (YouTube)", "player_name": "Bluehomie -YouTube-", "total_actual": 75, "total_xpts": 73.0, "xpts_rank": 2}, {"diff": 8.1, "entry_id": 183289, "entry_name": "No Name", "player_name": "Akash Patel", "total_actual": 75, "total_xpts": 66.9, "xpts_rank": 3}, {"diff": 11.9, "entry_id": 353210, "entry_name": "TML \u2b50\ufe0f\u2b50\ufe0f", "player_name": "Aman Sharma", "total_actual": 76, "total_xpts": 64.1, "xpts_rank": 4}, {"diff": 2.5, "entry_id": 332468, "entry_name": "Caesar \u2b50", "player_name": "Sunny Sharma", "total_actual": 64, "total_xpts": 61.5, "xpts_rank": 5}, {"diff": 3.4, "entry_id": 2552017, "entry_name": "Luceros", "player_name": "Claude-Noel Tamakloe", "total_actual": 64, "total_xpts": 60.6, "xpts_rank": 6}, {"diff": 18.2, "entry_id": 783862, "entry_name": "Releven Tigers FC", "player_name": "Stephen Rudd", "total_actual": 69, "total_xpts": 50.8, "xpts_rank": 7}, {"diff": 10.8, "entry_id": 2844638, "entry_name": "Arteta Ballers", "player_name": "Kelvin Ampene", "total_actual": 61, "total_xpts": 50.2, "xpts_rank": 8}, {"diff": 19.3, "entry_id": 399887, "entry_name": "son of a doge \u2b50\ufe0f\u2b50\ufe0f", "player_name": "M B", "total_actual": 68, "total_xpts": 48.7, "xpts_rank": 9}, {"diff": 8.4, "entry_id": 319258, "entry_name": "Pamparam \u2b50\ufe0f \u2b50\ufe0f \u2b50\ufe0f", "player_name": "Milen Kindekov", "total_actual": 57, "total_xpts": 48.6, "xpts_rank": 10}, {"diff": 12.4, "entry_id": 1368884, "entry_name": "Skill McGill", "player_name": "Kartar Gill", "total_actual": 61, "total_xpts": 48.6, "xpts_rank": 11}, {"diff": 9.1, "entry_id": 6967740, "entry_name": "TODHFODH FC", "player_name": "Sahil Vora", "total_actual": 57, "total_xpts": 47.9, "xpts_rank": 12}, {"diff": 8.2, "entry_id": 2875908, "entry_name": "FC MarRow", "player_name": "Kris McCarthy", "total_actual": 55, "total_xpts": 46.8, "xpts_rank": 13}, {"diff": 10.0, "entry_id": 939296, "entry_name": "Twickers United", "player_name": "Martin Borizanov", "total_actual": 55, "total_xpts": 45.0, "xpts_rank": 14}, {"diff": 9.5, "entry_id": 6621143, "entry_name": "The Refugees", "player_name": "Aarif Kassam", "total_actual": 54, "total_xpts": 44.5, "xpts_rank": 15}, {"diff": -0.8, "entry_id": 3919386, "entry_name": "Vault 101 XI", "player_name": "ALEXIS DRITSAS", "total_actual": 41, "total_xpts": 41.8, "xpts_rank": 16}, {"diff": 6.0, "entry_id": 2169092, "entry_name": "Papua New Quinney", "player_name": "Adam Quinney", "total_actual": 46, "total_xpts": 40.0, "xpts_rank": 17}, {"diff": -5.3, "entry_id": 239187, "entry_name": "AntiAlgoFPL", "player_name": "Amit Putty", "total_actual": 33, "total_xpts": 38.3, "xpts_rank": 18}, {"diff": 7.6, "entry_id": 4725749, "entry_name": "Saka FC", "player_name": "Chris B", "total_actual": 44, "total_xpts": 36.4, "xpts_rank": 19}, {"diff": 10.3, "entry_id": 44049, "entry_name": "Project X", "player_name": "Nnaemeka Ezugwu", "total_actual": 45, "total_xpts": 34.7, "xpts_rank": 20}, {"diff": 8.7, "entry_id": 7490363, "entry_name": "Change Name", "player_name": "Jay Curtis", "total_actual": 43, "total_xpts": 34.3, "xpts_rank": 21}];
+
+    /* GW Score Breakdown — Stacked Horizontal Bar */
+    try {
+      var canvas = document.getElementById('chart-gw-breakdown');
+      var cssBars = document.getElementById('gw-breakdown-bars');
+      if (canvas && gwBreakdown.length) {
+        canvas.parentElement.style.display = '';
+        if (cssBars) cssBars.style.display = 'none';
+        var isMobile = window.innerWidth < 600;
+        var rowH = isMobile ? 24 : 32, pad = isMobile ? 60 : 80;
+        canvas.parentElement.style.height = (gwBreakdown.length * rowH + pad) + 'px';
+        new Chart(canvas, {
+          type: 'bar',
+          data: {
+            labels: gwBreakdown.map(function(r) { return r.entry_name; }),
+            datasets: [
+              { label: 'Base Points', data: gwBreakdown.map(function(r) { return r.base; }),
+                backgroundColor: SLATE, stack: 'positive', borderRadius: 2 },
+              { label: 'Captain Bonus', data: gwBreakdown.map(function(r) { return r.captain_bonus; }),
+                backgroundColor: BLUE, stack: 'positive', borderRadius: 2 },
+              { label: 'Transfer Net', data: gwBreakdown.map(function(r) { return Math.max(r.transfer_net, 0); }),
+                backgroundColor: GREEN, stack: 'positive', borderRadius: 2 },
+              { label: 'Transfer Loss', data: gwBreakdown.map(function(r) { return Math.min(r.transfer_net, 0); }),
+                backgroundColor: ORANGE, stack: 'negative', borderRadius: 2 },
+              { label: 'Hits', data: gwBreakdown.map(function(r) { return -r.hits; }),
+                backgroundColor: RED, stack: 'negative', borderRadius: 2 },
+            ],
+          },
+          options: {
+            indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: isMobile ? 9 : 10 } } },
+              tooltip: { callbacks: { afterBody: function(items) {
+                var r = gwBreakdown[items[0].dataIndex];
+                return 'Net: ' + r.net + ' pts' + (r.chip ? ' (' + r.chip + ')' : '');
+              } } },
+            },
+            scales: {
+              x: { stacked: true, title: { display: true, text: 'Points' }, grid: { display: false } },
+              y: { stacked: true, ticks: { font: { size: isMobile ? 9 : 10 } } },
+            },
+          },
+        });
+      }
+    } catch(e) { console.warn('GW breakdown chart error:', e); }
+
+    /* xPts vs Actual Scatter */
+    try {
+      var canvas2 = document.getElementById('chart-xpts-scatter');
+      var cssBars2 = document.getElementById('xpts-bars');
+      if (canvas2 && xptsData.length) {
+        canvas2.parentElement.style.display = '';
+        if (cssBars2) cssBars2.style.display = 'none';
+        var pts = xptsData.map(function(r) {
+          return { x: r.total_xpts, y: r.total_actual, label: r.entry_name, diff: r.diff };
+        });
+        var allVals = pts.map(function(p) { return p.x; }).concat(pts.map(function(p) { return p.y; }));
+        var minV = Math.floor(Math.min.apply(null, allVals) * 0.95);
+        var maxV = Math.ceil(Math.max.apply(null, allVals) * 1.05);
+        new Chart(canvas2, {
+          type: 'scatter',
+          data: {
+            datasets: [{
+              label: 'Managers', data: pts,
+              backgroundColor: pts.map(function(p) { return p.diff >= 0 ? GREEN : RED; }),
+              pointRadius: 7, pointHoverRadius: 10,
+            }, {
+              label: '45\u00b0 line', data: [{ x: minV, y: minV }, { x: maxV, y: maxV }],
+              type: 'line', borderColor: '#ccc', borderDash: [6, 4],
+              borderWidth: 1.5, pointRadius: 0, fill: false,
+            }],
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(ctx) {
+              var p = ctx.raw; if (!p.label) return '';
+              return p.label + ': xPts ' + p.x + ', Actual ' + p.y + ' (diff ' + (p.diff >= 0 ? '+' : '') + p.diff + ')';
+            } } } },
+            scales: {
+              x: { title: { display: true, text: 'Expected Points (xPts)' }, min: minV, max: maxV },
+              y: { title: { display: true, text: 'Actual Points' }, min: minV, max: maxV },
+            },
+          },
+        });
+      }
+    } catch(e) { console.warn('xPts scatter chart error:', e); }
+  }
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/chart.js@4" onload="_initCharts()"></script>
+
+
+<script>
+(function () {
+  // Reports live at docs/<season>/GW<N>.html; the manifest sits one level up.
+  var ctx = window.__DOSSIER || {};
+  var picker = document.getElementById('nav-picker');
+  var seasonSel = document.getElementById('season-select');
+  var gwSel = document.getElementById('gw-select');
+  if (!picker || !seasonSel || !gwSel) return;
+
+  function seasonLabel(s) { return '20' + s.replace('-', '/20'); }  // "25-26" -> "2025/2026"
+
+  fetch('../manifest.json', { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (m) {
+      if (!m || !m.seasons) return;
+      var seasons = Object.keys(m.seasons).sort().reverse();
+      if (!seasons.length) return;
+
+      var curSeason = ctx.season && m.seasons[ctx.season] ? ctx.season : seasons[0];
+
+      seasons.forEach(function (s) {
+        var o = document.createElement('option');
+        o.value = s; o.textContent = seasonLabel(s);
+        if (s === curSeason) o.selected = true;
+        seasonSel.appendChild(o);
+      });
+
+      function fillGws(season, selectedGw) {
+        gwSel.innerHTML = '';
+        var gws = (m.seasons[season] || []).slice().sort(function (a, b) { return b - a; });
+        gws.forEach(function (gw) {
+          var o = document.createElement('option');
+          o.value = gw; o.textContent = 'GW' + gw;
+          if (gw === selectedGw) o.selected = true;
+          gwSel.appendChild(o);
+        });
+      }
+      fillGws(curSeason, ctx.gw);
+
+      function go(season, gw) { window.location.href = '../' + season + '/GW' + gw + '.html'; }
+
+      seasonSel.addEventListener('change', function () {
+        var s = seasonSel.value;
+        var gws = (m.seasons[s] || []).slice().sort(function (a, b) { return b - a; });
+        if (gws.length) go(s, gws[0]);  // newest GW of the chosen season
+      });
+      gwSel.addEventListener('change', function () {
+        if (gwSel.value) go(seasonSel.value, gwSel.value);
+      });
+
+      // Only show the picker once it has more than a single destination.
+      var total = seasons.reduce(function (n, s) { return n + m.seasons[s].length; }, 0);
+      if (total > 1) picker.hidden = false;
+    })
+    .catch(function () { /* no manifest (e.g. standalone file) — leave picker hidden */ });
+})();
+</script>
+
+</body>
+</html>

@@ -195,6 +195,14 @@
   .nav a:hover { color: var(--accent); }
   .nav-links { display: contents; }
   .nav-tools { display: contents; }
+  .nav-picker { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  .nav-picker select {
+    background: rgba(255,255,255,0.08); color: #fff;
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;
+    padding: 3px 6px; font-family: inherit; font-size: 12px; cursor: pointer;
+  }
+  .nav-picker select:hover { border-color: var(--accent); }
+  .nav-picker select option { color: #000; }
 
   /* ==================== LAYOUT ==================== */
   .wrap { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
@@ -438,6 +446,8 @@
     .nav-links a { font-size: 12px; padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.06);
       min-height: 44px; display: flex; align-items: center; }
     .nav-tools { display: flex; align-items: center; gap: 6px; order: 2; }
+    .nav-picker { order: 1; margin-left: 0; margin-right: 8px; }
+    .nav-picker select { font-size: 11px; padding: 4px 5px; }
 
     /* --- Cover --- */
     .cover { padding: 60px 12px 50px; }
@@ -545,9 +555,16 @@
     <a href="#xpts">xPts</a>
     <a href="#progression">Season</a>
   </div>
+  <div class="nav-picker" id="nav-picker" hidden>
+    <select id="season-select" aria-label="Season"></select>
+    <select id="gw-select" aria-label="Gameweek"></select>
+  </div>
   <div class="nav-tools"></div>
   <button class="nav-toggle" aria-label="Menu">&#9776;</button>
 </nav>
+<script>
+  window.__DOSSIER = {season: {{ season|tojson }}, gw: {{ event|tojson }}};
+</script>
 
 {# ==================== COVER ==================== #}
 <div class="cover">
@@ -1838,6 +1855,65 @@
   }
 </script>
 <script async src="https://cdn.jsdelivr.net/npm/chart.js@4" onload="_initCharts()"></script>
+
+{# ==================== GW / SEASON PICKER ==================== #}
+<script>
+(function () {
+  // Reports live at docs/<season>/GW<N>.html; the manifest sits one level up.
+  var ctx = window.__DOSSIER || {};
+  var picker = document.getElementById('nav-picker');
+  var seasonSel = document.getElementById('season-select');
+  var gwSel = document.getElementById('gw-select');
+  if (!picker || !seasonSel || !gwSel) return;
+
+  function seasonLabel(s) { return '20' + s.replace('-', '/20'); }  // "25-26" -> "2025/2026"
+
+  fetch('../manifest.json', { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (m) {
+      if (!m || !m.seasons) return;
+      var seasons = Object.keys(m.seasons).sort().reverse();
+      if (!seasons.length) return;
+
+      var curSeason = ctx.season && m.seasons[ctx.season] ? ctx.season : seasons[0];
+
+      seasons.forEach(function (s) {
+        var o = document.createElement('option');
+        o.value = s; o.textContent = seasonLabel(s);
+        if (s === curSeason) o.selected = true;
+        seasonSel.appendChild(o);
+      });
+
+      function fillGws(season, selectedGw) {
+        gwSel.innerHTML = '';
+        var gws = (m.seasons[season] || []).slice().sort(function (a, b) { return b - a; });
+        gws.forEach(function (gw) {
+          var o = document.createElement('option');
+          o.value = gw; o.textContent = 'GW' + gw;
+          if (gw === selectedGw) o.selected = true;
+          gwSel.appendChild(o);
+        });
+      }
+      fillGws(curSeason, ctx.gw);
+
+      function go(season, gw) { window.location.href = '../' + season + '/GW' + gw + '.html'; }
+
+      seasonSel.addEventListener('change', function () {
+        var s = seasonSel.value;
+        var gws = (m.seasons[s] || []).slice().sort(function (a, b) { return b - a; });
+        if (gws.length) go(s, gws[0]);  // newest GW of the chosen season
+      });
+      gwSel.addEventListener('change', function () {
+        if (gwSel.value) go(seasonSel.value, gwSel.value);
+      });
+
+      // Only show the picker once it has more than a single destination.
+      var total = seasons.reduce(function (n, s) { return n + m.seasons[s].length; }, 0);
+      if (total > 1) picker.hidden = false;
+    })
+    .catch(function () { /* no manifest (e.g. standalone file) — leave picker hidden */ });
+})();
+</script>
 
 </body>
 </html>
