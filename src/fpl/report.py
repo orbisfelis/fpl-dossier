@@ -6,11 +6,13 @@ either Markdown (default) or a styled PDF via Jinja2 + WeasyPrint.
 
 from __future__ import annotations
 
+import json
 import logging
 import math
+import re
 import sqlite3
 from collections import defaultdict
-from datetime import datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from textwrap import dedent
 
@@ -18,13 +20,24 @@ log = logging.getLogger(__name__)
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 
+SEASON_RE = re.compile(r"\d{2}-\d{2}")
+GW_FILE_RE = re.compile(r"GW(\d+)\.html")
+
+
+def current_season(today: date | None = None) -> str:
+    """Current FPL season as a 'YY-YY' string (the season runs Aug–May)."""
+    today = today or date.today()
+    start = today.year if today.month >= 7 else today.year - 1
+    return f"{start % 100:02d}-{(start + 1) % 100:02d}"
+
 
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
 def generate_report(db_path: Path, output: Path, league_id: int,
-                    event: int | None = None, fmt: str = "md") -> Path:
+                    event: int | None = None, fmt: str = "md",
+                    season: str | None = None) -> Path:
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
 
@@ -46,6 +59,7 @@ def generate_report(db_path: Path, output: Path, league_id: int,
     log.info("Generating %s report for league %d, GW %d", fmt.upper(), league_id, event)
 
     data = _collect_data(conn, league_id, event)
+    data["season"] = season or current_season()
     conn.close()
 
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -57,6 +71,101 @@ def generate_report(db_path: Path, output: Path, league_id: int,
 
     log.info("Report → %s", output)
     return output
+
+
+# ---------------------------------------------------------------------------
+# GitHub Pages publishing
+# ---------------------------------------------------------------------------
+
+def publish_reports(db_path: Path, league_id: int, docs_dir: Path,
+                    season: str | None = None, event: int | None = None,
+                    all_gws: bool = False) -> Path:
+    """Render HTML report(s) into ``docs/<season>/GW<N>.html``, then rebuild the
+    manifest and the root ``index.html`` redirect that drive the GW/season
+    dropdown on GitHub Pages."""
+    season = season or current_season()
+    season_dir = docs_dir / season
+    season_dir.mkdir(parents=True, exist_ok=True)
+
+    events = _available_events(db_path, league_id)
+    if not events:
+        raise RuntimeError(f"No gameweek data found for league {league_id}")
+
+    if all_gws:
+        targets = events
+    elif event is not None:
+        targets = [event]
+    else:
+        targets = [max(events)]
+
+    for ev in targets:
+        generate_report(db_path, season_dir / f"GW{ev}.html", league_id,
+                        ev, fmt="html", season=season)
+
+    manifest = build_manifest(docs_dir)
+    (docs_dir / "manifest.json").write_text(
+        json.dumps(manifest, indent=2), encoding="utf-8")
+    _write_index(docs_dir, manifest)
+
+    log.info("Published %d report(s) to %s", len(targets), season_dir)
+    return season_dir
+
+
+def _available_events(db_path: Path, league_id: int) -> list[int]:
+    conn = sqlite3.connect(db_path)
+    try:
+        rows = conn.execute(
+            """SELECT DISTINCT mg.event
+               FROM manager_gameweeks mg
+               JOIN managers m ON m.entry_id = mg.entry_id
+               WHERE m.league_id = ?
+               ORDER BY mg.event""",
+            (league_id,),
+        ).fetchall()
+    finally:
+        conn.close()
+    return [r[0] for r in rows]
+
+
+def build_manifest(docs_dir: Path) -> dict:
+    """Scan ``docs/`` for ``<season>/GW<N>.html`` files and build the manifest
+    the front-end fetches to populate the dropdowns."""
+    seasons: dict[str, list[int]] = {}
+    for child in sorted(docs_dir.iterdir()):
+        if not child.is_dir() or not SEASON_RE.fullmatch(child.name):
+            continue
+        gws = sorted(
+            int(m.group(1))
+            for f in child.glob("GW*.html")
+            if (m := GW_FILE_RE.fullmatch(f.name))
+        )
+        if gws:
+            seasons[child.name] = gws
+
+    latest = None
+    if seasons:
+        latest_season = max(seasons)
+        latest = {"season": latest_season, "gw": max(seasons[latest_season])}
+    return {"latest": latest, "seasons": seasons}
+
+
+def _write_index(docs_dir: Path, manifest: dict) -> None:
+    latest = manifest.get("latest")
+    if not latest:
+        return
+    url = f"./{latest['season']}/GW{latest['gw']}.html"
+    (docs_dir / "index.html").write_text(dedent(f"""\
+        <!doctype html>
+        <html lang="en">
+        <head>
+          <meta charset="utf-8">
+          <meta http-equiv="refresh" content="0; url={url}">
+          <link rel="canonical" href="{url}">
+          <title>The Dossier</title>
+        </head>
+        <body>Redirecting to <a href="{url}">the latest Dossier</a>&hellip;</body>
+        </html>
+    """), encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -977,7 +1086,7 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
         "mgr_count": mgr_count,
         "gw_avg": gw_avg,
         "fpl_avg": fpl_avg,
-        "generated": datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
+        "generated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "num_form_gws": num_form_gws,
         # Hall of Fame
         "top_overall": top_overall,

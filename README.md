@@ -46,10 +46,49 @@ on first run.
 | `fpl scrape --owned-only` | Only fetch player history for players owned by your league |
 | `fpl report` | Generate markdown report for the latest scraped GW |
 | `fpl report --gw 35` | Generate report for a specific GW |
+| `fpl publish` | Render the latest GW as HTML into `docs/` for GitHub Pages |
+| `fpl publish --all` | Render **every** scraped GW into `docs/` (backfill an archive) |
 | `fpl shell` | Drop into a `sqlite3` shell on the DB |
 
 All commands accept `--db PATH`, `--league ID`, and `-v` (verbose). The league
 ID falls back to `FPL_LEAGUE_ID` from `.env` if not passed explicitly.
+
+## Publishing to GitHub Pages
+
+`fpl publish` renders the styled HTML Dossier into `docs/`, laid out so the
+page itself carries a **season + gameweek dropdown** in the top nav — readers
+can jump to any previously published GW (or, once you start a new season, any
+season) without leaving the page.
+
+```bash
+# Publish the latest scraped GW (run weekly, alongside scrape)
+docker compose run --rm fpl publish
+
+# One-off: backfill the whole season into the archive
+docker compose run --rm fpl publish --all
+```
+
+This produces:
+
+```
+docs/
+├── index.html          # redirect → the latest GW
+├── manifest.json       # list of seasons + GWs (drives the dropdown)
+└── 25-26/
+    ├── GW1.html
+    ├── …
+    └── GW38.html
+```
+
+Point GitHub Pages at the `docs/` folder (Settings → Pages → *Deploy from a
+branch* → `/docs`), commit, and push. The dropdown is built client-side from
+`manifest.json`, so it always reflects whatever files are present. When the
+new season starts, `publish` derives the season label from the date (e.g.
+`26-27`) and creates `docs/26-27/` automatically — both seasons then appear in
+the dropdown. Override the label with `--season 26-27` if needed.
+
+> A standalone report opened on its own (no `manifest.json` next to it) simply
+> hides the dropdown, so `fpl report -f html` output still works as before.
 
 ## End-of-season archive
 
