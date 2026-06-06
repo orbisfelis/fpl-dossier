@@ -1,0 +1,1843 @@
+{# ======================== SVG ICON MACROS ======================== #}
+
+{% macro icon_star() %}
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+{% endmacro %}
+
+{% macro icon_trophy() %}
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v2H5zm0 2v5a7 7 0 004 6.32V18H7v2h10v-2h-2v-1.68A7 7 0 0019 10V5h2V3H3v2h2zm2 0h10v5a5 5 0 01-10 0V5z"/></svg>
+{% endmacro %}
+
+{% macro icon_plus() %}
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
+{% endmacro %}
+
+{% macro icon_minus() %}
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13H5v-2h14z"/></svg>
+{% endmacro %}
+
+{% macro icon_pound() %}
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><text x="12" y="18" text-anchor="middle" font-size="18" font-weight="700" font-family="Georgia,serif">&pound;</text></svg>
+{% endmacro %}
+
+{% macro icon_flame() %}
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 23c-3.6 0-7-2.4-7-7 0-3 1.8-5.4 3.5-7.5.8-1 1.5-2 2-3 .3-.5 1-.5 1.2 0 .3.7.6 1.3 1 2a9.5 9.5 0 011.8-2.5c.4-.4 1-.2 1.2.3.5 1.5.8 3 .8 4.2 0 0 .2-.3.5-.8.4-.5 1.1-.4 1.3.2C19.3 12 19 15 19 16c0 4.6-3.4 7-7 7zm0-12c-1 1.5-3 4-3 5.5a3 3 0 006 0c0-1.5-2-4-3-5.5z"/></svg>
+{% endmacro %}
+
+{% macro icon_snowflake() %}
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11 1h2v5.17l3.59-3.58 1.41 1.41L13 9v2.17l3.88-2.24 1 1.73L14 13l3.88 2.24-1 1.73L13 12.83V15l5 5-1.41 1.41L13 17.83V23h-2v-5.17l-3.59 3.58L6 20l5-5v-2.17l-3.88 2.24-1-1.73L10 11 6.12 8.76l1-1.73L11 9.27V7L6 2l1.41-1.41L11 4.17V1z"/></svg>
+{% endmacro %}
+
+{% macro icon_captain() %}
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><text x="12" y="18" text-anchor="middle" font-size="18" font-weight="900" font-family="-apple-system,sans-serif">C</text></svg>
+{% endmacro %}
+
+{% macro icon_arrow_down() %}
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 16l-6-6h12z"/></svg>
+{% endmacro %}
+
+{% macro icon_arrow_up() %}
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8l6 6H6z"/></svg>
+{% endmacro %}
+
+{% macro icon_shield() %}
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm0 4a2 2 0 110 4 2 2 0 010-4zm0 10c-2 0-4-1-4-2.5 0-1.5 2.67-2.5 4-2.5s4 1 4 2.5c0 1.5-2 2.5-4 2.5z"/></svg>
+{% endmacro %}
+
+{% macro icon_cotton() %}
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4a4.5 4.5 0 00-4.35 3.38A3.5 3.5 0 004 10.5 3.5 3.5 0 007.5 14h9a3.5 3.5 0 003.5-3.5 3.5 3.5 0 00-3.65-3.12A4.5 4.5 0 0012 4z"/><path d="M8 15v2m4-2v3m4-3v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+{% endmacro %}
+
+{# ======================== CARD MACROS ======================== #}
+
+{% macro big_card(title, subtitle, rows, value_field, icon="", value_fmt=None, is_net=false, accent="green") %}
+{% set border = "var(--green)" if accent == "green" else "var(--red)" %}
+{% set bg = "rgba(39,174,96,0.04)" if accent == "green" else "rgba(192,57,43,0.04)" %}
+<div class="card big-card" style="border-left: 4px solid {{ border }}; background: {{ bg }};">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"{{ title }}"</div>
+      <div class="card-sub">{{ subtitle }}</div>
+    </div>
+    {% if icon %}<div class="card-icon" style="border-color: {{ border }};">{{ icon|safe }}</div>{% endif %}
+  </div>
+  {% if rows %}
+  <div class="card-body">
+    <div class="card-winner">
+      <div class="winner-name">{{ rows[0].entry_name }}</div>
+      <div class="winner-mgr">{{ rows[0].player_name }}</div>
+    </div>
+    <div class="winner-val">
+      {% if is_net %}
+        {% set gross = rows[0].gross_pnl or 0 %}
+        {% set hits = rows[0].event_transfers_cost or 0 %}
+        {% set net = gross - hits %}
+        <span class="{{ 'pos' if net > 0 else ('neg' if net < 0 else '') }}">{{ "%+d"|format(net) }}</span>
+      {% elif value_fmt == "value" %}
+        &pound;{{ "%.1f"|format((rows[0][value_field] or 0) / 10) }}m
+      {% else %}
+        {{ rows[0][value_field]|commas }}
+      {% endif %}
+    </div>
+  </div>
+  {% if rows|length > 1 %}
+  <div class="card-runners">
+    {% for r in rows[1:3] %}
+    <div class="runner-row">
+      <span class="runner-pos">{{ loop.index + 1 }}.</span>
+      <span class="runner-info">{{ r.entry_name }} - {{ r.player_name }}</span>
+      <span class="runner-val">
+        {% if is_net %}{{ "%+d"|format((r.gross_pnl or 0) - (r.event_transfers_cost or 0)) }}
+        {% elif value_fmt == "value" %}&pound;{{ "%.1f"|format((r[value_field] or 0) / 10) }}m
+        {% else %}{{ r[value_field]|commas }}{% endif %}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endif %}
+</div>
+{% endmacro %}
+
+{% macro small_card(title, subtitle, rows, value_field, icon="", accent="green", value_fmt=None) %}
+{% set border = "var(--green)" if accent == "green" else "var(--red)" %}
+{% set bg = "rgba(39,174,96,0.04)" if accent == "green" else "rgba(192,57,43,0.04)" %}
+<div class="card small-card" style="border-left: 4px solid {{ border }}; background: {{ bg }};">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"{{ title }}"</div>
+      <div class="card-sub">{{ subtitle }}</div>
+    </div>
+    {% if icon %}<div class="card-icon sm-icon" style="border-color: {{ border }};">{{ icon|safe }}</div>{% endif %}
+  </div>
+  {% if rows %}
+  <div class="sm-winner">
+    <div class="winner-name">{{ rows[0].entry_name }}</div>
+    <div class="winner-mgr">{{ rows[0].player_name }}</div>
+    {% if value_field and rows[0][value_field] is defined %}
+    <div class="sm-winner-val">
+      {% if value_fmt == "value" %}&pound;{{ "%.1f"|format((rows[0][value_field] or 0) / 10) }}m
+      {% elif value_fmt == "pct" %}{{ "%.0f"|format(rows[0][value_field] or 0) }}%
+      {% else %}{{ rows[0][value_field]|commas }}{% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% if rows|length > 1 %}
+  <div class="card-runners">
+    {% for r in rows[1:3] %}
+    <div class="runner-row">
+      <span class="runner-pos">{{ loop.index + 1 }}.</span>
+      <span class="runner-info">{{ r.entry_name }} - {{ r.player_name }}</span>
+      {% if value_field and r[value_field] is defined %}
+      <span class="runner-val">
+        {% if value_fmt == "value" %}&pound;{{ "%.1f"|format((r[value_field] or 0) / 10) }}m
+        {% elif value_fmt == "pct" %}{{ "%.0f"|format(r[value_field] or 0) }}%
+        {% else %}{{ r[value_field]|commas }}{% endif %}
+      </span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endif %}
+</div>
+{% endmacro %}
+
+{% macro section_bar(number, title, subtitle="") %}
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">{{ number }}. {{ title }}</div>
+    {% if subtitle %}<div class="section-sub">{{ subtitle }}</div>{% endif %}
+  </div>
+  <div class="section-right">Gameweek {{ event }}</div>
+</div>
+{% endmacro %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Dossier &mdash; {{ league_name }} GW{{ event }}</title>
+<style>
+  :root {
+    --slate: #2d3e50;
+    --dark: #1e2a38;
+    --green: #37a76b;
+    --green-soft: rgba(55,167,107,0.08);
+    --red: #b03a2e;
+    --red-soft: rgba(176,58,46,0.08);
+    --accent: #00ff87;
+    --text: #2c3e50;
+    --muted: #888;
+    --border: #e0e0e0;
+    --row-alt: #f8f9fb;
+    --bg: #f4f5f7;
+    --card: #fff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px; line-height: 1.5; color: var(--text); background: var(--bg);
+  }
+
+  /* ==================== NAV ==================== */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--slate); padding: 0 24px;
+    display: flex; align-items: center; gap: 20px; height: 44px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .nav-brand { font-weight: 900; font-style: italic; font-size: 15px; color: #fff; text-decoration: none; }
+  .nav-brand span { color: var(--accent); }
+  .nav a { color: rgba(255,255,255,0.65); text-decoration: none; font-size: 12px; font-weight: 500; transition: color .15s; }
+  .nav a:hover { color: var(--accent); }
+  .nav-links { display: contents; }
+  .nav-tools { display: contents; }
+
+  /* ==================== LAYOUT ==================== */
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+
+  /* ==================== COVER ==================== */
+  .cover {
+    background: linear-gradient(145deg, var(--dark) 0%, #0d1117 55%, var(--dark) 100%);
+    color: #fff; padding: 100px 24px 80px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .cover::after {
+    content: ""; position: absolute; bottom: 0; right: 0; width: 45%; height: 35%;
+    background: repeating-linear-gradient(-30deg, transparent, transparent 10px, rgba(0,255,135,0.06) 10px, rgba(0,255,135,0.06) 12px);
+  }
+  .cover::before {
+    content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+    background: repeating-linear-gradient(to bottom, transparent, transparent 14px, rgba(255,255,255,0.08) 14px, rgba(255,255,255,0.08) 28px);
+  }
+  .cover h1 {
+    font-size: clamp(40px, 6vw, 72px); font-weight: 900; font-style: italic;
+    letter-spacing: 2px; position: relative;
+  }
+  .cover h1 span { color: var(--accent); }
+  .cover h2 {
+    font-size: clamp(18px, 2.5vw, 28px); font-weight: 400; font-style: italic;
+    color: var(--accent); margin-bottom: 40px; position: relative;
+  }
+  .cover-meta { display: inline-block; text-align: left; position: relative; font-family: "SF Mono", "Consolas", "Menlo", monospace; }
+  .cover-meta td { padding: 5px 18px; font-size: 15px; }
+  .cover-meta td:first-child { color: rgba(255,255,255,0.45); }
+  .cover-meta td:last-child { color: #fff; font-weight: 600; }
+
+  /* ==================== SECTION HEADERS ==================== */
+  .section-hdr {
+    background: var(--slate); color: #fff;
+    padding: 12px 20px; margin-bottom: 20px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+  }
+  .section-title { font-size: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
+  .section-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .section-right { font-size: 12px; color: rgba(255,255,255,0.5); white-space: nowrap; }
+
+  .fame-hdr {
+    background: linear-gradient(135deg, #0d5e2c 0%, #1a8a45 50%, #26a35a 100%);
+    text-align: center; padding: 24px; margin-bottom: 20px;
+    border-left: 5px solid #00ff87;
+  }
+  .fame-hdr .hdr-title { font-size: 28px; font-weight: 700; font-style: italic; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .fame-hdr .hdr-sub { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+
+  .shame-hdr {
+    background: linear-gradient(135deg, #6b1a1a 0%, #a32626 50%, #c0392b 100%);
+    text-align: center; padding: 24px; margin-bottom: 20px;
+    border-left: 5px solid #ff4444;
+  }
+  .shame-hdr .hdr-title { font-size: 28px; font-weight: 700; font-style: italic; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .shame-hdr .hdr-sub { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+
+  .section { padding: 28px 0; }
+
+  /* ==================== AWARD CARDS ==================== */
+  .cards-row { display: grid; gap: 14px; margin-bottom: 14px; }
+  .cards-3 { grid-template-columns: repeat(3, 1fr); }
+  .cards-4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 900px) { .cards-3, .cards-4 { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 2px;
+    padding: 14px 16px;
+    transition: box-shadow .15s;
+  }
+  .card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+
+  .card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+  .card-title { font-size: 16px; font-weight: 800; color: var(--text); }
+  .card-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .card-icon {
+    width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; flex-shrink: 0; background: #fff;
+    color: var(--slate); font-family: Georgia, "Times New Roman", serif;
+  }
+  .sm-icon { width: 30px; height: 30px; font-size: 12px; }
+
+  .card-body { display: flex; align-items: center; justify-content: space-between; padding: 14px 0 8px; }
+  .card-winner { text-align: center; flex: 1; }
+  .winner-name { font-size: 22px; font-weight: 900; font-style: italic; color: var(--text); line-height: 1.2; }
+  .winner-mgr { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .winner-val { font-size: 28px; font-weight: 900; color: var(--slate); flex-shrink: 0; padding-left: 16px; }
+
+  .sm-winner { text-align: center; padding: 12px 0 6px; }
+  .sm-winner .winner-name { font-size: 18px; }
+  .sm-winner-val { font-size: 20px; font-weight: 900; color: var(--slate); margin-top: 2px; }
+
+  .card-runners { border-top: 1px solid var(--border); padding-top: 8px; margin-top: 6px; }
+  .runner-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; font-size: 11px; color: var(--muted); }
+  .runner-pos { font-weight: 700; color: var(--text); min-width: 16px; }
+  .runner-info { flex: 1; }
+  .runner-val { font-weight: 600; color: var(--text); }
+
+  /* Combined wheeler/rogue card */
+  .combo-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 2px;
+    border-left: 4px solid var(--green); display: flex; flex-direction: column;
+    transition: box-shadow .15s;
+  }
+  .combo-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .combo-half { padding: 14px 16px; }
+  .combo-half + .combo-half { border-top: 2px solid var(--border); border-left-color: var(--red); }
+  .combo-top { background: var(--green-soft); }
+  .combo-bot { background: var(--red-soft); border-left: 4px solid var(--red); margin-left: -4px; padding-left: 20px; }
+
+  /* ==================== TABLES ==================== */
+  .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 2px; overflow-x: auto; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th {
+    background: var(--slate); color: #fff; font-weight: 600;
+    text-align: left; padding: 8px 10px; font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap;
+  }
+  thead th.num { text-align: right; }
+  thead th.ctr { text-align: center; }
+  thead th.group-hdr {
+    background: #3a4f63; text-align: center;
+    border-left: 1px solid rgba(255,255,255,0.15);
+    border-right: 1px solid rgba(255,255,255,0.15);
+    font-size: 9px; padding: 4px 6px;
+  }
+  thead th.sub-hdr {
+    font-size: 9px; padding: 5px 8px;
+    border-left: 1px solid rgba(255,255,255,0.08);
+  }
+  tbody td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+  tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody td.ctr { text-align: center; }
+  tbody tr:nth-child(even) { background: var(--row-alt); }
+  tbody tr:hover { background: rgba(0,255,135,0.05); }
+  tbody tr.top3 td { background: rgba(0,255,135,0.05); font-weight: 500; }
+  tbody tr.top3:hover td { background: rgba(0,255,135,0.08); }
+  tbody td.wrap { white-space: normal; min-width: 160px; }
+
+  .pos { color: var(--green); font-weight: 600; }
+  .neg { color: var(--red); font-weight: 600; }
+  .bold { font-weight: 700; }
+  .muted { color: var(--muted); }
+
+  .rank-cell { font-weight: 700; color: var(--slate); text-align: center; width: 28px; }
+  .move-cell { font-size: 11px; width: 20px; text-align: center; }
+  .move-cell .up { color: var(--green); }
+  .move-cell .dn { color: var(--red); }
+  .move-cell .flat { color: var(--muted); }
+
+  /* ==================== TWO-COL LAYOUT ==================== */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
+
+  .stat-box { background: var(--card); border: 1px solid var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 16px; }
+  .stat-box-hdr { background: var(--slate); color: #fff; padding: 8px 14px; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .3px; }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: var(--muted); }
+  .stat-val { font-weight: 700; }
+
+  h3.sub-title {
+    font-size: 13px; font-weight: 700; color: var(--slate);
+    margin: 14px 0 8px; border-bottom: 3px solid var(--accent);
+    padding-bottom: 4px; display: inline-block;
+  }
+  h3.sub-title:first-child { margin-top: 0; }
+
+  /* ==================== BAR CHARTS (CSS) ==================== */
+  .bar-chart { background: var(--card); border: 1px solid var(--border); border-radius: 2px; padding: 14px; margin-bottom: 16px; }
+  .bar-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+  .bar-label { width: 140px; font-size: 11px; font-weight: 600; text-align: right; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-track { flex: 1; height: 22px; background: var(--row-alt); border-radius: 2px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease; min-width: 2px; }
+  .bar-fill.green { background: var(--green); }
+  .bar-fill.red { background: var(--red); }
+  .bar-fill.slate { background: var(--slate); }
+
+  /* Stacked bar segments (GW breakdown) */
+  .bar-stack { display: flex; height: 100%; }
+  .bar-seg { height: 100%; min-width: 1px; }
+  .bar-seg.base { background: var(--slate); }
+  .bar-seg.captain { background: #3498db; }
+  .bar-seg.tx-gain { background: var(--green); }
+  .bar-seg.tx-loss { background: #f39c12; }
+  .bar-seg.hits { background: var(--red); }
+  .bar-neg { position: absolute; right: 0; top: 0; height: 100%; display: flex; justify-content: flex-end; }
+  .bar-neg .bar-seg { border-radius: 0; }
+  .bar-val { width: 36px; font-size: 11px; font-weight: 700; text-align: right; flex-shrink: 0; }
+
+  /* ==================== CHART CONTAINERS ==================== */
+  .chart-container { position: relative; width: 100%; margin-bottom: 16px; }
+  .chart-container canvas { width: 100% !important; }
+
+  /* ==================== CHIP TABLE ==================== */
+  .chip-used { background: var(--green); color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; display: inline-block; }
+  .chip-unused { color: var(--muted); font-size: 11px; }
+
+  /* ==================== MONTHLY WINNERS ==================== */
+  .month-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .month-card { background: var(--card); border: 1px solid var(--border); border-radius: 2px; padding: 12px; border-left: 3px solid var(--green); }
+  .month-card .month-name { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 600; }
+  .month-card .month-winner { font-size: 14px; font-weight: 800; margin-top: 4px; }
+  .month-card .month-pts { font-size: 18px; font-weight: 900; color: var(--green); margin-top: 2px; }
+  .month-card .month-runners { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+  .month-card .month-runner { font-size: 10px; color: var(--text); line-height: 1.5; }
+
+  /* ==================== xPts DIFF ==================== */
+  .luck-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  @media (max-width: 700px) { .luck-cards { grid-template-columns: 1fr; } }
+
+  /* ==================== GW SUMMARY ==================== */
+  .gw-summary { padding: 20px 0 0; }
+  .gw-bullets { list-style: none; padding: 0; margin: 8px 0 0; }
+  .gw-bullets li {
+    padding: 6px 10px; font-size: 12px; color: var(--text);
+    border-left: 3px solid var(--accent); margin-bottom: 6px;
+    background: var(--card); border-radius: 0 2px 2px 0;
+  }
+
+  .footer {
+    padding: 20px 0; border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--muted); text-align: center;
+  }
+
+  /* ==================== MOBILE ==================== */
+  @media (max-width: 600px) {
+    .wrap { padding: 0 6px; }
+
+    /* --- Nav: hamburger toggle --- */
+    .nav { flex-wrap: wrap; padding: 6px 10px; gap: 0; justify-content: space-between; }
+    .nav-brand { font-size: 13px; margin-right: auto; }
+    .nav-toggle { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;
+      background: none; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: #fff;
+      font-size: 18px; cursor: pointer; order: 2; }
+    .nav-links { display: none; width: 100%; order: 3; flex-direction: column; gap: 0;
+      padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 6px; }
+    .nav-links.open { display: flex; }
+    .nav-links a { font-size: 12px; padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.06);
+      min-height: 44px; display: flex; align-items: center; }
+    .nav-tools { display: flex; align-items: center; gap: 6px; order: 2; }
+
+    /* --- Cover --- */
+    .cover { padding: 60px 12px 50px; }
+    .cover h1 { font-size: 28px; }
+    .cover h2 { font-size: 14px; margin-bottom: 24px; }
+    .cover-meta td { padding: 3px 8px; font-size: 11px; }
+
+    /* --- Sections --- */
+    .section-hdr { padding: 8px 12px; }
+    .section-title { font-size: 16px; }
+
+    /* --- Tables --- */
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; position: relative; }
+    .table-wrap::after {
+      content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 20px;
+      background: linear-gradient(to right, transparent, rgba(0,0,0,0.06));
+      pointer-events: none; z-index: 1;
+    }
+    table { font-size: 11px; }
+    table.wide-table { min-width: 700px; }
+    tbody td { white-space: normal; padding: 5px 6px; }
+    thead th { white-space: normal; padding: 5px 6px; font-size: 9px; }
+    thead th.group-hdr { font-size: 8px; padding: 3px 4px; }
+    thead th.sub-hdr { font-size: 8px; padding: 4px 5px; }
+
+    /* --- Cards --- */
+    .cards-row.cards-3, .cards-row.cards-4 { grid-template-columns: 1fr; }
+    .card { padding: 10px 12px; }
+    .card-title { font-size: 14px; }
+    .card-body { flex-direction: column; text-align: center; }
+    .winner-val { padding-left: 0; margin-top: 6px; font-size: 22px; }
+    .winner-name { font-size: 17px; overflow-wrap: break-word; word-break: break-word; }
+    .sm-winner .winner-name { font-size: 15px; }
+    .combo-card .winner-name { font-size: 15px !important; }
+    .combo-card .winner-val { font-size: 18px !important; padding-left: 0; }
+
+    /* --- Fame/Shame headers --- */
+    .fame-hdr, .shame-hdr { padding: 16px 12px; }
+    .hdr-title { font-size: 22px; }
+
+    /* --- Bar charts --- */
+    .bar-label { width: 90px; font-size: 10px; }
+    .bar-val { width: 30px; font-size: 10px; }
+
+    /* --- Chart containers --- */
+    .chart-container { min-height: 250px; }
+
+    /* --- Hide xPts bar chart on mobile (table below has same info) --- */
+    #xpts-bars { display: none !important; }
+    #xpts-bars + .chart-container { display: none !important; }
+
+    /* --- Stat rows --- */
+    .stat-row { flex-wrap: wrap; gap: 2px; }
+    .stat-label { font-size: 11px; }
+    .stat-val { font-size: 12px; }
+
+    /* --- Two-col layout --- */
+    .two-col { grid-template-columns: 1fr; }
+
+    /* --- Monthly cards --- */
+    .month-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .luck-cards { grid-template-columns: 1fr; }
+
+    /* --- GW summary --- */
+    .gw-bullets li { font-size: 11px; padding: 5px 8px; }
+
+    /* --- Chip table scroll hint --- */
+    .chip-used { font-size: 9px; padding: 1px 5px; }
+  }
+
+  /* Hamburger hidden on desktop */
+  .nav-toggle { display: none; }
+
+  /* ==================== PRINT ==================== */
+  @media print {
+    .nav, .gw-summary { display: none; }
+    .section-hdr { cursor: default; break-after: avoid; }
+    .chart-container { break-inside: avoid; page-break-inside: avoid; }
+    .table-wrap { overflow: visible; }
+    .table-wrap::after { display: none; }
+    table { min-width: 0; font-size: 9px; }
+    table.wide-table { min-width: 0; }
+    .hm { display: table-cell !important; }
+    body { font-size: 11px; background: #fff; }
+    .cover { padding: 40px 24px 30px; }
+    .section { page-break-before: auto; }
+  }
+</style>
+</head>
+<body>
+
+{# ==================== NAV ==================== #}
+<nav class="nav">
+  <a class="nav-brand" href="#">THE <span>DOSSIER</span></a>
+  <div class="nav-links">
+    <a href="#fame">Fame</a>
+    <a href="#shame">Shame</a>
+    <a href="#leaderboard">Table</a>
+    <a href="#review">Review</a>
+    <a href="#transfers">Transfers</a>
+    <a href="#captains">Captains</a>
+    <a href="#chips">Chips</a>
+    <a href="#motm">MOTM</a>
+    <a href="#scout">Scout</a>
+    <a href="#xpts">xPts</a>
+    <a href="#progression">Season</a>
+  </div>
+  <div class="nav-tools"></div>
+  <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+</nav>
+
+{# ==================== COVER ==================== #}
+<div class="cover">
+  <h1>THE <span>DOSSIER</span></h1>
+  <h2>{{ league_name }} &mdash; Gameweek {{ event }}</h2>
+  <table class="cover-meta">
+    <tr><td>League:</td><td>{{ league_name }} ({{ league_id }})</td></tr>
+    <tr><td>Managers:</td><td>{{ mgr_count }}</td></tr>
+    <tr>
+      <td>League Average:</td>
+      <td>{{ "%.1f"|format(gw_avg) }} pts
+        {% if fpl_avg is not none and gw_avg is not none %}
+          {% set diff = gw_avg - fpl_avg %}
+          (<span style="color:{{ 'var(--accent)' if diff >= 0 else '#e74c3c' }}">{{ "%+.0f"|format(diff) }}</span> vs FPL avg {{ fpl_avg }})
+        {% endif %}
+      </td>
+    </tr>
+    <tr><td>Generated:</td><td>{{ generated }}</td></tr>
+  </table>
+</div>
+
+<div class="wrap">
+
+{# ==================== HALL OF FAME ==================== #}
+<div id="fame" class="section">
+  <div class="fame-hdr">
+    <div class="hdr-title">Hall of Fame</div>
+    <div class="hdr-sub">{{ league_name }} &mdash; GW{{ event }}</div>
+  </div>
+
+  <div class="cards-row cards-3">
+    {{ big_card("Top of the Pile", "Highest overall points", top_overall, "total_points", icon=icon_trophy(), accent="green") }}
+
+    {# Combined Wheeler Dealer + Rogue Trader #}
+    <div class="combo-card">
+      <div class="combo-half combo-top">
+        <div class="card-head">
+          <div>
+            <div class="card-title">"Wheeler Dealer"</div>
+            <div class="card-sub">Most points from transfers this GW</div>
+          </div>
+          <div class="card-icon" style="border-color: var(--green);">{{ icon_plus()|safe }}</div>
+        </div>
+        {% if wheeler %}
+        <div class="card-body">
+          <div class="card-winner">
+            <div class="winner-name">{{ wheeler[0].entry_name }}</div>
+            <div class="winner-mgr">{{ wheeler[0].player_name }}</div>
+          </div>
+          <div class="winner-val">
+            {% set wnet = (wheeler[0].gross_pnl or 0) - (wheeler[0].event_transfers_cost or 0) %}
+            <span class="pos">{{ "%+d"|format(wnet) }}</span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      <div class="combo-half combo-bot">
+        <div class="card-head">
+          <div>
+            <div class="card-title">"Rogue Trader"</div>
+            <div class="card-sub">Fewest points from transfers this GW</div>
+          </div>
+        </div>
+        {% if rogue %}
+        <div class="card-body">
+          <div class="card-winner">
+            <div class="winner-name">{{ rogue[0].entry_name }}</div>
+            <div class="winner-mgr">{{ rogue[0].player_name }}</div>
+          </div>
+          <div class="winner-val">
+            {% set rnet = (rogue[0].gross_pnl or 0) - (rogue[0].event_transfers_cost or 0) %}
+            <span class="neg">{{ "%+d"|format(rnet) }}</span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {{ big_card("Sheikh Mansour", "Most valuable squad", most_valuable, "value", icon=icon_pound(), value_fmt="value", accent="green") }}
+  </div>
+
+  <div class="cards-row cards-4">
+    {{ small_card("Manager of the Week", "Highest GW points", motw, "points", icon=icon_star(), accent="green") }}
+    {{ small_card("On a Hot Streak", "Most points last " ~ num_form_gws ~ " GWs", hot_streak, "form_points", icon=icon_flame(), accent="green") }}
+    {{ small_card("Teacher's Pet", "Most captain points (season)", teachers_pet, "total_captain_pts", icon=icon_captain(), accent="green") }}
+    {{ small_card("Balls of Steel", "Most differential captain picks", balls_of_steel, "avg_captain_popularity", icon=icon_shield(), accent="green", value_fmt="pct") }}
+  </div>
+</div>
+
+{# ==================== HALL OF SHAME ==================== #}
+<div id="shame" class="section">
+  <div class="shame-hdr">
+    <div class="hdr-title">Hall of Shame</div>
+    <div class="hdr-sub">{{ league_name }} &mdash; GW{{ event }}</div>
+  </div>
+
+  <div class="cards-row cards-3">
+    {{ big_card("Bottom Feeders", "Fewest overall points", bottom_overall, "total_points", icon=icon_arrow_down(), accent="red") }}
+
+    {# Combined Wheeler Dealer + Rogue Trader (mirrored) #}
+    <div class="combo-card" style="border-left-color: var(--green);">
+      <div class="combo-half combo-top">
+        <div class="card-head">
+          <div>
+            <div class="card-title">"Wheeler Dealer"</div>
+            <div class="card-sub">Most points from transfers this GW</div>
+          </div>
+        </div>
+        {% if wheeler %}
+        <div class="card-body">
+          <div class="card-winner">
+            <div class="winner-name" style="font-size:17px;">{{ wheeler[0].entry_name }}</div>
+            <div class="winner-mgr">{{ wheeler[0].player_name }}</div>
+          </div>
+          <div class="winner-val" style="font-size:22px;">
+            {% set wnet = (wheeler[0].gross_pnl or 0) - (wheeler[0].event_transfers_cost or 0) %}
+            <span class="pos">{{ "%+d"|format(wnet) }}</span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      <div class="combo-half combo-bot">
+        <div class="card-head">
+          <div>
+            <div class="card-title">"Rogue Trader"</div>
+            <div class="card-sub">Fewest points from transfers this GW</div>
+          </div>
+        </div>
+        {% if rogue %}
+        <div class="card-body">
+          <div class="card-winner">
+            <div class="winner-name" style="font-size:17px;">{{ rogue[0].entry_name }}</div>
+            <div class="winner-mgr">{{ rogue[0].player_name }}</div>
+          </div>
+          <div class="winner-val" style="font-size:22px;">
+            {% set rnet = (rogue[0].gross_pnl or 0) - (rogue[0].event_transfers_cost or 0) %}
+            <span class="neg">{{ "%+d"|format(rnet) }}</span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {{ big_card("Rodney Trotter", "Least valuable squad", least_valuable, "value", icon=icon_pound(), value_fmt="value", accent="red") }}
+  </div>
+
+  <div class="cards-row cards-4">
+    {% set worst_gw = leaderboard|sort(attribute='points')|first %}
+    {{ small_card("Worst of the Week", "Fewest GW points", [worst_gw] if worst_gw else [], "points", icon=icon_arrow_down(), accent="red") }}
+    {{ small_card("Must be on Holiday", "Fewest points last " ~ num_form_gws ~ " GWs", cold_streak, "form_points", icon=icon_snowflake(), accent="red") }}
+    {{ small_card("Lost the Dressing Room", "Fewest captain points (season)", lost_dressing_room, "total_captain_pts", icon=icon_captain(), accent="red") }}
+    {{ small_card("Balls of Cotton Wool", "Most template captain picks", balls_of_cotton, "avg_captain_popularity", icon=icon_cotton(), accent="red", value_fmt="pct") }}
+  </div>
+</div>
+
+{# ==================== GW SUMMARY ==================== #}
+<div class="gw-summary">
+  <h3 class="sub-title">GW{{ event }} Headlines</h3>
+  <ul class="gw-bullets">
+    {% if gw_stats.new_leader %}
+    <li>{{ gw_stats.new_leader.entry_name }} takes the league lead, rising from {{ gw_stats.new_leader.from_pos | ordinal }}.</li>
+    {% endif %}
+    {% if gw_stats.biggest_riser %}
+    <li>Biggest riser: <strong>{{ gw_stats.biggest_riser.entry_name }}</strong> climbed {{ gw_stats.biggest_riser.movement }} {{ "place" if gw_stats.biggest_riser.movement == 1 else "places" }}.</li>
+    {% endif %}
+    {% if gw_stats.biggest_faller %}
+    <li>Biggest faller: <strong>{{ gw_stats.biggest_faller.entry_name }}</strong> dropped {{ gw_stats.biggest_faller.movement|abs }} {{ "place" if gw_stats.biggest_faller.movement|abs == 1 else "places" }}.</li>
+    {% endif %}
+    {% if gw_stats.best_transfer and gw_stats.best_transfer.net > 0 %}
+    <li>Best transfer: <strong>{{ gw_stats.best_transfer.entry_name }}</strong> brought in {{ gw_stats.best_transfer.bought }} for {{ gw_stats.best_transfer.sold }} ({{ "%+d"|format(gw_stats.best_transfer.net) }} pts).</li>
+    {% endif %}
+    {% if gw_stats.worst_transfer and gw_stats.worst_transfer.net < 0 %}
+    <li>Worst transfer: <strong>{{ gw_stats.worst_transfer.entry_name }}</strong> swapped {{ gw_stats.worst_transfer.sold }} &rarr; {{ gw_stats.worst_transfer.bought }} ({{ "%+d"|format(gw_stats.worst_transfer.net) }} pts).</li>
+    {% endif %}
+    {% if gw_stats.chips_this_gw %}
+    <li>Chips played: {% for c in gw_stats.chips_this_gw %}{{ c.entry_name }} (<span class="chip-used" style="background:{{ '#3498db' if c.chip == 'wildcard' else ('#e74c3c' if c.chip == 'freehit' else ('#f39c12' if c.chip == 'bboost' else '#9b59b6')) }}; font-size:10px; padding:1px 5px;">{{ chip_labels[c.chip] }}</span>){{ ", " if not loop.last }}{% endfor %}</li>
+    {% endif %}
+    {% if gw_stats.most_bought %}
+    <li>Most transferred in: <strong>{{ gw_stats.most_bought.web_name }}</strong> ({{ gw_stats.most_bought.cnt }} managers).</li>
+    {% endif %}
+  </ul>
+</div>
+
+{# ==================== LEADERBOARD ==================== #}
+<div id="leaderboard" class="section">
+  {{ section_bar("1", "Leaderboard", league_name) }}
+
+  <div class="table-wrap">
+  <table class="wide-table">
+    <thead>
+      <tr>
+        <th class="ctr" rowspan="2" style="width:30px">Pos</th>
+        <th rowspan="2" style="width:18px"></th>
+        <th rowspan="2">Team</th>
+        <th rowspan="2">Manager</th>
+        <th class="group-hdr" colspan="2">Rank</th>
+        <th class="group-hdr" colspan="4">Points (Net)</th>
+        <th class="group-hdr" colspan="4">Transfers</th>
+        <th class="group-hdr" colspan="3">Captain</th>
+        <th class="group-hdr" colspan="2">Squad</th>
+      </tr>
+      <tr>
+        <th class="sub-hdr num">Overall</th>
+        <th class="sub-hdr num">+/&minus;</th>
+        <th class="sub-hdr num">Total</th>
+        <th class="sub-hdr num">Form*</th>
+        <th class="sub-hdr num">Week</th>
+        <th class="sub-hdr ctr">#</th>
+        <th class="sub-hdr ctr">TM</th>
+        <th class="sub-hdr num">Cost</th>
+        <th class="sub-hdr num">Net</th>
+        <th class="sub-hdr num">Hits&dagger;</th>
+        <th class="sub-hdr">Name</th>
+        <th class="sub-hdr num">Pts</th>
+        <th class="sub-hdr num">Season&Dagger;</th>
+        <th class="sub-hdr num">Bench</th>
+        <th class="sub-hdr num">Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in leaderboard %}
+      <tr{% if loop.index <= 3 %} class="top3"{% endif %} data-manager="{{ r.entry_name|lower }}">
+        <td class="rank-cell">{{ r.pos }}</td>
+        <td class="move-cell">
+          {% if r.movement is not none %}
+            {% if r.movement > 0 %}<span class="up">&#9650;</span>
+            {% elif r.movement < 0 %}<span class="dn">&#9660;</span>
+            {% else %}<span class="flat">&#9679;</span>{% endif %}
+          {% else %}<span class="flat">&#9679;</span>{% endif %}
+        </td>
+        <td class="bold">{{ r.entry_name }}</td>
+        <td>{{ r.player_name }}</td>
+        <td class="num">{{ r.overall_rank|fmt_rank }}</td>
+        <td class="num">
+          {% if r.or_change is not none %}
+            <span class="{{ 'pos' if r.or_change > 0 else ('neg' if r.or_change < 0 else 'muted') }}">{{ r.or_change|sign }}</span>
+          {% else %}&mdash;{% endif %}
+        </td>
+        <td class="num bold">{{ r.total_points|commas }}</td>
+        <td class="num">{{ r.form }}</td>
+        <td class="num">{{ r.points }}</td>
+        <td class="ctr muted">{{ r.gw_rank }}</td>
+        <td class="ctr">{{ r.event_transfers }}</td>
+        <td class="num {{ 'neg' if r.event_transfers_cost else '' }}">{{ "-%d"|format(r.event_transfers_cost) if r.event_transfers_cost else "0" }}</td>
+        <td class="num">
+          {% if r.transfer_net != 0 %}
+            <span class="{{ 'pos' if r.transfer_net > 0 else 'neg' }}">{{ "%+d"|format(r.transfer_net) }}</span>
+          {% else %}<span class="muted">0</span>{% endif %}
+        </td>
+        <td class="num {{ 'neg' if r.season_hits else '' }}">{{ "-%d"|format(r.season_hits) if r.season_hits else "0" }}</td>
+        <td>{{ r.captain_name }}</td>
+        <td class="num">{{ r.captain_points }}</td>
+        <td class="num">{{ r.season_captain_pts|commas }}</td>
+        <td class="num">{{ r.points_on_bench }}</td>
+        <td class="num">{{ r.value|fmt_value }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <div style="font-size:11px; color:var(--muted); margin-top:-10px;">* Form = last {{ num_form_gws }} GWs &nbsp;&bull;&nbsp; &dagger; Season total hits &nbsp;&bull;&nbsp; &Dagger; Season captain total</div>
+</div>
+
+{# ==================== GW REVIEW ==================== #}
+<div id="review" class="section">
+  {{ section_bar("2", "GW" ~ event ~ ": The Review", league_name) }}
+
+  <div class="two-col">
+    <div>
+      {% if top_scorers %}
+      <h3 class="sub-title">Top FPL Scorers &mdash; GW{{ event }}</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th style="width:28px">#</th><th>Player</th><th>Team</th><th class="num">Points</th></tr></thead>
+        <tbody>
+          {% for r in top_scorers %}
+          <tr><td class="rank-cell">{{ loop.index }}</td><td class="bold">{{ r.web_name }}</td><td>{{ r.team }}</td><td class="num bold">{{ r.event_points }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% endif %}
+
+      {% if most_captained %}
+      <h3 class="sub-title">Most Captained in League</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Player</th><th class="num">Picks</th><th class="num">%</th></tr></thead>
+        <tbody>
+          {% for r in most_captained %}
+          <tr><td class="bold">{{ r.web_name }}</td><td class="num">{{ r.picks }}</td><td class="num">{{ "%.0f"|format(100 * r.picks / total_mgrs) }}%</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% endif %}
+    </div>
+
+    <div>
+      <div class="stat-box">
+        <div class="stat-box-hdr">The Gameweek by Numbers</div>
+        <div class="stat-row" style="background:var(--row-alt);">
+          <span class="stat-label">Gameweek {{ event }}</span><span></span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Manager of the Week</span>
+          <span class="stat-val">{{ gw_stats.motw_name }} <span class="muted" style="font-weight:400">{{ gw_stats.motw_points }} pts</span></span>
+        </div>
+        {% if gw_stats.biggest_riser %}
+        <div class="stat-row">
+          <span class="stat-label">Biggest Riser</span>
+          <span class="stat-val pos">{{ gw_stats.biggest_riser.player_name }} {{ gw_stats.biggest_riser.movement }} rank &#9650;</span>
+        </div>
+        {% endif %}
+        {% if gw_stats.biggest_faller %}
+        <div class="stat-row">
+          <span class="stat-label">Biggest Faller</span>
+          <span class="stat-val neg">{{ gw_stats.biggest_faller.player_name }} {{ gw_stats.biggest_faller.movement|abs }} rank &#9660;</span>
+        </div>
+        {% endif %}
+        {% if gw_stats.most_bought %}
+        <div class="stat-row">
+          <span class="stat-label">Most Transferred In</span>
+          <span class="stat-val">{{ gw_stats.most_bought.web_name }} <span class="muted" style="font-weight:400">({{ gw_stats.most_bought.cnt }})</span></span>
+        </div>
+        {% endif %}
+        {% if gw_stats.most_sold %}
+        <div class="stat-row">
+          <span class="stat-label">Most Transferred Out</span>
+          <span class="stat-val">{{ gw_stats.most_sold.web_name }} <span class="muted" style="font-weight:400">({{ gw_stats.most_sold.cnt }})</span></span>
+        </div>
+        {% endif %}
+        {% if fpl_avg is not none %}
+        <div class="stat-row">
+          <span class="stat-label">Mini League Avg vs FPL</span>
+          {% set diff = gw_avg - fpl_avg %}
+          <span class="stat-val {{ 'pos' if diff >= 0 else 'neg' }}">{{ "%+.0f"|format(diff) }}</span>
+        </div>
+        {% endif %}
+        <div class="stat-row">
+          <span class="stat-label">League Average</span>
+          <span class="stat-val">{{ "%.1f"|format(gw_avg) }} pts</span>
+        </div>
+        {% if fpl_avg is not none %}
+        <div class="stat-row">
+          <span class="stat-label">FPL Average</span>
+          <span class="stat-val">{{ fpl_avg }} pts</span>
+        </div>
+        {% endif %}
+        <div class="stat-row">
+          <span class="stat-label">Average Captain Return</span>
+          <span class="stat-val">{{ "%.1f"|format(captain_avg) }} pts</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# GW Score Breakdown — stacked CSS bar chart (works without JS) #}
+  <h3 class="sub-title">GW{{ event }} Score Breakdown</h3>
+  {% set max_gross = gw_breakdown|map(attribute='gross')|list|max if gw_breakdown else 1 %}
+  {% set max_hits = gw_breakdown|map(attribute='hits')|list|max if gw_breakdown else 0 %}
+  {% set scale = max_gross + max_hits if max_hits else max_gross %}
+  <div class="bar-chart" id="gw-breakdown-bars">
+    {% for r in gw_breakdown %}
+    {% set pos_tx = [r.transfer_net, 0]|max %}
+    {% set neg_tx = [r.transfer_net, 0]|min|abs %}
+    <div class="bar-row">
+      <span class="bar-label">{{ r.entry_name }}</span>
+      <div class="bar-track">
+        <div class="bar-stack" style="width:{{ (r.gross / scale * 100)|round(1) }}%">
+          {% if r.base > 0 %}<div class="bar-seg base" style="flex:{{ r.base }}" title="Base: {{ r.base }}"></div>{% endif %}
+          {% if r.captain_bonus > 0 %}<div class="bar-seg captain" style="flex:{{ r.captain_bonus }}" title="Captain: +{{ r.captain_bonus }}"></div>{% endif %}
+          {% if pos_tx > 0 %}<div class="bar-seg tx-gain" style="flex:{{ pos_tx }}" title="Transfers: +{{ pos_tx }}"></div>{% endif %}
+        </div>
+        {% if r.hits > 0 or neg_tx > 0 %}
+        <div class="bar-neg" style="width:{{ ((r.hits + neg_tx) / scale * 100)|round(1) }}%">
+          {% if neg_tx > 0 %}<div class="bar-seg tx-loss" style="flex:{{ neg_tx }}" title="Transfer loss: -{{ neg_tx }}"></div>{% endif %}
+          {% if r.hits > 0 %}<div class="bar-seg hits" style="flex:{{ r.hits }}" title="Hits: -{{ r.hits }}"></div>{% endif %}
+        </div>
+        {% endif %}
+      </div>
+      <span class="bar-val">{{ r.net }}{% if r.chip %} <span style="font-size:9px;color:var(--muted)">{{ r.chip }}</span>{% endif %}</span>
+    </div>
+    {% endfor %}
+    <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:8px; font-size:10px; color:var(--muted);">
+      <span><span style="display:inline-block;width:10px;height:8px;background:var(--slate);border-radius:1px;"></span> Base</span>
+      <span><span style="display:inline-block;width:10px;height:8px;background:#3498db;border-radius:1px;"></span> Captain</span>
+      <span><span style="display:inline-block;width:10px;height:8px;background:var(--green);border-radius:1px;"></span> Tx Gain</span>
+      <span><span style="display:inline-block;width:10px;height:8px;background:#f39c12;border-radius:1px;"></span> Tx Loss</span>
+      <span><span style="display:inline-block;width:10px;height:8px;background:var(--red);border-radius:1px;"></span> Hits</span>
+    </div>
+  </div>
+
+  {# Chart.js stacked version (progressive enhancement, replaces CSS bars when JS loads) #}
+  <div class="chart-container" id="gw-breakdown-container" style="height:{{ (gw_breakdown|length * 32 + 80)|int }}px; display:none;">
+    <canvas id="chart-gw-breakdown"></canvas>
+  </div>
+</div>
+
+{# ==================== TRANSFER ROUNDUP ==================== #}
+<div id="transfers" class="section">
+  {{ section_bar("3", "Transfer Roundup", league_name) }}
+
+  {% if transfers %}
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:28px">#</th>
+        <th>Manager</th>
+        <th>In (pts)</th>
+        <th>Out (pts)</th>
+        <th class="num">Gross</th>
+        <th class="num">Hits</th>
+        <th class="num">Net</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in transfers %}
+      {% set gross = r.gross or 0 %}
+      {% set hits = r.hits or 0 %}
+      {% set net = gross - hits %}
+      <tr>
+        <td class="rank-cell">{{ loop.index }}</td>
+        <td class="bold">{{ r.player_name }}</td>
+        <td class="wrap" style="font-size:11px;">{{ r.bought }}</td>
+        <td class="wrap" style="font-size:11px;">{{ r.sold }}</td>
+        <td class="num {{ 'pos' if gross > 0 else ('neg' if gross < 0 else 'muted') }}">{{ "%+d"|format(gross) }}</td>
+        <td class="num {{ 'neg' if hits > 0 else '' }}">{{ "-%d"|format(hits) if hits else "0" }}</td>
+        <td class="num bold {{ 'pos' if net > 0 else ('neg' if net < 0 else 'muted') }}">{{ "%+d"|format(net) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p class="muted">No transfers this gameweek.</p>
+  {% endif %}
+</div>
+
+{# ==================== CAPTAIN'S CORNER ==================== #}
+<div id="captains" class="section">
+  {{ section_bar("4", "Captain's Corner", league_name) }}
+
+  <div class="two-col">
+    <div>
+      {% if season_captains %}
+      <h3 class="sub-title">Most Captained in League since GW1</h3>
+      <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Player</th><th class="num">Captained</th><th class="num">Percent</th><th class="num">Avg Pts*</th></tr>
+        </thead>
+        <tbody>
+          {% for r in season_captains %}
+          <tr>
+            <td class="bold">{{ r.web_name }}</td>
+            <td class="num">{{ r.times_captained }} times</td>
+            <td class="num">{{ r.pct }}%</td>
+            <td class="num">{{ r.avg_pts }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      <div style="font-size:11px; color:var(--muted); margin-top:-10px;">*Average points when captained in mini-league</div>
+      {% endif %}
+    </div>
+
+    <div>
+      {% if captains %}
+      <h3 class="sub-title">GW{{ event }} Captain Picks</h3>
+      <p style="margin-bottom:8px; font-size:12px;">League average captain return: <strong>{{ "%.1f"|format(captain_avg) }}</strong> pts</p>
+      <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Manager</th><th>Captain</th><th class="num">Raw</th><th class="num">Effective</th></tr>
+        </thead>
+        <tbody>
+          {% for r in captains %}
+          <tr>
+            <td>{{ r.player_name }}</td>
+            <td class="bold">{{ r.captain_name }}{% if r.vc_activated %} <span style="font-size:10px;color:var(--muted)">(VC)</span>{% endif %}</td>
+            <td class="num">{{ r.captain_raw_points }}</td>
+            <td class="num bold">{{ r.captain_effective_points }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if all_captain_totals %}
+  <h3 class="sub-title">Teacher's Pets &mdash; Season Captain Points</h3>
+  {% set max_cap = all_captain_totals[0].total_captain_pts if all_captain_totals else 1 %}
+  <div class="bar-chart">
+    {% for r in all_captain_totals %}
+    <div class="bar-row">
+      <span class="bar-label">{{ r.entry_name }}</span>
+      <div class="bar-track">
+        <div class="bar-fill {{ 'green' if loop.index <= 3 else ('red' if loop.index > (all_captain_totals|length - 3) else 'slate') }}"
+             style="width: {{ (r.total_captain_pts / max_cap * 100)|int }}%"></div>
+      </div>
+      <span class="bar-val">{{ r.total_captain_pts }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+{# ==================== CHIP USAGE ==================== #}
+<div id="chips" class="section">
+  {{ section_bar("5", "The Croupier", "Chip usage across the league") }}
+
+  {# Unified chip usage + value table — triple-level header #}
+  {% set chip_colors = {"wildcard": "#3498db", "freehit": "#e74c3c", "bboost": "#f39c12", "3xc": "#9b59b6"} %}
+  {% if chip_summary %}
+  <h3 class="sub-title">Chip Usage &amp; Value</h3>
+  <p style="font-size:10px; color:var(--muted); margin-bottom:8px;">WC = 5-GW gain over old team &middot; FH = GW pts over previous team &middot; BB = bench pts &middot; TC = extra captain multiplier. Ranked by total chip value.</p>
+  <div class="table-wrap">
+  <table class="wide-table">
+    <thead>
+      <tr>
+        <th rowspan="3" style="vertical-align:bottom">#</th>
+        <th rowspan="3" style="vertical-align:bottom">Team</th>
+        <th colspan="4" class="ctr" style="border-bottom:2px solid #3498db">Wild Card</th>
+        <th colspan="4" class="ctr" style="border-bottom:2px solid #e74c3c">Free Hit</th>
+        <th colspan="4" class="ctr" style="border-bottom:2px solid #9b59b6">Triple Captain</th>
+        <th colspan="4" class="ctr" style="border-bottom:2px solid #f39c12">Bench Boost</th>
+        <th rowspan="3" class="num" style="vertical-align:bottom">Total</th>
+      </tr>
+      <tr>
+        {% for _ in range(4) %}
+        <th colspan="2" class="ctr" style="font-size:9px">1</th>
+        <th colspan="2" class="ctr" style="font-size:9px">2</th>
+        {% endfor %}
+      </tr>
+      <tr>
+        {% for _ in range(8) %}
+        <th class="ctr" style="font-size:8px">GW</th>
+        <th class="num" style="font-size:8px">Pts</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in chip_summary %}
+      {% set chip_order = ["wildcard", "freehit", "3xc", "bboost"] %}
+      <tr data-manager="{{ r.entry_name|lower }}">
+        <td class="ctr bold">{{ loop.index }}</td>
+        <td class="bold">{{ r.entry_name }}</td>
+        {% for ct in chip_order %}
+        {# 1st usage #}
+        <td class="ctr">{% if r[ct ~ '_gw'] %}<span class="chip-used" style="background:{{ chip_colors[ct] }}">{{ r[ct ~ '_gw'] }}</span>{% else %}&mdash;{% endif %}</td>
+        <td class="num">{% if r[ct ~ '_pts'] != '' %}{{ r[ct ~ '_pts'] }}{% else %}&mdash;{% endif %}</td>
+        {# 2nd usage #}
+        <td class="ctr">{% if r[ct ~ '_2_gw'] %}<span class="chip-used" style="background:{{ chip_colors[ct] }}">{{ r[ct ~ '_2_gw'] }}</span>{% else %}&mdash;{% endif %}</td>
+        <td class="num">{% if r[ct ~ '_2_pts'] != '' %}{{ r[ct ~ '_2_pts'] }}{% else %}&mdash;{% endif %}</td>
+        {% endfor %}
+        <td class="num bold">{{ r.total }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
+
+  {# Filterable chip ranking #}
+  {% if chip_detail %}
+  <h3 class="sub-title">Chip Rankings</h3>
+  <div style="margin-bottom:10px;">
+    <label for="chip-filter" style="font-size:12px; font-weight:600; color:var(--slate);">Filter by chip:</label>
+    <select id="chip-filter" style="padding:4px 8px; font-size:12px; border:1px solid var(--border); border-radius:3px; background:var(--card); color:var(--text);">
+      <option value="all">All Chips</option>
+      <option value="wildcard">Wildcard</option>
+      <option value="freehit">Free Hit</option>
+      <option value="bboost">Bench Boost</option>
+      <option value="3xc">Triple Captain</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+  <table id="chip-ranking-table">
+    <thead>
+      <tr>
+        <th class="ctr">#</th>
+        <th>Team</th>
+        <th>Chip</th>
+        <th class="ctr">Usage</th>
+        <th class="ctr">GW</th>
+        <th class="num">Points</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in chip_detail %}
+      <tr data-chip="{{ r.chip }}">
+        <td class="ctr bold">{{ loop.index }}</td>
+        <td class="bold">{{ r.entry_name }}</td>
+        <td><span class="chip-used" style="background:{{ chip_colors.get(r.chip, '#777') }}">{{ r.chip_label }}</span></td>
+        <td class="ctr">{{ '2nd' if r.usage_num > 1 else '1st' }}</td>
+        <td class="ctr">{{ r.event }}</td>
+        <td class="num bold">{{ r.points }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
+
+  {# Top 5 highest-scoring chip activations #}
+  {% if chip_top5 %}
+  <h3 class="sub-title">Top 5 Chip Scores (Season)</h3>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="ctr">#</th>
+        <th>Team</th>
+        <th>Chip</th>
+        <th class="ctr">GW</th>
+        <th class="num">Points</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in chip_top5 %}
+      <tr>
+        <td class="ctr bold">{{ loop.index }}</td>
+        <td class="bold">{{ r.entry_name }}</td>
+        <td><span class="chip-used" style="background:{{ '#3498db' if r.chip == 'wildcard' else ('#e74c3c' if r.chip == 'freehit' else ('#f39c12' if r.chip == 'bboost' else '#9b59b6')) }}">{{ r.chip_label }}</span></td>
+        <td class="ctr">{{ r.event }}</td>
+        <td class="num bold">{{ r.points }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
+
+  {# Wildcard Maestro #}
+  {% if wc_maestro %}
+  <h3 class="sub-title">Wildcard Maestro</h3>
+  <p style="font-size:11px; color:var(--muted); margin-bottom:10px;">Compares post-WC team performance vs the pre-WC squad over the next 5 gameweeks. Positive = WC gained points.</p>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Manager</th>
+        <th class="ctr">WC GW</th>
+        <th class="num">Old Team (5 GWs)</th>
+        <th class="num">New Team (5 GWs)</th>
+        <th class="num">Gain</th>
+        <th class="num">Avg/GW</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in wc_maestro %}
+      <tr>
+        <td class="bold">{{ r.entry_name }}</td>
+        <td class="ctr">{{ r.wc_gw }}</td>
+        <td class="num muted">{{ r.old_total }}</td>
+        <td class="num">{{ r.new_total }}</td>
+        <td class="num bold {{ 'pos' if r.gain > 0 else ('neg' if r.gain < 0 else 'muted') }}">{{ "%+d"|format(r.gain) }}</td>
+        <td class="num {{ 'pos' if r.avg_gain_per_gw > 0 else ('neg' if r.avg_gain_per_gw < 0 else 'muted') }}">{{ "%+.1f"|format(r.avg_gain_per_gw) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
+</div>
+
+{# ==================== TRANSFER TICKER ==================== #}
+<div id="ticker" class="section">
+  {{ section_bar("6", "Transfer Ticker", "Individual transfers ranked by net points") }}
+
+  {% if transfer_ticker %}
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:28px">#</th>
+        <th>Manager</th>
+        <th>Bought</th>
+        <th class="num">Pts</th>
+        <th>Sold</th>
+        <th class="num">Pts</th>
+        <th class="num">Net</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in transfer_ticker %}
+      <tr>
+        <td class="rank-cell">{{ loop.index }}</td>
+        <td class="bold">{{ r.player_name }}</td>
+        <td class="pos">{{ r.bought }}</td>
+        <td class="num">{{ r.bought_pts }}</td>
+        <td class="neg">{{ r.sold }}</td>
+        <td class="num">{{ r.sold_pts }}</td>
+        <td class="num bold {{ 'pos' if r.net > 0 else ('neg' if r.net < 0 else 'muted') }}">{{ "%+d"|format(r.net) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p class="muted">No transfers this gameweek.</p>
+  {% endif %}
+</div>
+
+{# ==================== MANAGER OF THE MONTH ==================== #}
+<div id="motm" class="section">
+  {{ section_bar("7", "Manager of the Month", "Based on GW deadline date") }}
+
+  {% if monthly_winners %}
+  <div class="month-grid">
+    {% for mw in monthly_winners %}
+    <div class="month-card">
+      <div class="month-name">{{ mw.month_label }}</div>
+      <div class="month-winner">{{ mw.entry_name }}</div>
+      <div style="font-size:10px; color:var(--muted);">{{ mw.player_name }}</div>
+      <div class="month-pts">{{ mw.points }} pts <span style="font-size:11px; font-weight:600; color:var(--muted);">({{ mw.pts_per_gw }}/gw)</span></div>
+      {% if mw.runners_up %}
+      <div class="month-runners">
+        {% for ru in mw.runners_up %}
+        <div class="month-runner">{{ loop.index + 1 }}. {{ ru.entry_name }} <span class="muted">{{ ru.points }}</span></div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+{# ==================== SCOUT REPORT ==================== #}
+<div id="scout" class="section">
+  {{ section_bar("8", "Scout Report", "xG-based performance analysis") }}
+
+  <div class="two-col">
+    <div>
+      <h3 class="sub-title">Over-Performers &mdash; GW{{ event }}</h3>
+      <p style="font-size:11px; color:var(--muted); margin-bottom:8px;">Players who scored more than expected (actual &minus; xPts)</p>
+      {% if scout_over %}
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Player</th><th>Team</th><th class="num">Actual</th><th class="num">xPts</th><th class="num">Diff</th></tr></thead>
+        <tbody>
+          {% for r in scout_over %}
+          <tr>
+            <td class="bold">{{ r.web_name }}</td>
+            <td>{{ r.team }}</td>
+            <td class="num">{{ r.event_points }}</td>
+            <td class="num muted">{{ r.xpts }}</td>
+            <td class="num pos bold">+{{ r.diff }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% endif %}
+    </div>
+
+    <div>
+      <h3 class="sub-title">Under-Performers &mdash; GW{{ event }}</h3>
+      <p style="font-size:11px; color:var(--muted); margin-bottom:8px;">Players who scored less than expected (actual &minus; xPts)</p>
+      {% if scout_under %}
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Player</th><th>Team</th><th class="num">Actual</th><th class="num">xPts</th><th class="num">Diff</th></tr></thead>
+        <tbody>
+          {% for r in scout_under %}
+          <tr>
+            <td class="bold">{{ r.web_name }}</td>
+            <td>{{ r.team }}</td>
+            <td class="num">{{ r.event_points }}</td>
+            <td class="num muted">{{ r.xpts }}</td>
+            <td class="num neg bold">{{ r.diff }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if scout_season %}
+  <h3 class="sub-title">Season xGI Leaders</h3>
+  <p style="font-size:11px; color:var(--muted); margin-bottom:8px;">Top 20 players by expected goal involvements &mdash; &ldquo;League Owners&rdquo; = managers in your league who own them</p>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:28px">#</th>
+        <th>Player</th>
+        <th>Team</th>
+        <th class="num">xG</th>
+        <th class="num">xA</th>
+        <th class="num">xGI</th>
+        <th class="num">Actual Pts</th>
+        <th class="num">League Owners</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in scout_season %}
+      <tr>
+        <td class="rank-cell">{{ loop.index }}</td>
+        <td class="bold">{{ r.web_name }}</td>
+        <td>{{ r.team }}</td>
+        <td class="num">{{ "%.1f"|format(r.season_xg or 0) }}</td>
+        <td class="num">{{ "%.1f"|format(r.season_xa or 0) }}</td>
+        <td class="num bold">{{ "%.1f"|format(r.season_xgi or 0) }}</td>
+        <td class="num">{{ r.season_pts }}</td>
+        <td class="num">{{ r.league_owners }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
+</div>
+
+{# ==================== WHO SHOULD BE TOP ==================== #}
+<div id="xpts" class="section">
+  {{ section_bar("9", "Who Should Be Top", "Expected Points (xPts) Leaderboard") }}
+
+  <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">
+    xPts uses expected goals, assists, and clean sheet probability (Poisson model) plus actual defensive stats (saves, bonus, cards).
+    Positive diff = <span class="pos">overperforming</span>, negative = <span class="neg">underperforming</span>.
+  </p>
+
+  <div class="luck-cards">
+    <div class="stat-box">
+      <div class="stat-box-hdr" style="background:var(--green);">Luckiest Managers</div>
+      {% for r in luckiest %}
+      <div class="stat-row">
+        <span class="stat-label">{{ r.entry_name }}</span>
+        <span class="stat-val pos">+{{ r.diff }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-hdr" style="background:var(--red);">Unluckiest Managers</div>
+      {% for r in unluckiest %}
+      <div class="stat-row">
+        <span class="stat-label">{{ r.entry_name }}</span>
+        <span class="stat-val neg">{{ r.diff }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# CSS bar chart: xPts vs Actual (works without JS) #}
+  {% if xpts_leaderboard %}
+  {% set max_xpts_val = xpts_leaderboard|map(attribute='total_actual')|list|max %}
+  <h3 class="sub-title">xPts vs Actual</h3>
+  <div class="bar-chart" id="xpts-bars">
+    {% for r in xpts_leaderboard %}
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">{{ r.entry_name }}</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:{{ (r.total_xpts / max_xpts_val * 100)|int }}%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill {{ 'green' if r.diff >= 0 else 'red' }}" style="width:{{ (r.total_actual / max_xpts_val * 100)|int }}%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val {{ 'pos' if r.diff > 0 else ('neg' if r.diff < 0 else '') }}">{{ "%+.0f"|format(r.diff) }}</span>
+    </div>
+    {% endfor %}
+    <div style="display:flex; gap:16px; justify-content:center; margin-top:8px; font-size:10px; color:var(--muted);">
+      <span><span style="display:inline-block;width:12px;height:8px;background:var(--muted);opacity:0.35;border-radius:1px;"></span> xPts</span>
+      <span><span style="display:inline-block;width:12px;height:8px;background:var(--green);border-radius:1px;"></span> Actual (lucky)</span>
+      <span><span style="display:inline-block;width:12px;height:8px;background:var(--red);border-radius:1px;"></span> Actual (unlucky)</span>
+    </div>
+  </div>
+  {% endif %}
+
+  {# Chart.js scatter (progressive enhancement) #}
+  <div class="chart-container" id="xpts-scatter-container" style="height:400px; display:none;">
+    <canvas id="chart-xpts-scatter"></canvas>
+  </div>
+
+  {% if xpts_leaderboard %}
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="ctr" style="width:28px">xRank</th>
+        <th>Team</th>
+        <th>Manager</th>
+        <th class="num">xPts</th>
+        <th class="num">Actual</th>
+        <th class="num">Diff</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in xpts_leaderboard %}
+      <tr>
+        <td class="rank-cell">{{ r.xpts_rank }}</td>
+        <td class="bold">{{ r.entry_name }}</td>
+        <td>{{ r.player_name }}</td>
+        <td class="num">{{ r.total_xpts }}</td>
+        <td class="num bold">{{ r.total_actual }}</td>
+        <td class="num bold {{ 'pos' if r.diff > 0 else ('neg' if r.diff < 0 else 'muted') }}">{{ "%+.1f"|format(r.diff) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
+</div>
+
+{# ==================== SEASON PROGRESSION ==================== #}
+<div id="progression" class="section">
+  {{ section_bar("10", "Season Progression", "Per-manager journey through the season") }}
+
+  <div style="margin-bottom:12px;">
+    <label for="progression-select" style="font-size:12px; font-weight:600; color:var(--slate);">Select manager:</label>
+    <select id="progression-select" style="padding:4px 8px; font-size:12px; border:1px solid var(--border); border-radius:3px; background:var(--card); color:var(--text);">
+      {% for r in leaderboard %}
+      <option value="{{ r.entry_id }}">{{ r.entry_name }} ({{ r.player_name }})</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="table-wrap">
+  <table id="progression-table">
+    <thead>
+      <tr>
+        <th class="ctr" style="width:50px">GW</th>
+        <th class="num">Points</th>
+        <th class="num">Total</th>
+        <th class="num">Overall Rank</th>
+        <th class="num">TML Rank</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if season_table_first %}
+      {% for r in season_table_first %}
+      <tr>
+        <td class="ctr">{{ r.event }}</td>
+        <td class="num">{{ r.points }}</td>
+        <td class="num">{{ r.total_points }}</td>
+        <td class="num">{{ r.overall_rank|fmt_rank }}</td>
+        <td class="num">{{ r.tml_rank|ordinal }}</td>
+      </tr>
+      {% endfor %}
+      {% else %}
+      <tr class="no-data-row"><td colspan="5" style="text-align:center; padding:20px; color:var(--muted);">No season data available.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+  </div>
+</div>
+
+{# ==================== FOOTER ==================== #}
+<div class="footer">
+  Generated by <strong>fpl-scraper</strong> &middot; Data: fantasy.premierleague.com &middot; {{ generated }}
+</div>
+
+</div>{# /wrap #}
+
+{# ==================== INTERACTIVITY (runs immediately, no dependencies) ==================== #}
+<script>
+(function() {
+  "use strict";
+
+  /* ---- data from Jinja ---- */
+  var seasonTable    = {{ season_table|tojson }};
+
+  /* ===== 0. Hamburger Nav Toggle ===== */
+  (function() {
+    var toggle = document.querySelector('.nav-toggle');
+    var links = document.querySelector('.nav-links');
+    if (!toggle || !links) return;
+    toggle.addEventListener('click', function() {
+      links.classList.toggle('open');
+      toggle.textContent = links.classList.contains('open') ? '\u2715' : '\u2630';
+    });
+    links.querySelectorAll('a').forEach(function(a) {
+      a.addEventListener('click', function() {
+        links.classList.remove('open');
+        toggle.textContent = '\u2630';
+      });
+    });
+  })();
+
+  /* ===== 1. Season Progression Table (dropdown-driven) ===== */
+  try {
+    (function() {
+      var select = document.getElementById('progression-select');
+      var table = document.getElementById('progression-table');
+      if (!select || !table || !seasonTable.length) return;
+
+      var tbody = table.querySelector('tbody');
+      if (!tbody) return;
+
+      function fmtRank(n) {
+        if (!n) return '-';
+        var s = String(n), suffix = 'th', last2 = n % 100;
+        if (last2 < 11 || last2 > 13) {
+          var last1 = n % 10;
+          if (last1 === 1) suffix = 'st';
+          else if (last1 === 2) suffix = 'nd';
+          else if (last1 === 3) suffix = 'rd';
+        }
+        return s.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + suffix;
+      }
+
+      function populate(entryId) {
+        var rows = seasonTable.filter(function(r) { return r.entry_id === entryId; });
+        rows.sort(function(a, b) { return a.event - b.event; });
+        tbody.innerHTML = '';
+        rows.forEach(function(r) {
+          var tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td class="ctr">' + r.event + '</td>' +
+            '<td class="num">' + r.points + '</td>' +
+            '<td class="num">' + r.total_points + '</td>' +
+            '<td class="num">' + fmtRank(r.overall_rank) + '</td>' +
+            '<td class="num">' + fmtRank(r.tml_rank) + '</td>';
+          tbody.appendChild(tr);
+        });
+      }
+
+      select.addEventListener('change', function() {
+        populate(parseInt(select.value));
+      });
+    })();
+  } catch(e) { console.warn('Season progression error:', e); }
+
+  /* ===== 2. Chip Ranking Filter (filters pre-rendered rows) ===== */
+  try {
+    (function() {
+      var select = document.getElementById('chip-filter');
+      var table = document.getElementById('chip-ranking-table');
+      if (!select || !table) return;
+      var tbody = table.querySelector('tbody');
+      if (!tbody) return;
+      var allRows = Array.prototype.slice.call(tbody.querySelectorAll('tr[data-chip]'));
+
+      function filterChips(chipType) {
+        var rank = 0;
+        allRows.forEach(function(tr) {
+          var show = chipType === 'all' || tr.getAttribute('data-chip') === chipType;
+          tr.style.display = show ? '' : 'none';
+          if (show) {
+            rank++;
+            tr.cells[0].textContent = rank;
+          }
+        });
+      }
+
+      select.addEventListener('change', function() { filterChips(select.value); });
+    })();
+  } catch(e) { console.warn('Chip filter error:', e); }
+
+  /* ============================================================ */
+  /*                  INTERACTIVE FEATURES                        */
+  /* ============================================================ */
+
+  /* ===== Sortable Tables ===== */
+  try {
+    document.querySelectorAll('table').forEach(function(table) {
+      if (table.id === 'progression-table' || table.id === 'chip-ranking-table') return;
+
+      var thead = table.querySelector('thead');
+      if (!thead) return;
+      var headerRows = thead.querySelectorAll('tr');
+      if (!headerRows.length) return;
+
+      var lastRow = headerRows[headerRows.length - 1];
+      var ths = lastRow.querySelectorAll('th');
+
+      var tbody = table.querySelector('tbody');
+      if (!tbody) return;
+      var firstBodyRow = tbody.querySelector('tr');
+      if (!firstBodyRow) return;
+      var numCols = firstBodyRow.querySelectorAll('td').length;
+
+      var firstRowThs = headerRows[0].querySelectorAll('th');
+      var colOffset = 0;
+      if (headerRows.length > 1) {
+        for (var k = 0; k < firstRowThs.length; k++) {
+          if (firstRowThs[k].rowSpan > 1) colOffset++;
+          else break;
+        }
+      }
+
+      ths.forEach(function(th, idx) {
+        if (th.colSpan > 1) return;
+        th.style.cursor = 'pointer';
+        th.title = 'Click to sort';
+        var asc = true;
+        th.addEventListener('click', function() {
+          var tdIdx = colOffset + idx;
+          if (tdIdx >= numCols) return;
+          var rowsArr = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+          rowsArr.sort(function(a, b) {
+            var aVal = (a.querySelectorAll('td')[tdIdx] || {}).textContent || '';
+            var bVal = (b.querySelectorAll('td')[tdIdx] || {}).textContent || '';
+            aVal = aVal.trim(); bVal = bVal.trim();
+            var aNum = parseFloat(aVal.replace(/[^0-9.\-+]/g, ''));
+            var bNum = parseFloat(bVal.replace(/[^0-9.\-+]/g, ''));
+            if (!isNaN(aNum) && !isNaN(bNum)) return asc ? aNum - bNum : bNum - aNum;
+            return asc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+          });
+          rowsArr.forEach(function(r) { tbody.appendChild(r); });
+          asc = !asc;
+        });
+      });
+    });
+  } catch(e) { console.warn('Sortable tables error:', e); }
+
+  /* ===== Collapsible Sections ===== */
+  try {
+    document.querySelectorAll('.section-hdr').forEach(function(hdr) {
+      hdr.style.cursor = 'pointer';
+      var chevron = document.createElement('span');
+      chevron.textContent = ' \u25BE';
+      chevron.style.cssText = 'transition:transform .2s;display:inline-block;margin-left:6px;font-size:14px;';
+      var titleEl = hdr.querySelector('.section-title');
+      if (titleEl) titleEl.appendChild(chevron);
+
+      hdr.addEventListener('click', function() {
+        var section = hdr.parentElement;
+        var children = Array.prototype.slice.call(section.children);
+        var content = children.filter(function(el) { return el !== hdr; });
+        var hidden = content[0] && content[0].style.display === 'none';
+        content.forEach(function(el) { el.style.display = hidden ? '' : 'none'; });
+        chevron.style.transform = hidden ? '' : 'rotate(-90deg)';
+      });
+    });
+  } catch(e) { console.warn('Collapsible sections error:', e); }
+
+  /* ===== Dark Mode Toggle ===== */
+  try {
+    (function() {
+      var btn = document.createElement('a');
+      btn.href = '#';
+      btn.title = 'Toggle dark mode';
+      btn.style.cssText = 'font-size:16px;cursor:pointer;color:#fff;text-decoration:none;display:flex;align-items:center;justify-content:center;width:32px;height:32px;';
+      var tools = document.querySelector('.nav-tools');
+      if (tools) tools.appendChild(btn);
+
+      var dark = {
+        '--slate': '#1a1a2e', '--dark': '#0f0f1a', '--green': '#2ecc71',
+        '--red': '#e74c3c', '--accent': '#00ff87', '--text': '#e0e0e0',
+        '--muted': '#999', '--border': '#333', '--row-alt': '#1e1e30',
+        '--bg': '#121220', '--card': '#1a1a2e',
+      };
+      var light = {};
+      var root = document.documentElement;
+      Object.keys(dark).forEach(function(k) {
+        light[k] = getComputedStyle(root).getPropertyValue(k).trim();
+      });
+
+      var isDark = localStorage.getItem('fpl-dark') === '1';
+      function apply() {
+        var theme = isDark ? dark : light;
+        Object.keys(theme).forEach(function(k) { root.style.setProperty(k, theme[k]); });
+        btn.textContent = isDark ? '\u263E' : '\u2600';
+        localStorage.setItem('fpl-dark', isDark ? '1' : '0');
+      }
+      apply();
+      btn.addEventListener('click', function(e) { e.preventDefault(); isDark = !isDark; apply(); });
+    })();
+  } catch(e) { console.warn('Dark mode error:', e); }
+
+  /* ===== Manager Search / Filter ===== */
+  try {
+    (function() {
+      var tools = document.querySelector('.nav-tools');
+      if (!tools) return;
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Search\u2026';
+      input.style.cssText = 'background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:4px 8px;border-radius:3px;font-size:11px;width:100px;';
+      tools.appendChild(input);
+
+      input.addEventListener('input', function() {
+        var q = input.value.toLowerCase();
+        document.querySelectorAll('tbody tr').forEach(function(tr) {
+          var table = tr.closest('table');
+          if (table && (table.id === 'progression-table' || table.id === 'chip-ranking-table')) return;
+          var text = tr.textContent.toLowerCase();
+          tr.style.display = (!q || text.indexOf(q) !== -1) ? '' : 'none';
+        });
+      });
+    })();
+  } catch(e) { console.warn('Search filter error:', e); }
+
+})();
+</script>
+
+{# ==================== CHART.JS (async, non-blocking) ==================== #}
+<script>
+  function _initCharts() {
+    if (typeof Chart === 'undefined') return;
+    var GREEN = '#37a76b', RED = '#b03a2e', SLATE = '#2d3e50',
+        BLUE = '#3498db', ORANGE = '#f39c12';
+    var gwBreakdown = {{ gw_breakdown|tojson }};
+    var xptsData    = {{ xpts_leaderboard|tojson }};
+
+    /* GW Score Breakdown — Stacked Horizontal Bar */
+    try {
+      var canvas = document.getElementById('chart-gw-breakdown');
+      var cssBars = document.getElementById('gw-breakdown-bars');
+      if (canvas && gwBreakdown.length) {
+        canvas.parentElement.style.display = '';
+        if (cssBars) cssBars.style.display = 'none';
+        var isMobile = window.innerWidth < 600;
+        var rowH = isMobile ? 24 : 32, pad = isMobile ? 60 : 80;
+        canvas.parentElement.style.height = (gwBreakdown.length * rowH + pad) + 'px';
+        new Chart(canvas, {
+          type: 'bar',
+          data: {
+            labels: gwBreakdown.map(function(r) { return r.entry_name; }),
+            datasets: [
+              { label: 'Base Points', data: gwBreakdown.map(function(r) { return r.base; }),
+                backgroundColor: SLATE, stack: 'positive', borderRadius: 2 },
+              { label: 'Captain Bonus', data: gwBreakdown.map(function(r) { return r.captain_bonus; }),
+                backgroundColor: BLUE, stack: 'positive', borderRadius: 2 },
+              { label: 'Transfer Net', data: gwBreakdown.map(function(r) { return Math.max(r.transfer_net, 0); }),
+                backgroundColor: GREEN, stack: 'positive', borderRadius: 2 },
+              { label: 'Transfer Loss', data: gwBreakdown.map(function(r) { return Math.min(r.transfer_net, 0); }),
+                backgroundColor: ORANGE, stack: 'negative', borderRadius: 2 },
+              { label: 'Hits', data: gwBreakdown.map(function(r) { return -r.hits; }),
+                backgroundColor: RED, stack: 'negative', borderRadius: 2 },
+            ],
+          },
+          options: {
+            indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: isMobile ? 9 : 10 } } },
+              tooltip: { callbacks: { afterBody: function(items) {
+                var r = gwBreakdown[items[0].dataIndex];
+                return 'Net: ' + r.net + ' pts' + (r.chip ? ' (' + r.chip + ')' : '');
+              } } },
+            },
+            scales: {
+              x: { stacked: true, title: { display: true, text: 'Points' }, grid: { display: false } },
+              y: { stacked: true, ticks: { font: { size: isMobile ? 9 : 10 } } },
+            },
+          },
+        });
+      }
+    } catch(e) { console.warn('GW breakdown chart error:', e); }
+
+    /* xPts vs Actual Scatter */
+    try {
+      var canvas2 = document.getElementById('chart-xpts-scatter');
+      var cssBars2 = document.getElementById('xpts-bars');
+      if (canvas2 && xptsData.length) {
+        canvas2.parentElement.style.display = '';
+        if (cssBars2) cssBars2.style.display = 'none';
+        var pts = xptsData.map(function(r) {
+          return { x: r.total_xpts, y: r.total_actual, label: r.entry_name, diff: r.diff };
+        });
+        var allVals = pts.map(function(p) { return p.x; }).concat(pts.map(function(p) { return p.y; }));
+        var minV = Math.floor(Math.min.apply(null, allVals) * 0.95);
+        var maxV = Math.ceil(Math.max.apply(null, allVals) * 1.05);
+        new Chart(canvas2, {
+          type: 'scatter',
+          data: {
+            datasets: [{
+              label: 'Managers', data: pts,
+              backgroundColor: pts.map(function(p) { return p.diff >= 0 ? GREEN : RED; }),
+              pointRadius: 7, pointHoverRadius: 10,
+            }, {
+              label: '45\u00b0 line', data: [{ x: minV, y: minV }, { x: maxV, y: maxV }],
+              type: 'line', borderColor: '#ccc', borderDash: [6, 4],
+              borderWidth: 1.5, pointRadius: 0, fill: false,
+            }],
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(ctx) {
+              var p = ctx.raw; if (!p.label) return '';
+              return p.label + ': xPts ' + p.x + ', Actual ' + p.y + ' (diff ' + (p.diff >= 0 ? '+' : '') + p.diff + ')';
+            } } } },
+            scales: {
+              x: { title: { display: true, text: 'Expected Points (xPts)' }, min: minV, max: maxV },
+              y: { title: { display: true, text: 'Actual Points' }, min: minV, max: maxV },
+            },
+          },
+        });
+      }
+    } catch(e) { console.warn('xPts scatter chart error:', e); }
+  }
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/chart.js@4" onload="_initCharts()"></script>
+
+</body>
+</html>

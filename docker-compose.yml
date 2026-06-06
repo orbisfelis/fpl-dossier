@@ -1,0 +1,11 @@
+services:
+  fpl:
+    build: .
+    image: fpl-scraper:latest
+    container_name: fpl
+    env_file:
+      - .env
+    volumes:
+      - ./data:/data
+    # Container exits after each subcommand by design.
+    # Use `docker compose run --rm fpl <cmd>` rather than `docker compose up`.
