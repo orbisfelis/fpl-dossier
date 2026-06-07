@@ -90,6 +90,37 @@ the dropdown. Override the label with `--season 26-27` if needed.
 > A standalone report opened on its own (no `manifest.json` next to it) simply
 > hides the dropdown, so `fpl report -f html` output still works as before.
 
+## What's in the HTML dossier
+
+Beyond the core leaderboard / captains / transfers / chips / xPts sections, the
+report includes a layer of season-long analysis:
+
+- **Hall of Records** — banter awards: Mr Reliable / The Rollercoaster
+  (consistency), Magnum Opus / The Stinker (best & worst single GW), Bench
+  Disaster, Hit Merchant, Scrooge, The Tinkerman, Mr Template / The Hipster,
+  Lone Wolf, Ride or Die, Captain Marvel / Calamity.
+- **By the Numbers** — a consistency table (avg / best / worst / std dev /
+  weeks above league average) and a rank-trajectory table (green vs red arrows).
+- **Transfer Lab** — activity, hits, net transfer P&L and each manager's
+  deadline-day habit, plus the biggest bandwagon.
+- **Defensive Contributions** — DefCon points (2025/26 scoring) for league-owned
+  players and a "Park the Bus" manager ranking. **DefCon also feeds the xPts
+  model**, so defenders/midfielders earning defensive points are no longer
+  flagged as "lucky".
+- **Alternative Tables** — captaincy-only and "no-hits" standings.
+- **Head to Head** — every manager vs every other on weekly points, with a
+  full W-D-L grid and each manager's Nemesis & Bunny.
+- **Around the League** — league darlings, the best players nobody owned, and
+  the filthiest (most-carded) owned players.
+
+> **DefCon needs a full scrape.** The defensive-action fields
+> (`tackles`, `clearances_blocks_interceptions`, `recoveries`,
+> `defensive_contribution`) come from `/element-summary/`, so they only populate
+> when player history is scraped (i.e. *not* with `--skip-player-history`).
+> Databases created before this feature are migrated automatically (the new
+> columns are added on next open) but stay empty until the next full scrape —
+> the DefCon section shows a reminder until then.
+
 ## End-of-season archive
 
 The FPL API recycles its endpoints for the new season in early August. Once

@@ -11,10 +11,14 @@ import logging
 import math
 import re
 import sqlite3
+import statistics
 from collections import defaultdict
 from datetime import date, datetime, timezone
+from itertools import groupby
 from pathlib import Path
 from textwrap import dedent
+
+POS_LABEL = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD"}
 
 log = logging.getLogger(__name__)
 
@@ -22,6 +26,16 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 SEASON_RE = re.compile(r"\d{2}-\d{2}")
 GW_FILE_RE = re.compile(r"GW(\d+)\.html")
+
+
+def _ensure_columns(conn: sqlite3.Connection) -> None:
+    """Add columns introduced after a DB was first created, so views built on
+    them don't fail on older databases (mirrors Store._migrate)."""
+    existing = {r[1] for r in conn.execute("PRAGMA table_info(player_gameweeks)")}
+    for col in ("clearances_blocks_interceptions", "recoveries",
+                "tackles", "defensive_contribution"):
+        if col not in existing:
+            conn.execute(f"ALTER TABLE player_gameweeks ADD COLUMN {col} INTEGER")
 
 
 def current_season(today: date | None = None) -> str:
@@ -40,6 +54,10 @@ def generate_report(db_path: Path, output: Path, league_id: int,
                     season: str | None = None) -> Path:
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
+
+    # Ensure post-release columns exist before views reference them (older DBs
+    # created before DefCon was added won't have them until the next scrape).
+    _ensure_columns(conn)
 
     # Rebuild views to pick up any schema changes
     views_sql = TEMPLATES_DIR.parent / "views.sql"
@@ -963,7 +981,7 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
                pev.event_points, pev.xg, pev.xa, pev.xgi, pev.xgc,
                pev.minutes, pev.goals, pev.assists, pev.bonus,
                pev.saves, pev.penalties_saved, pev.penalties_missed,
-               pev.own_goals, pev.yellow_cards, pev.red_cards
+               pev.own_goals, pev.yellow_cards, pev.red_cards, pev.def_con
         FROM v_player_event_points pev
         JOIN players p ON p.id = pev.element
         JOIN teams t ON t.id = p.team_id
@@ -979,7 +997,7 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
             row["saves"] or 0, row["penalties_saved"] or 0,
             row["penalties_missed"] or 0, row["own_goals"] or 0,
             row["yellow_cards"] or 0, row["red_cards"] or 0,
-            row["bonus"] or 0,
+            row["bonus"] or 0, row["def_con"] or 0,
         ), 1)
         row["diff"] = round(row["event_points"] - row["xpts"], 1)
 
@@ -1016,7 +1034,8 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
                COALESCE(pev.own_goals, 0) AS own_goals,
                COALESCE(pev.yellow_cards, 0) AS yellow_cards,
                COALESCE(pev.red_cards, 0) AS red_cards,
-               COALESCE(pev.bonus, 0) AS bonus
+               COALESCE(pev.bonus, 0) AS bonus,
+               COALESCE(pev.def_con, 0) AS def_con
         FROM manager_picks mp
         JOIN players p ON p.id = mp.element
         LEFT JOIN v_player_event_points pev
@@ -1044,7 +1063,7 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
             r["xg"], r["xa"], r["xgc"],
             r["saves"], r["penalties_saved"], r["penalties_missed"],
             r["own_goals"], r["yellow_cards"], r["red_cards"],
-            r["bonus"],
+            r["bonus"], r["def_con"],
         )
         # Apply captain/TC multiplier
         xpts_by_manager[eid]["total_xpts"] += player_xpts * r["multiplier"]
@@ -1078,6 +1097,437 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
     # Add sparklines to leaderboard
     for r in leaderboard:
         r["sparkline"] = sparkline_map.get(r["entry_id"], [])
+
+    # =====================================================================
+    # EXTENDED STATS — Hall of Records, analytical tables, DefCon, H2H
+    # =====================================================================
+    manager_names = {r["entry_id"]: (r["entry_name"], r["player_name"])
+                     for r in leaderboard_raw}
+
+    def _name(eid):
+        return manager_names.get(eid, ("", ""))
+
+    # --- One pass over the full GW series drives several sections ---
+    mg_rows = _rows(conn.execute("""
+        SELECT mg.entry_id, mg.event, mg.points, mg.total_points,
+               mg.overall_rank, mg.points_on_bench, mg.bank,
+               mg.event_transfers, mg.event_transfers_cost
+        FROM manager_gameweeks mg
+        JOIN managers m ON m.entry_id = mg.entry_id
+        WHERE m.league_id = ? AND mg.event <= ?
+        ORDER BY mg.entry_id, mg.event
+    """, (league_id, event)))
+    series: dict[int, list[dict]] = defaultdict(list)
+    for r in mg_rows:
+        series[r["entry_id"]].append(r)
+
+    gw_points_by_event: dict[int, list[int]] = defaultdict(list)
+    for r in mg_rows:
+        gw_points_by_event[r["event"]].append(r["points"] or 0)
+    league_gw_avg = {ev: sum(v) / len(v) for ev, v in gw_points_by_event.items() if v}
+
+    # Season gross transfer P&L per manager (for "did the hits pay?")
+    season_pnl: dict[int, int] = {}
+    for r in _rows(conn.execute("""
+        SELECT tp.entry_id, SUM(tp.gross_pnl) AS gross
+        FROM v_transfer_pnl tp
+        JOIN managers m ON m.entry_id = tp.entry_id
+        WHERE m.league_id = ? AND tp.event <= ?
+        GROUP BY tp.entry_id
+    """, (league_id, event))):
+        season_pnl[r["entry_id"]] = r["gross"] or 0
+
+    # --- Consistency table + reliability/volatility/best/worst awards ---
+    consistency = []
+    for eid, rows in series.items():
+        pts = [r["points"] or 0 for r in rows]
+        if not pts:
+            continue
+        n = _name(eid)
+        above = sum(1 for r in rows
+                    if (r["points"] or 0) > league_gw_avg.get(r["event"], 0))
+        consistency.append({
+            "entry_id": eid, "entry_name": n[0], "player_name": n[1],
+            "gws": len(pts), "avg": round(sum(pts) / len(pts), 1),
+            "best": max(pts), "worst": min(pts),
+            "std": round(statistics.pstdev(pts), 1) if len(pts) > 1 else 0.0,
+            "above_avg": above, "total_points": rows[-1]["total_points"],
+        })
+    consistency.sort(key=lambda r: r["total_points"] or 0, reverse=True)
+
+    qualified = [c for c in consistency if c["gws"] >= 5] or consistency
+
+    def _top(rows, key, reverse):
+        out = []
+        for c in sorted(rows, key=lambda r: r[key], reverse=reverse)[:3]:
+            out.append({"entry_name": c["entry_name"],
+                        "player_name": c["player_name"], "value": c[key]})
+        return out
+
+    mr_reliable = _top(qualified, "std", False)
+    rollercoaster = _top(qualified, "std", True)
+    magnum_opus = _top(consistency, "best", True)
+    the_stinker = _top(consistency, "worst", False)
+
+    # --- Bench (season) ---
+    bench_season = []
+    for eid, rows in series.items():
+        n = _name(eid)
+        worst = max(rows, key=lambda r: r["points_on_bench"] or 0)
+        bench_season.append({
+            "entry_name": n[0], "player_name": n[1],
+            "value": sum(r["points_on_bench"] or 0 for r in rows),
+            "worst_gw": worst["event"], "worst_pts": worst["points_on_bench"] or 0,
+        })
+    bench_season.sort(key=lambda r: r["value"], reverse=True)
+    bench_disaster = bench_season[:3]
+
+    # --- Hits (season) ---
+    hits_season = []
+    for eid, rows in series.items():
+        n = _name(eid)
+        cost = sum(r["event_transfers_cost"] or 0 for r in rows)
+        hits_season.append({
+            "entry_name": n[0], "player_name": n[1], "value": cost,
+            "hits": cost // 4, "net": season_pnl.get(eid, 0) - cost,
+        })
+    hits_season.sort(key=lambda r: r["value"], reverse=True)
+    hit_merchant = hits_season[:3]
+
+    # --- Scrooge (cash left in the bank, latest GW) ---
+    scrooge = sorted(
+        ({"entry_name": _name(eid)[0], "player_name": _name(eid)[1],
+          "value": rows[-1]["bank"] or 0} for eid, rows in series.items()),
+        key=lambda r: r["value"], reverse=True)[:3]
+
+    # --- Transfer counts (Tinkerman / Set & Forget) ---
+    tx_count = {r["entry_id"]: r["cnt"] for r in _rows(conn.execute("""
+        SELECT mt.entry_id, COUNT(*) AS cnt
+        FROM manager_transfers mt
+        JOIN managers m ON m.entry_id = mt.entry_id
+        WHERE m.league_id = ? AND mt.event <= ?
+        GROUP BY mt.entry_id
+    """, (league_id, event)))}
+    tinker = [{"entry_name": _name(eid)[0], "player_name": _name(eid)[1],
+               "value": tx_count.get(eid, 0)} for eid in series]
+    tinkerman = sorted(tinker, key=lambda r: r["value"], reverse=True)[:3]
+    set_and_forget = sorted(tinker, key=lambda r: r["value"])[:3]
+
+    # --- Rank trajectory table (green vs red arrows) ---
+    rank_traj = []
+    for eid, rows in series.items():
+        ors = [(r["event"], r["overall_rank"]) for r in rows if r["overall_rank"]]
+        if not ors:
+            continue
+        n = _name(eid)
+        greens = sum(1 for (_, a), (_, b) in zip(ors, ors[1:]) if b < a)
+        reds = sum(1 for (_, a), (_, b) in zip(ors, ors[1:]) if b > a)
+        rank_traj.append({
+            "entry_name": n[0], "player_name": n[1],
+            "start_or": ors[0][1], "cur_or": ors[-1][1],
+            "net": ors[0][1] - ors[-1][1], "greens": greens, "reds": reds,
+            "best_or": min(o for _, o in ors), "worst_or": max(o for _, o in ors),
+        })
+    rank_traj.sort(key=lambda r: r["cur_or"])
+
+    # --- Head-to-Head (every manager vs every other on weekly points) ---
+    pts_by_eid_ev: dict[int, dict[int, int]] = defaultdict(dict)
+    for r in mg_rows:
+        pts_by_eid_ev[r["entry_id"]][r["event"]] = r["points"] or 0
+    eids = list(series.keys())
+    h2h_records: dict[int, dict[int, tuple]] = {}
+    for a in eids:
+        rec = {}
+        for b in eids:
+            if a == b:
+                continue
+            w = d = lo = 0
+            for ev, pa in pts_by_eid_ev[a].items():
+                pb = pts_by_eid_ev[b].get(ev)
+                if pb is None:
+                    continue
+                if pa > pb:
+                    w += 1
+                elif pa == pb:
+                    d += 1
+                else:
+                    lo += 1
+            rec[b] = (w, d, lo)
+        h2h_records[a] = rec
+
+    h2h_summary = []
+    for a in eids:
+        n = _name(a)
+        tw = sum(v[0] for v in h2h_records[a].values())
+        td = sum(v[1] for v in h2h_records[a].values())
+        tl = sum(v[2] for v in h2h_records[a].values())
+        nem = max(h2h_records[a].items(), key=lambda kv: kv[1][2], default=(None, (0, 0, 0)))
+        bun = max(h2h_records[a].items(), key=lambda kv: kv[1][0], default=(None, (0, 0, 0)))
+        h2h_summary.append({
+            "entry_id": a, "entry_name": n[0], "player_name": n[1],
+            "w": tw, "d": td, "l": tl,
+            "win_pct": round(100 * tw / (tw + td + tl), 1) if (tw + td + tl) else 0,
+            "nemesis": _name(nem[0])[0] if nem[0] else "-", "nemesis_l": nem[1][2],
+            "bunny": _name(bun[0])[0] if bun[0] else "-", "bunny_w": bun[1][0],
+        })
+    h2h_summary.sort(key=lambda r: (r["w"], r["win_pct"]), reverse=True)
+
+    h2h_order = [r["entry_id"] for r in h2h_summary]
+    h2h_labels = [_name(a)[0] for a in h2h_order]
+    h2h_matrix = []
+    for a in h2h_order:
+        cells = []
+        for b in h2h_order:
+            if a == b:
+                cells.append(None)
+            else:
+                w, d, lo = h2h_records[a][b]
+                cells.append({"w": w, "d": d, "l": lo,
+                              "cls": "pos" if w > lo else ("neg" if lo > w else "muted")})
+        h2h_matrix.append({"entry_name": _name(a)[0], "cells": cells})
+
+    # --- Alternative table: standings if hits were refunded ---
+    real_pos = {r["entry_id"]: r["pos"] for r in leaderboard}
+    nohits = []
+    for eid, rows in series.items():
+        n = _name(eid)
+        cost = sum(r["event_transfers_cost"] or 0 for r in rows)
+        nohits.append({
+            "entry_name": n[0], "player_name": n[1],
+            "real_total": rows[-1]["total_points"], "hits_cost": cost,
+            "nohits_total": (rows[-1]["total_points"] or 0) + cost,
+            "real_pos": real_pos.get(eid),
+        })
+    nohits.sort(key=lambda r: r["nohits_total"], reverse=True)
+    for i, r in enumerate(nohits, 1):
+        r["nohits_pos"] = i
+        r["pos_change"] = (r["real_pos"] - i) if r["real_pos"] else None
+
+    # --- Alternative table: captaincy-only standings ---
+    captaincy_standings = []
+    for r in _rows(conn.execute("""
+        SELECT cp.entry_id,
+               SUM(cp.captain_effective_points) AS total,
+               AVG(cp.captain_effective_points) AS avg,
+               SUM(CASE WHEN cp.captain_raw_points >= 10 THEN 1 ELSE 0 END) AS hauls,
+               SUM(CASE WHEN cp.captain_raw_points <= 2 THEN 1 ELSE 0 END) AS blanks,
+               COUNT(*) AS picks
+        FROM v_captain_points cp
+        JOIN managers m ON m.entry_id = cp.entry_id
+        WHERE m.league_id = ? AND cp.event <= ?
+        GROUP BY cp.entry_id
+    """, (league_id, event))):
+        n = _name(r["entry_id"])
+        captaincy_standings.append({
+            "entry_name": n[0], "player_name": n[1],
+            "total": r["total"] or 0, "avg": round(r["avg"] or 0, 1),
+            "hauls": r["hauls"] or 0, "blanks": r["blanks"] or 0,
+            "picks": r["picks"] or 0,
+        })
+    captaincy_standings.sort(key=lambda r: r["total"], reverse=True)
+
+    # --- Best & worst single captain pick of the season ---
+    cap_extremes = _rows(conn.execute("""
+        SELECT m.entry_name, m.player_name, cp.captain_name, cp.event,
+               cp.captain_effective_points AS pts
+        FROM v_captain_points cp
+        JOIN managers m ON m.entry_id = cp.entry_id
+        WHERE m.league_id = ? AND cp.event <= ?
+        ORDER BY cp.captain_effective_points DESC
+    """, (league_id, event)))
+    captain_marvel = cap_extremes[:3]
+    captain_calamity = list(reversed(cap_extremes[-3:])) if cap_extremes else []
+
+    # --- Squad DNA: template-ness of each manager's current XI ---
+    own_pct = {r["element"]: (r["owners"] / (mgr_count or 1)) for r in _rows(conn.execute(
+        "SELECT element, owners FROM v_ownership_event WHERE event = ?", (event,)))}
+    xi_by_mgr: dict[int, list[int]] = defaultdict(list)
+    for r in _rows(conn.execute("""
+        SELECT mp.entry_id, mp.element
+        FROM manager_picks mp
+        JOIN managers m ON m.entry_id = mp.entry_id
+        WHERE m.league_id = ? AND mp.event = ? AND mp.multiplier > 0
+    """, (league_id, event))):
+        xi_by_mgr[r["entry_id"]].append(r["element"])
+    squad_style = []
+    for eid, els in xi_by_mgr.items():
+        if not els:
+            continue
+        n = _name(eid)
+        squad_style.append({
+            "entry_name": n[0], "player_name": n[1],
+            "template": round(sum(own_pct.get(e, 0) for e in els) / len(els) * 100, 1),
+            "diffs": sum(1 for e in els if own_pct.get(e, 0) <= 0.10),
+            "uniques": sum(1 for e in els if round(own_pct.get(e, 0) * (mgr_count or 1)) <= 1),
+        })
+    squad_style.sort(key=lambda r: r["template"], reverse=True)
+    mr_template = [{"entry_name": r["entry_name"], "player_name": r["player_name"],
+                    "value": r["template"]} for r in squad_style[:3]]
+    the_hipster = [{"entry_name": r["entry_name"], "player_name": r["player_name"],
+                    "value": r["template"]}
+                   for r in sorted(squad_style, key=lambda r: r["template"])[:3]]
+
+    # --- Lone Wolf: best haul by a player only one manager started ---
+    lone_wolf = _rows(conn.execute("""
+        SELECT m.entry_name, m.player_name, p.web_name AS pick, mp.event,
+               pev.event_points AS pts
+        FROM manager_picks mp
+        JOIN managers m ON m.entry_id = mp.entry_id
+        JOIN players p ON p.id = mp.element
+        JOIN v_player_event_points pev
+          ON pev.element = mp.element AND pev.event = mp.event
+        JOIN v_ownership_event own
+          ON own.event = mp.event AND own.element = mp.element
+        WHERE m.league_id = ? AND mp.event <= ? AND mp.multiplier > 0
+          AND own.starters = 1
+        ORDER BY pev.event_points DESC LIMIT 3
+    """, (league_id, event)))
+
+    # --- Ride or Die: longest unbroken run holding a single player ---
+    elt_names = {r["id"]: r["web_name"]
+                 for r in _rows(conn.execute("SELECT id, web_name FROM players"))}
+    hold_rows = _rows(conn.execute("""
+        SELECT mp.entry_id, mp.element, mp.event
+        FROM manager_picks mp
+        JOIN managers m ON m.entry_id = mp.entry_id
+        WHERE m.league_id = ? AND mp.event <= ?
+        ORDER BY mp.entry_id, mp.element, mp.event
+    """, (league_id, event)))
+    ride: dict[int, tuple] = {}
+    for (eid, element), grp in groupby(hold_rows, key=lambda r: (r["entry_id"], r["element"])):
+        evs = [g["event"] for g in grp]
+        longest = cur = 1
+        for a, b in zip(evs, evs[1:]):
+            cur = cur + 1 if b == a + 1 else 1
+            longest = max(longest, cur)
+        if longest > ride.get(eid, (0, None))[0]:
+            ride[eid] = (longest, element)
+    ride_or_die = sorted(
+        ({"entry_name": _name(eid)[0], "player_name": _name(eid)[1],
+          "pick": elt_names.get(el, "?"), "value": run}
+         for eid, (run, el) in ride.items()),
+        key=lambda r: r["value"], reverse=True)[:3]
+
+    # --- Defensive Contributions: player leaders (league-owned) ---
+    league_owned_sql = """
+        SELECT DISTINCT element FROM manager_picks mp
+        JOIN managers m ON m.entry_id = mp.entry_id WHERE m.league_id = ?"""
+    defcon_player: dict[int, dict] = {}
+    for r in _rows(conn.execute(f"""
+        SELECT pev.element, p.web_name, t.short_name AS team, p.element_type,
+               pev.def_con
+        FROM v_player_event_points pev
+        JOIN players p ON p.id = pev.element
+        JOIN teams t ON t.id = p.team_id
+        WHERE pev.event <= ? AND pev.def_con IS NOT NULL
+          AND pev.element IN ({league_owned_sql})
+    """, (event, league_id))):
+        dp = defcon_points(r["element_type"], r["def_con"])
+        e = r["element"]
+        d = defcon_player.setdefault(e, {
+            "web_name": r["web_name"], "team": r["team"],
+            "pos": POS_LABEL.get(r["element_type"], "?"),
+            "def_con_pts": 0, "weeks": 0, "actions": 0})
+        d["def_con_pts"] += dp
+        d["actions"] += r["def_con"] or 0
+        if dp:
+            d["weeks"] += 1
+    defcon_leaders = sorted(defcon_player.values(),
+                            key=lambda r: r["def_con_pts"], reverse=True)[:10]
+
+    # --- Park the Bus: DefCon points accrued by each manager's starting XI ---
+    defcon_mgr: dict[int, int] = defaultdict(int)
+    for r in _rows(conn.execute("""
+        SELECT mp.entry_id, p.element_type, pev.def_con
+        FROM manager_picks mp
+        JOIN managers m ON m.entry_id = mp.entry_id
+        JOIN players p ON p.id = mp.element
+        JOIN v_player_event_points pev
+          ON pev.element = mp.element AND pev.event = mp.event
+        WHERE m.league_id = ? AND mp.event <= ? AND mp.multiplier > 0
+    """, (league_id, event))):
+        defcon_mgr[r["entry_id"]] += defcon_points(r["element_type"], r["def_con"])
+    park_bus_table = sorted(
+        ({"entry_name": _name(eid)[0], "player_name": _name(eid)[1], "value": v}
+         for eid, v in defcon_mgr.items()),
+        key=lambda r: r["value"], reverse=True)
+    park_the_bus = park_bus_table[:3]
+    has_defcon = any(r["value"] for r in park_bus_table) or bool(defcon_leaders)
+
+    # --- Around the league: darling, the one that got away, filthiest ---
+    league_darling = _rows(conn.execute("""
+        SELECT p.web_name, t.short_name AS team,
+               ROUND(AVG(own.owners) * 100.0 / ?, 0) AS avg_pct
+        FROM v_ownership_event own
+        JOIN players p ON p.id = own.element
+        JOIN teams t ON t.id = p.team_id
+        WHERE own.event <= ?
+        GROUP BY own.element
+        ORDER BY AVG(own.owners) DESC LIMIT 5
+    """, (mgr_count or 1, event)))
+
+    got_away = _rows(conn.execute(f"""
+        SELECT p.web_name, t.short_name AS team, p.element_type,
+               SUM(pev.event_points) AS pts
+        FROM v_player_event_points pev
+        JOIN players p ON p.id = pev.element
+        JOIN teams t ON t.id = p.team_id
+        WHERE pev.event <= ? AND pev.element NOT IN ({league_owned_sql})
+        GROUP BY pev.element
+        ORDER BY pts DESC LIMIT 5
+    """, (event, league_id)))
+    for r in got_away:
+        r["pos"] = POS_LABEL.get(r["element_type"], "?")
+
+    filthiest = _rows(conn.execute(f"""
+        SELECT p.web_name, t.short_name AS team,
+               SUM(pev.yellow_cards) AS yc, SUM(pev.red_cards) AS rc
+        FROM v_player_event_points pev
+        JOIN players p ON p.id = pev.element
+        JOIN teams t ON t.id = p.team_id
+        WHERE pev.event <= ? AND pev.element IN ({league_owned_sql})
+        GROUP BY pev.element
+        HAVING (SUM(pev.yellow_cards) + SUM(pev.red_cards)) > 0
+        ORDER BY (SUM(pev.yellow_cards) + SUM(pev.red_cards) * 2) DESC LIMIT 5
+    """, (event, league_id)))
+
+    bandwagon_row = conn.execute("""
+        SELECT p.web_name, t.short_name AS team, mt.event, COUNT(*) AS cnt
+        FROM manager_transfers mt
+        JOIN managers m ON m.entry_id = mt.entry_id
+        JOIN players p ON p.id = mt.element_in
+        JOIN teams t ON t.id = p.team_id
+        WHERE m.league_id = ? AND mt.event <= ?
+        GROUP BY mt.event, mt.element_in
+        ORDER BY cnt DESC LIMIT 1
+    """, (league_id, event)).fetchone()
+    bandwagon = dict(bandwagon_row) if bandwagon_row else None
+
+    # --- Transfer Lab table (activity, hits, net, deadline-day habit) ---
+    tx_behav = {r["entry_id"]: r for r in _rows(conn.execute("""
+        SELECT mt.entry_id, COUNT(*) AS transfers,
+               SUM(CASE WHEN mt.time IS NOT NULL AND g.deadline_time IS NOT NULL
+                        AND (julianday(g.deadline_time) - julianday(mt.time)) * 24 <= 3
+                        THEN 1 ELSE 0 END) AS last_minute
+        FROM manager_transfers mt
+        JOIN managers m ON m.entry_id = mt.entry_id
+        JOIN gameweeks g ON g.id = mt.event
+        WHERE m.league_id = ? AND mt.event <= ?
+        GROUP BY mt.entry_id
+    """, (league_id, event)))}
+    transfer_lab = []
+    for eid, rows in series.items():
+        n = _name(eid)
+        tb = tx_behav.get(eid, {})
+        t = (tb.get("transfers") if tb else 0) or 0
+        lm = (tb.get("last_minute") if tb else 0) or 0
+        cost = sum(r["event_transfers_cost"] or 0 for r in rows)
+        transfer_lab.append({
+            "entry_name": n[0], "player_name": n[1], "transfers": t,
+            "hits": cost // 4, "hit_pts": cost, "net": season_pnl.get(eid, 0) - cost,
+            "last_minute_pct": round(100 * lm / t) if t else 0,
+        })
+    transfer_lab.sort(key=lambda r: r["transfers"], reverse=True)
 
     return {
         "event": event,
@@ -1141,6 +1591,45 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
         # Season table (per-manager per-GW with TML rank)
         "season_table": season_table,
         "season_table_first": season_table_first,
+        # --- Extended stats ---
+        # Hall of Records (awards)
+        "mr_reliable": mr_reliable,
+        "rollercoaster": rollercoaster,
+        "magnum_opus": magnum_opus,
+        "the_stinker": the_stinker,
+        "bench_disaster": bench_disaster,
+        "hit_merchant": hit_merchant,
+        "scrooge": scrooge,
+        "tinkerman": tinkerman,
+        "set_and_forget": set_and_forget,
+        "mr_template": mr_template,
+        "the_hipster": the_hipster,
+        "lone_wolf": lone_wolf,
+        "ride_or_die": ride_or_die,
+        "captain_marvel": captain_marvel,
+        "captain_calamity": captain_calamity,
+        "park_the_bus": park_the_bus,
+        # By the Numbers (tables)
+        "consistency": consistency,
+        "rank_traj": rank_traj,
+        "transfer_lab": transfer_lab,
+        "squad_style": squad_style,
+        # Defensive Contributions
+        "defcon_leaders": defcon_leaders,
+        "park_bus_table": park_bus_table,
+        "has_defcon": has_defcon,
+        # Alternative tables
+        "captaincy_standings": captaincy_standings,
+        "nohits": nohits,
+        # Head-to-Head
+        "h2h_summary": h2h_summary,
+        "h2h_matrix": h2h_matrix,
+        "h2h_labels": h2h_labels,
+        # Around the league
+        "league_darling": league_darling,
+        "got_away": got_away,
+        "filthiest": filthiest,
+        "bandwagon": bandwagon,
     }
 
 
@@ -1148,12 +1637,30 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
 # xPts computation
 # ---------------------------------------------------------------------------
 
+def defcon_points(element_type: int, def_con: int | None) -> int:
+    """Defensive-contribution points (2025/26 rules).
+
+    ``def_con`` is the API's count of qualifying actions — CBIT for defenders,
+    CBIRT for midfielders/forwards. Defenders earn 2 pts at 10+, mid/fwd at 12+.
+    Goalkeepers are not eligible. Capped at 2 per match.
+    """
+    if not def_con:
+        return 0
+    if element_type == 2:
+        return 2 if def_con >= 10 else 0
+    if element_type in (3, 4):
+        return 2 if def_con >= 12 else 0
+    return 0
+
+
 def _compute_xpts(element_type: int, minutes: int, xg: float, xa: float,
                   xgc: float, saves: int = 0, penalties_saved: int = 0,
                   penalties_missed: int = 0, own_goals: int = 0,
                   yellow_cards: int = 0, red_cards: int = 0,
-                  bonus: int = 0) -> float:
-    """Hybrid xPts: expected for goals/assists/CS, actual for everything else."""
+                  bonus: int = 0, def_con: int = 0) -> float:
+    """Hybrid xPts: expected for goals/assists/CS, actual for everything else
+    (including defensive-contribution points, which are volume-driven and
+    largely repeatable, so we count what actually happened)."""
     if not minutes:
         return 0.0
     pts = 2.0 if minutes >= 60 else 1.0
@@ -1173,6 +1680,7 @@ def _compute_xpts(element_type: int, minutes: int, xg: float, xa: float,
     pts -= yellow_cards
     pts -= red_cards * 3
     pts += bonus
+    pts += defcon_points(element_type, def_con)
     return pts
 
 

@@ -90,6 +90,10 @@ CREATE TABLE IF NOT EXISTS player_gameweeks (
     expected_assists                REAL,
     expected_goal_involvements      REAL,
     expected_goals_conceded         REAL,
+    clearances_blocks_interceptions INTEGER,
+    recoveries                      INTEGER,
+    tackles                         INTEGER,
+    defensive_contribution          INTEGER,    -- CBIT (DEF) / CBIRT (MID,FWD) count
     value                           INTEGER,
     selected                        INTEGER,
     transfers_in                    INTEGER,
@@ -191,8 +195,19 @@ class Store:
         self.conn.execute("PRAGMA foreign_keys = ON")
         self.conn.execute("PRAGMA journal_mode = WAL")
         self.conn.executescript(SCHEMA)
+        self._migrate()
         if VIEWS_PATH.exists():
             self.conn.executescript(VIEWS_PATH.read_text())
+
+    def _migrate(self) -> None:
+        """Add columns introduced after a DB was first created (SQLite has no
+        ALTER ... IF NOT EXISTS, so we diff against PRAGMA table_info)."""
+        existing = {r[1] for r in self.conn.execute("PRAGMA table_info(player_gameweeks)")}
+        for col in ("clearances_blocks_interceptions", "recoveries",
+                    "tackles", "defensive_contribution"):
+            if col not in existing:
+                self.conn.execute(
+                    f"ALTER TABLE player_gameweeks ADD COLUMN {col} INTEGER")
 
     # ----- Reference -----
 
@@ -273,6 +288,10 @@ class Store:
                 _to_float(h.get("expected_assists")),
                 _to_float(h.get("expected_goal_involvements")),
                 _to_float(h.get("expected_goals_conceded")),
+                h.get("clearances_blocks_interceptions"),
+                h.get("recoveries"),
+                h.get("tackles"),
+                h.get("defensive_contribution"),
                 h.get("value"),
                 h.get("selected"),
                 h.get("transfers_in"),
@@ -288,8 +307,11 @@ class Store:
                  yellow_cards, red_cards, saves, bonus, bps,
                  influence, creativity, threat, ict_index,
                  expected_goals, expected_assists, expected_goal_involvements,
-                 expected_goals_conceded, value, selected, transfers_in, transfers_out)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                 expected_goals_conceded,
+                 clearances_blocks_interceptions, recoveries, tackles,
+                 defensive_contribution,
+                 value, selected, transfers_in, transfers_out)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             rows,
         )
 

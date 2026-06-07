@@ -309,6 +309,30 @@
     font-size: 11px; color: var(--muted); text-align: center;
   }
 
+  /* ==================== EXTENDED STATS ==================== */
+  .stat-note { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .h2h-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.h2h { border-collapse: collapse; font-size: 10px; }
+  table.h2h th, table.h2h td {
+    border: 1px solid var(--border); padding: 3px 5px; text-align: center;
+    white-space: nowrap;
+  }
+  table.h2h th { background: var(--slate); color: #fff; font-weight: 600; }
+  table.h2h th.row-hdr, table.h2h td.row-hdr {
+    text-align: left; background: var(--row-alt); font-weight: 600; position: sticky; left: 0;
+  }
+  table.h2h td.diag { background: #ececec; }
+  table.h2h td.pos { background: rgba(55,167,107,0.18); }
+  table.h2h td.neg { background: rgba(176,58,46,0.16); }
+  .pill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .pill {
+    background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .pill .pill-top { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .pill .pill-main { font-size: 15px; font-weight: 700; color: var(--slate); }
+  .pill .pill-sub { font-size: 11px; color: var(--muted); }
+
   /* ==================== MOBILE ==================== */
   @media (max-width: 600px) {
     .wrap { padding: 0 6px; }
@@ -432,6 +456,13 @@
     <a href="#motm">MOTM</a>
     <a href="#scout">Scout</a>
     <a href="#xpts">xPts</a>
+    <a href="#records">Records</a>
+    <a href="#numbers">Numbers</a>
+    <a href="#transfer-lab">Transfer Lab</a>
+    <a href="#defcon">DefCon</a>
+    <a href="#alt-tables">Alt Tables</a>
+    <a href="#h2h">H2H</a>
+    <a href="#around">League</a>
     <a href="#progression">Season</a>
   </div>
   <div class="nav-picker" id="nav-picker" hidden>
@@ -461,7 +492,7 @@
         
       </td>
     </tr>
-    <tr><td>Generated:</td><td>2026-06-06 07:51 UTC</td></tr>
+    <tr><td>Generated:</td><td>2026-06-07 07:53 UTC</td></tr>
   </table>
 </div>
 
@@ -1187,7 +1218,7 @@
     <li>son of a doge ⭐️⭐️ takes the league lead, rising from 6th.</li>
     
     
-    <li>Biggest riser: <strong>FC MarRow</strong> climbed 7 places.</li>
+    <li>Biggest riser: <strong>Luceros</strong> climbed 6 places.</li>
     
     
     <li>Biggest faller: <strong>Caesar ⭐</strong> dropped 13 places.</li>
@@ -1199,7 +1230,7 @@
     <li>Worst transfer: <strong>Saka FC</strong> swapped João Pedro &rarr; Wood (-13 pts).</li>
     
     
-    <li>Chips played: Change Name (<span class="chip-used" style="background:#3498db; font-size:10px; padding:1px 5px;">Wildcard</span>), AntiAlgoFPL (<span class="chip-used" style="background:#f39c12; font-size:10px; padding:1px 5px;">Bench Boost</span>)</li>
+    <li>Chips played: AntiAlgoFPL (<span class="chip-used" style="background:#f39c12; font-size:10px; padding:1px 5px;">Bench Boost</span>), Change Name (<span class="chip-used" style="background:#3498db; font-size:10px; padding:1px 5px;">Wildcard</span>)</li>
     
     
     <li>Most transferred in: <strong>Reijnders</strong> (3 managers).</li>
@@ -1659,7 +1690,8 @@
         <td class="rank-cell">13</td>
         <td class="move-cell">
           
-            <span class="flat">&#9679;</span>
+            <span class="up">&#9650;</span>
+            
           
         </td>
         <td class="bold">Twickers United</td>
@@ -2038,7 +2070,7 @@
         
         <div class="stat-row">
           <span class="stat-label">Biggest Riser</span>
-          <span class="stat-val pos">Kris McCarthy 7 rank &#9650;</span>
+          <span class="stat-val pos">Claude-Noel Tamakloe 6 rank &#9650;</span>
         </div>
         
         
@@ -2735,6 +2767,20 @@
           </tr>
           
           <tr>
+            <td>Aarif Kassam</td>
+            <td class="bold">Saka</td>
+            <td class="num">6</td>
+            <td class="num bold">12</td>
+          </tr>
+          
+          <tr>
+            <td>Amit Putty</td>
+            <td class="bold">Saka</td>
+            <td class="num">6</td>
+            <td class="num bold">12</td>
+          </tr>
+          
+          <tr>
             <td>Jay Curtis</td>
             <td class="bold">Saka</td>
             <td class="num">6</td>
@@ -2749,17 +2795,10 @@
           </tr>
           
           <tr>
-            <td>Aarif Kassam</td>
-            <td class="bold">Saka</td>
-            <td class="num">6</td>
-            <td class="num bold">12</td>
-          </tr>
-          
-          <tr>
-            <td>Amit Putty</td>
-            <td class="bold">Saka</td>
-            <td class="num">6</td>
-            <td class="num bold">12</td>
+            <td>Adam Quinney</td>
+            <td class="bold">M.Salah <span style="font-size:10px;color:var(--muted)">(VC)</span></td>
+            <td class="num">5</td>
+            <td class="num bold">10</td>
           </tr>
           
           <tr>
@@ -2798,10 +2837,10 @@
           </tr>
           
           <tr>
-            <td>Adam Quinney</td>
-            <td class="bold">M.Salah <span style="font-size:10px;color:var(--muted)">(VC)</span></td>
-            <td class="num">5</td>
-            <td class="num bold">10</td>
+            <td>Akash Patel</td>
+            <td class="bold">Haaland</td>
+            <td class="num">2</td>
+            <td class="num bold">4</td>
           </tr>
           
           <tr>
@@ -2819,15 +2858,15 @@
           </tr>
           
           <tr>
-            <td>Bluehomie -YouTube-</td>
+            <td>Darius Goodarzi</td>
             <td class="bold">Haaland</td>
             <td class="num">2</td>
             <td class="num bold">4</td>
           </tr>
           
           <tr>
-            <td>Stephen Rudd</td>
-            <td class="bold">B.Fernandes <span style="font-size:10px;color:var(--muted)">(VC)</span></td>
+            <td>Bluehomie -YouTube-</td>
+            <td class="bold">Haaland</td>
             <td class="num">2</td>
             <td class="num bold">4</td>
           </tr>
@@ -2840,15 +2879,8 @@
           </tr>
           
           <tr>
-            <td>Darius Goodarzi</td>
-            <td class="bold">Haaland</td>
-            <td class="num">2</td>
-            <td class="num bold">4</td>
-          </tr>
-          
-          <tr>
-            <td>Akash Patel</td>
-            <td class="bold">Haaland</td>
+            <td>Stephen Rudd</td>
+            <td class="bold">B.Fernandes <span style="font-size:10px;color:var(--muted)">(VC)</span></td>
             <td class="num">2</td>
             <td class="num bold">4</td>
           </tr>
@@ -3492,20 +3524,20 @@
       
       <tr>
         <td class="rank-cell">3</td>
-        <td class="bold">Jay Curtis</td>
+        <td class="bold">Aarif Kassam</td>
         <td class="pos">Cucurella</td>
         <td class="num">5</td>
-        <td class="neg">Gvardiol</td>
+        <td class="neg">Frimpong</td>
         <td class="num">0</td>
         <td class="num bold pos">+5</td>
       </tr>
       
       <tr>
         <td class="rank-cell">4</td>
-        <td class="bold">Aarif Kassam</td>
+        <td class="bold">Jay Curtis</td>
         <td class="pos">Cucurella</td>
         <td class="num">5</td>
-        <td class="neg">Frimpong</td>
+        <td class="neg">Gvardiol</td>
         <td class="num">0</td>
         <td class="num bold pos">+5</td>
       </tr>
@@ -3572,7 +3604,7 @@
       
       <tr>
         <td class="rank-cell">11</td>
-        <td class="bold">Jay Curtis</td>
+        <td class="bold">Amit Putty</td>
         <td class="pos">Reijnders</td>
         <td class="num">2</td>
         <td class="neg">Marmoush</td>
@@ -3583,6 +3615,16 @@
       <tr>
         <td class="rank-cell">12</td>
         <td class="bold">Jay Curtis</td>
+        <td class="pos">Reijnders</td>
+        <td class="num">2</td>
+        <td class="neg">Marmoush</td>
+        <td class="num">1</td>
+        <td class="num bold pos">+1</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">13</td>
+        <td class="bold">Jay Curtis</td>
         <td class="pos">Aït-Nouri</td>
         <td class="num">1</td>
         <td class="neg">Mykolenko</td>
@@ -3591,22 +3633,12 @@
       </tr>
       
       <tr>
-        <td class="rank-cell">13</td>
+        <td class="rank-cell">14</td>
         <td class="bold">Jay Curtis</td>
         <td class="pos">Saka</td>
         <td class="num">6</td>
         <td class="neg">M.Salah</td>
         <td class="num">5</td>
-        <td class="num bold pos">+1</td>
-      </tr>
-      
-      <tr>
-        <td class="rank-cell">14</td>
-        <td class="bold">Amit Putty</td>
-        <td class="pos">Reijnders</td>
-        <td class="num">2</td>
-        <td class="neg">Marmoush</td>
-        <td class="num">1</td>
         <td class="num bold pos">+1</td>
       </tr>
       
@@ -3632,66 +3664,6 @@
       
       <tr>
         <td class="rank-cell">17</td>
-        <td class="bold">Sahil Vora</td>
-        <td class="pos">Acheampong</td>
-        <td class="num">0</td>
-        <td class="neg">Frimpong</td>
-        <td class="num">0</td>
-        <td class="num bold muted">+0</td>
-      </tr>
-      
-      <tr>
-        <td class="rank-cell">18</td>
-        <td class="bold">Stephen Rudd</td>
-        <td class="pos">B.Fernandes</td>
-        <td class="num">2</td>
-        <td class="neg">Wirtz</td>
-        <td class="num">2</td>
-        <td class="num bold muted">+0</td>
-      </tr>
-      
-      <tr>
-        <td class="rank-cell">19</td>
-        <td class="bold">Jay Curtis</td>
-        <td class="pos">Igor Jesus</td>
-        <td class="num">1</td>
-        <td class="neg">Marc Guiu</td>
-        <td class="num">1</td>
-        <td class="num bold muted">+0</td>
-      </tr>
-      
-      <tr>
-        <td class="rank-cell">20</td>
-        <td class="bold">Jay Curtis</td>
-        <td class="pos">Haaland</td>
-        <td class="num">2</td>
-        <td class="neg">Watkins</td>
-        <td class="num">2</td>
-        <td class="num bold muted">+0</td>
-      </tr>
-      
-      <tr>
-        <td class="rank-cell">21</td>
-        <td class="bold">Jay Curtis</td>
-        <td class="pos">Frimpong</td>
-        <td class="num">0</td>
-        <td class="neg">Boly</td>
-        <td class="num">0</td>
-        <td class="num bold muted">+0</td>
-      </tr>
-      
-      <tr>
-        <td class="rank-cell">22</td>
-        <td class="bold">Jay Curtis</td>
-        <td class="pos">James</td>
-        <td class="num">1</td>
-        <td class="neg">Hall</td>
-        <td class="num">1</td>
-        <td class="num bold muted">+0</td>
-      </tr>
-      
-      <tr>
-        <td class="rank-cell">23</td>
         <td class="bold">Claude-Noel Tamakloe</td>
         <td class="pos">Wood</td>
         <td class="num">2</td>
@@ -3701,12 +3673,72 @@
       </tr>
       
       <tr>
-        <td class="rank-cell">24</td>
+        <td class="rank-cell">18</td>
+        <td class="bold">Sahil Vora</td>
+        <td class="pos">Acheampong</td>
+        <td class="num">0</td>
+        <td class="neg">Frimpong</td>
+        <td class="num">0</td>
+        <td class="num bold muted">+0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">19</td>
         <td class="bold">Kris McCarthy</td>
         <td class="pos">White</td>
         <td class="num">0</td>
         <td class="neg">Frimpong</td>
         <td class="num">0</td>
+        <td class="num bold muted">+0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">20</td>
+        <td class="bold">Stephen Rudd</td>
+        <td class="pos">B.Fernandes</td>
+        <td class="num">2</td>
+        <td class="neg">Wirtz</td>
+        <td class="num">2</td>
+        <td class="num bold muted">+0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">21</td>
+        <td class="bold">Jay Curtis</td>
+        <td class="pos">Igor Jesus</td>
+        <td class="num">1</td>
+        <td class="neg">Marc Guiu</td>
+        <td class="num">1</td>
+        <td class="num bold muted">+0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">22</td>
+        <td class="bold">Jay Curtis</td>
+        <td class="pos">Haaland</td>
+        <td class="num">2</td>
+        <td class="neg">Watkins</td>
+        <td class="num">2</td>
+        <td class="num bold muted">+0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">23</td>
+        <td class="bold">Jay Curtis</td>
+        <td class="pos">Frimpong</td>
+        <td class="num">0</td>
+        <td class="neg">Boly</td>
+        <td class="num">0</td>
+        <td class="num bold muted">+0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">24</td>
+        <td class="bold">Jay Curtis</td>
+        <td class="pos">James</td>
+        <td class="num">1</td>
+        <td class="neg">Hall</td>
+        <td class="num">1</td>
         <td class="num bold muted">+0</td>
       </tr>
       
@@ -3811,16 +3843,16 @@
             <td class="bold">Garner</td>
             <td>EVE</td>
             <td class="num">10</td>
-            <td class="num muted">2.5</td>
-            <td class="num pos bold">+7.5</td>
+            <td class="num muted">4.5</td>
+            <td class="num pos bold">+5.5</td>
           </tr>
           
           <tr>
-            <td class="bold">Tarkowski</td>
-            <td>EVE</td>
-            <td class="num">8</td>
-            <td class="num muted">1.1</td>
-            <td class="num pos bold">+6.9</td>
+            <td class="bold">J.Palhinha</td>
+            <td>TOT</td>
+            <td class="num">11</td>
+            <td class="num muted">5.9</td>
+            <td class="num pos bold">+5.1</td>
           </tr>
           
         </tbody>
@@ -3847,6 +3879,14 @@
           </tr>
           
           <tr>
+            <td class="bold">B.Fernandes</td>
+            <td>MUN</td>
+            <td class="num">2</td>
+            <td class="num muted">6.4</td>
+            <td class="num neg bold">-4.4</td>
+          </tr>
+          
+          <tr>
             <td class="bold">Trippier</td>
             <td>NEW</td>
             <td class="num">1</td>
@@ -3868,14 +3908,6 @@
             <td class="num">1</td>
             <td class="num muted">4.3</td>
             <td class="num neg bold">-3.3</td>
-          </tr>
-          
-          <tr>
-            <td class="bold">Aké</td>
-            <td>MCI</td>
-            <td class="num">1</td>
-            <td class="num muted">4.1</td>
-            <td class="num neg bold">-3.1</td>
           </tr>
           
         </tbody>
@@ -4143,7 +4175,7 @@
 
 
   <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">
-    xPts uses expected goals, assists, and clean sheet probability (Poisson model) plus actual defensive stats (saves, bonus, cards).
+    xPts uses expected goals, assists, and clean sheet probability (Poisson model) plus actual returns for the volume-driven stuff (saves, bonus, cards and defensive-contribution points).
     Positive diff = <span class="pos">overperforming</span>, negative = <span class="neg">underperforming</span>.
   </p>
 
@@ -4153,17 +4185,17 @@
       
       <div class="stat-row">
         <span class="stat-label">son of a doge ⭐️⭐️</span>
-        <span class="stat-val pos">+45.2</span>
-      </div>
-      
-      <div class="stat-row">
-        <span class="stat-label">Releven Tigers FC</span>
-        <span class="stat-val pos">+36.4</span>
+        <span class="stat-val pos">+43.2</span>
       </div>
       
       <div class="stat-row">
         <span class="stat-label">FC MarRow</span>
-        <span class="stat-val pos">+34.6</span>
+        <span class="stat-val pos">+32.6</span>
+      </div>
+      
+      <div class="stat-row">
+        <span class="stat-label">Releven Tigers FC</span>
+        <span class="stat-val pos">+32.4</span>
       </div>
       
     </div>
@@ -4171,18 +4203,18 @@
       <div class="stat-box-hdr" style="background:var(--red);">Unluckiest Managers</div>
       
       <div class="stat-row">
-        <span class="stat-label">Livin&#39; Saliba Loca</span>
-        <span class="stat-val neg">7.0</span>
+        <span class="stat-label">AntiAlgoFPL</span>
+        <span class="stat-val neg">4.7</span>
       </div>
       
       <div class="stat-row">
         <span class="stat-label">Bluehomie (YouTube)</span>
-        <span class="stat-val neg">-1.2</span>
+        <span class="stat-val neg">-9.2</span>
       </div>
       
       <div class="stat-row">
         <span class="stat-label">Caesar ⭐</span>
-        <span class="stat-val neg">-8.2</span>
+        <span class="stat-val neg">-10.2</span>
       </div>
       
     </div>
@@ -4197,37 +4229,37 @@
     <div class="bar-row" style="margin-bottom:2px;">
       <span class="bar-label">Livin&#39; Saliba Loca</span>
       <div class="bar-track" style="position:relative;">
-        <div class="bar-fill" style="width:78%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill" style="width:79%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
         <div class="bar-fill green" style="width:83%; position:relative; z-index:1;"></div>
       </div>
-      <span class="bar-val pos">+7</span>
+      <span class="bar-val pos">+5</span>
     </div>
     
     <div class="bar-row" style="margin-bottom:2px;">
       <span class="bar-label">Bluehomie (YouTube)</span>
       <div class="bar-track" style="position:relative;">
-        <div class="bar-fill" style="width:73%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill" style="width:78%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
         <div class="bar-fill red" style="width:72%; position:relative; z-index:1;"></div>
       </div>
-      <span class="bar-val neg">-1</span>
+      <span class="bar-val neg">-9</span>
     </div>
     
     <div class="bar-row" style="margin-bottom:2px;">
       <span class="bar-label">Luceros</span>
       <div class="bar-track" style="position:relative;">
-        <div class="bar-fill" style="width:73%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill" style="width:74%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
         <div class="bar-fill green" style="width:86%; position:relative; z-index:1;"></div>
       </div>
-      <span class="bar-val pos">+21</span>
+      <span class="bar-val pos">+19</span>
     </div>
     
     <div class="bar-row" style="margin-bottom:2px;">
       <span class="bar-label">son of a doge ⭐️⭐️</span>
       <div class="bar-track" style="position:relative;">
-        <div class="bar-fill" style="width:71%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill" style="width:72%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
         <div class="bar-fill green" style="width:100%; position:relative; z-index:1;"></div>
       </div>
-      <span class="bar-val pos">+45</span>
+      <span class="bar-val pos">+43</span>
     </div>
     
     <div class="bar-row" style="margin-bottom:2px;">
@@ -4240,6 +4272,15 @@
     </div>
     
     <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Releven Tigers FC</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:65%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:85%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+32</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
       <span class="bar-label">Arteta Ballers</span>
       <div class="bar-track" style="position:relative;">
         <div class="bar-fill" style="width:64%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
@@ -4249,12 +4290,12 @@
     </div>
     
     <div class="bar-row" style="margin-bottom:2px;">
-      <span class="bar-label">Releven Tigers FC</span>
+      <span class="bar-label">Caesar ⭐</span>
       <div class="bar-track" style="position:relative;">
-        <div class="bar-fill" style="width:62%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
-        <div class="bar-fill green" style="width:85%; position:relative; z-index:1;"></div>
+        <div class="bar-fill" style="width:63%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill red" style="width:57%; position:relative; z-index:1;"></div>
       </div>
-      <span class="bar-val pos">+36</span>
+      <span class="bar-val neg">-10</span>
     </div>
     
     <div class="bar-row" style="margin-bottom:2px;">
@@ -4267,84 +4308,93 @@
     </div>
     
     <div class="bar-row" style="margin-bottom:2px;">
-      <span class="bar-label">Caesar ⭐</span>
-      <div class="bar-track" style="position:relative;">
-        <div class="bar-fill" style="width:62%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
-        <div class="bar-fill red" style="width:57%; position:relative; z-index:1;"></div>
-      </div>
-      <span class="bar-val neg">-8</span>
-    </div>
-    
-    <div class="bar-row" style="margin-bottom:2px;">
       <span class="bar-label">Vault 101 XI</span>
       <div class="bar-track" style="position:relative;">
-        <div class="bar-fill" style="width:57%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill" style="width:59%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
         <div class="bar-fill green" style="width:63%; position:relative; z-index:1;"></div>
       </div>
-      <span class="bar-val pos">+9</span>
+      <span class="bar-val pos">+7</span>
     </div>
     
     <div class="bar-row" style="margin-bottom:2px;">
       <span class="bar-label">Pamparam ⭐️ ⭐️ ⭐️</span>
       <div class="bar-track" style="position:relative;">
-        <div class="bar-fill" style="width:56%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill" style="width:58%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
         <div class="bar-fill green" style="width:66%; position:relative; z-index:1;"></div>
       </div>
-      <span class="bar-val pos">+16</span>
-    </div>
-    
-    <div class="bar-row" style="margin-bottom:2px;">
-      <span class="bar-label">Skill McGill</span>
-      <div class="bar-track" style="position:relative;">
-        <div class="bar-fill" style="width:55%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
-        <div class="bar-fill green" style="width:67%; position:relative; z-index:1;"></div>
-      </div>
-      <span class="bar-val pos">+20</span>
-    </div>
-    
-    <div class="bar-row" style="margin-bottom:2px;">
-      <span class="bar-label">Twickers United</span>
-      <div class="bar-track" style="position:relative;">
-        <div class="bar-fill" style="width:54%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
-        <div class="bar-fill green" style="width:66%; position:relative; z-index:1;"></div>
-      </div>
-      <span class="bar-val pos">+19</span>
+      <span class="bar-val pos">+12</span>
     </div>
     
     <div class="bar-row" style="margin-bottom:2px;">
       <span class="bar-label">AntiAlgoFPL</span>
       <div class="bar-track" style="position:relative;">
-        <div class="bar-fill" style="width:53%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill" style="width:57%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
         <div class="bar-fill green" style="width:60%; position:relative; z-index:1;"></div>
       </div>
-      <span class="bar-val pos">+11</span>
+      <span class="bar-val pos">+5</span>
     </div>
     
     <div class="bar-row" style="margin-bottom:2px;">
-      <span class="bar-label">FC MarRow</span>
+      <span class="bar-label">Twickers United</span>
       <div class="bar-track" style="position:relative;">
-        <div class="bar-fill" style="width:51%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
-        <div class="bar-fill green" style="width:73%; position:relative; z-index:1;"></div>
+        <div class="bar-fill" style="width:57%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:66%; position:relative; z-index:1;"></div>
       </div>
-      <span class="bar-val pos">+35</span>
+      <span class="bar-val pos">+15</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Skill McGill</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:56%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:67%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+18</span>
     </div>
     
     <div class="bar-row" style="margin-bottom:2px;">
       <span class="bar-label">Papua New Quinney</span>
       <div class="bar-track" style="position:relative;">
-        <div class="bar-fill" style="width:51%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill" style="width:55%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
         <div class="bar-fill green" style="width:67%; position:relative; z-index:1;"></div>
       </div>
-      <span class="bar-val pos">+25</span>
+      <span class="bar-val pos">+19</span>
     </div>
     
     <div class="bar-row" style="margin-bottom:2px;">
       <span class="bar-label">Saka FC</span>
       <div class="bar-track" style="position:relative;">
-        <div class="bar-fill" style="width:51%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill" style="width:53%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
         <div class="bar-fill green" style="width:61%; position:relative; z-index:1;"></div>
       </div>
-      <span class="bar-val pos">+17</span>
+      <span class="bar-val pos">+13</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">FC MarRow</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:53%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:73%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+33</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">TODHFODH FC</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:50%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:58%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+14</span>
+    </div>
+    
+    <div class="bar-row" style="margin-bottom:2px;">
+      <span class="bar-label">Project X</span>
+      <div class="bar-track" style="position:relative;">
+        <div class="bar-fill" style="width:49%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
+        <div class="bar-fill green" style="width:57%; position:relative; z-index:1;"></div>
+      </div>
+      <span class="bar-val pos">+13</span>
     </div>
     
     <div class="bar-row" style="margin-bottom:2px;">
@@ -4354,24 +4404,6 @@
         <div class="bar-fill green" style="width:63%; position:relative; z-index:1;"></div>
       </div>
       <span class="bar-val pos">+23</span>
-    </div>
-    
-    <div class="bar-row" style="margin-bottom:2px;">
-      <span class="bar-label">TODHFODH FC</span>
-      <div class="bar-track" style="position:relative;">
-        <div class="bar-fill" style="width:48%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
-        <div class="bar-fill green" style="width:58%; position:relative; z-index:1;"></div>
-      </div>
-      <span class="bar-val pos">+16</span>
-    </div>
-    
-    <div class="bar-row" style="margin-bottom:2px;">
-      <span class="bar-label">Project X</span>
-      <div class="bar-track" style="position:relative;">
-        <div class="bar-fill" style="width:48%; background:var(--muted); opacity:0.35; position:absolute; top:0; left:0; height:100%;"></div>
-        <div class="bar-fill green" style="width:57%; position:relative; z-index:1;"></div>
-      </div>
-      <span class="bar-val pos">+15</span>
     </div>
     
     <div class="bar-row" style="margin-bottom:2px;">
@@ -4415,36 +4447,36 @@
         <td class="rank-cell">1</td>
         <td class="bold">Livin&#39; Saliba Loca</td>
         <td>Darius Goodarzi</td>
-        <td class="num">125.0</td>
+        <td class="num">127.0</td>
         <td class="num bold">132</td>
-        <td class="num bold pos">+7.0</td>
+        <td class="num bold pos">+5.0</td>
       </tr>
       
       <tr>
         <td class="rank-cell">2</td>
         <td class="bold">Bluehomie (YouTube)</td>
         <td>Bluehomie -YouTube-</td>
-        <td class="num">116.2</td>
+        <td class="num">124.2</td>
         <td class="num bold">115</td>
-        <td class="num bold neg">-1.2</td>
+        <td class="num bold neg">-9.2</td>
       </tr>
       
       <tr>
         <td class="rank-cell">3</td>
         <td class="bold">Luceros</td>
         <td>Claude-Noel Tamakloe</td>
-        <td class="num">116.1</td>
+        <td class="num">118.1</td>
         <td class="num bold">137</td>
-        <td class="num bold pos">+20.9</td>
+        <td class="num bold pos">+18.9</td>
       </tr>
       
       <tr>
         <td class="rank-cell">4</td>
         <td class="bold">son of a doge ⭐️⭐️</td>
         <td>M B</td>
-        <td class="num">113.8</td>
+        <td class="num">115.8</td>
         <td class="num bold">159</td>
-        <td class="num bold pos">+45.2</td>
+        <td class="num bold pos">+43.2</td>
       </tr>
       
       <tr>
@@ -4458,6 +4490,15 @@
       
       <tr>
         <td class="rank-cell">6</td>
+        <td class="bold">Releven Tigers FC</td>
+        <td>Stephen Rudd</td>
+        <td class="num">103.6</td>
+        <td class="num bold">136</td>
+        <td class="num bold pos">+32.4</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">7</td>
         <td class="bold">Arteta Ballers</td>
         <td>Kelvin Ampene</td>
         <td class="num">101.8</td>
@@ -4466,16 +4507,16 @@
       </tr>
       
       <tr>
-        <td class="rank-cell">7</td>
-        <td class="bold">Releven Tigers FC</td>
-        <td>Stephen Rudd</td>
-        <td class="num">99.6</td>
-        <td class="num bold">136</td>
-        <td class="num bold pos">+36.4</td>
+        <td class="rank-cell">8</td>
+        <td class="bold">Caesar ⭐</td>
+        <td>Sunny Sharma</td>
+        <td class="num">101.2</td>
+        <td class="num bold">91</td>
+        <td class="num bold neg">-10.2</td>
       </tr>
       
       <tr>
-        <td class="rank-cell">8</td>
+        <td class="rank-cell">9</td>
         <td class="bold">TML ⭐️⭐️</td>
         <td>Aman Sharma</td>
         <td class="num">99.3</td>
@@ -4484,111 +4525,102 @@
       </tr>
       
       <tr>
-        <td class="rank-cell">9</td>
-        <td class="bold">Caesar ⭐</td>
-        <td>Sunny Sharma</td>
-        <td class="num">99.2</td>
-        <td class="num bold">91</td>
-        <td class="num bold neg">-8.2</td>
-      </tr>
-      
-      <tr>
         <td class="rank-cell">10</td>
         <td class="bold">Vault 101 XI</td>
         <td>ALEXIS DRITSAS</td>
-        <td class="num">92.2</td>
+        <td class="num">94.2</td>
         <td class="num bold">101</td>
-        <td class="num bold pos">+8.8</td>
+        <td class="num bold pos">+6.8</td>
       </tr>
       
       <tr>
         <td class="rank-cell">11</td>
         <td class="bold">Pamparam ⭐️ ⭐️ ⭐️</td>
         <td>Milen Kindekov</td>
-        <td class="num">89.5</td>
+        <td class="num">93.5</td>
         <td class="num bold">106</td>
-        <td class="num bold pos">+16.5</td>
+        <td class="num bold pos">+12.5</td>
       </tr>
       
       <tr>
         <td class="rank-cell">12</td>
-        <td class="bold">Skill McGill</td>
-        <td>Kartar Gill</td>
-        <td class="num">88.2</td>
-        <td class="num bold">108</td>
-        <td class="num bold pos">+19.8</td>
+        <td class="bold">AntiAlgoFPL</td>
+        <td>Amit Putty</td>
+        <td class="num">91.3</td>
+        <td class="num bold">96</td>
+        <td class="num bold pos">+4.7</td>
       </tr>
       
       <tr>
         <td class="rank-cell">13</td>
         <td class="bold">Twickers United</td>
         <td>Martin Borizanov</td>
-        <td class="num">87.2</td>
+        <td class="num">91.2</td>
         <td class="num bold">106</td>
-        <td class="num bold pos">+18.8</td>
+        <td class="num bold pos">+14.8</td>
       </tr>
       
       <tr>
         <td class="rank-cell">14</td>
-        <td class="bold">AntiAlgoFPL</td>
-        <td>Amit Putty</td>
-        <td class="num">85.3</td>
-        <td class="num bold">96</td>
-        <td class="num bold pos">+10.7</td>
+        <td class="bold">Skill McGill</td>
+        <td>Kartar Gill</td>
+        <td class="num">90.2</td>
+        <td class="num bold">108</td>
+        <td class="num bold pos">+17.8</td>
       </tr>
       
       <tr>
         <td class="rank-cell">15</td>
-        <td class="bold">FC MarRow</td>
-        <td>Kris McCarthy</td>
-        <td class="num">82.4</td>
-        <td class="num bold">117</td>
-        <td class="num bold pos">+34.6</td>
+        <td class="bold">Papua New Quinney</td>
+        <td>Adam Quinney</td>
+        <td class="num">87.9</td>
+        <td class="num bold">107</td>
+        <td class="num bold pos">+19.1</td>
       </tr>
       
       <tr>
         <td class="rank-cell">16</td>
-        <td class="bold">Papua New Quinney</td>
-        <td>Adam Quinney</td>
-        <td class="num">81.9</td>
-        <td class="num bold">107</td>
-        <td class="num bold pos">+25.1</td>
+        <td class="bold">Saka FC</td>
+        <td>Chris B</td>
+        <td class="num">85.1</td>
+        <td class="num bold">98</td>
+        <td class="num bold pos">+12.9</td>
       </tr>
       
       <tr>
         <td class="rank-cell">17</td>
-        <td class="bold">Saka FC</td>
-        <td>Chris B</td>
-        <td class="num">81.1</td>
-        <td class="num bold">98</td>
-        <td class="num bold pos">+16.9</td>
+        <td class="bold">FC MarRow</td>
+        <td>Kris McCarthy</td>
+        <td class="num">84.4</td>
+        <td class="num bold">117</td>
+        <td class="num bold pos">+32.6</td>
       </tr>
       
       <tr>
         <td class="rank-cell">18</td>
+        <td class="bold">TODHFODH FC</td>
+        <td>Sahil Vora</td>
+        <td class="num">79.5</td>
+        <td class="num bold">93</td>
+        <td class="num bold pos">+13.5</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">19</td>
+        <td class="bold">Project X</td>
+        <td>Nnaemeka Ezugwu</td>
+        <td class="num">79.0</td>
+        <td class="num bold">92</td>
+        <td class="num bold pos">+13.0</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">20</td>
         <td class="bold">The Refugees</td>
         <td>Aarif Kassam</td>
         <td class="num">78.2</td>
         <td class="num bold">101</td>
         <td class="num bold pos">+22.8</td>
-      </tr>
-      
-      <tr>
-        <td class="rank-cell">19</td>
-        <td class="bold">TODHFODH FC</td>
-        <td>Sahil Vora</td>
-        <td class="num">77.5</td>
-        <td class="num bold">93</td>
-        <td class="num bold pos">+15.5</td>
-      </tr>
-      
-      <tr>
-        <td class="rank-cell">20</td>
-        <td class="bold">Project X</td>
-        <td>Nnaemeka Ezugwu</td>
-        <td class="num">77.0</td>
-        <td class="num bold">92</td>
-        <td class="num bold pos">+15.0</td>
       </tr>
       
       <tr>
@@ -4607,11 +4639,3522 @@
 </div>
 
 
+<div id="records" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">11. Hall of Records</div>
+    <div class="section-sub">Season-long superlatives</div>
+  </div>
+  <div class="section-right">Gameweek 2</div>
+</div>
+
+
+  <div class="cards-row cards-4">
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--green); background: rgba(39,174,96,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Mr Reliable"</div>
+      <div class="card-sub">Most consistent (lowest std dev of GW pts)</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm0 4a2 2 0 110 4 2 2 0 010-4zm0 10c-2 0-4-1-4-2.5 0-1.5 2.67-2.5 4-2.5s4 1 4 2.5c0 1.5-2 2.5-4 2.5z"/></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">Releven Tigers FC</div>
+    <div class="winner-mgr">Stephen Rudd</div>
+    
+    <div class="sm-winner-val">
+      1.0
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">Project X - Nnaemeka Ezugwu</span>
+      
+      <span class="runner-val">
+        1.0
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">Arteta Ballers - Kelvin Ampene</span>
+      
+      <span class="runner-val">
+        1.5
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--red); background: rgba(192,57,43,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"The Rollercoaster"</div>
+      <div class="card-sub">Most volatile week to week</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--red);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 23c-3.6 0-7-2.4-7-7 0-3 1.8-5.4 3.5-7.5.8-1 1.5-2 2-3 .3-.5 1-.5 1.2 0 .3.7.6 1.3 1 2a9.5 9.5 0 011.8-2.5c.4-.4 1-.2 1.2.3.5 1.5.8 3 .8 4.2 0 0 .2-.3.5-.8.4-.5 1.1-.4 1.3.2C19.3 12 19 15 19 16c0 4.6-3.4 7-7 7zm0-12c-1 1.5-3 4-3 5.5a3 3 0 006 0c0-1.5-2-4-3-5.5z"/></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">Livin&#39; Saliba Loca</div>
+    <div class="winner-mgr">Darius Goodarzi</div>
+    
+    <div class="sm-winner-val">
+      26.0
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">Caesar ⭐ - Sunny Sharma</span>
+      
+      <span class="runner-val">
+        18.5
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">TML ⭐️⭐️ - Aman Sharma</span>
+      
+      <span class="runner-val">
+        18.0
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--green); background: rgba(39,174,96,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Magnum Opus"</div>
+      <div class="card-sub">Highest single gameweek score</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">Livin&#39; Saliba Loca</div>
+    <div class="winner-mgr">Darius Goodarzi</div>
+    
+    <div class="sm-winner-val">
+      92
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">son of a doge ⭐️⭐️ - M B</span>
+      
+      <span class="runner-val">
+        91
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">TML ⭐️⭐️ - Aman Sharma</span>
+      
+      <span class="runner-val">
+        76
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--red); background: rgba(192,57,43,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"The Stinker"</div>
+      <div class="card-sub">Lowest single gameweek score</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--red);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13H5v-2h14z"/></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">Caesar ⭐</div>
+    <div class="winner-mgr">Sunny Sharma</div>
+    
+    <div class="sm-winner-val">
+      27
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">AntiAlgoFPL - Amit Putty</span>
+      
+      <span class="runner-val">
+        33
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">TODHFODH FC - Sahil Vora</span>
+      
+      <span class="runner-val">
+        36
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+  </div>
+
+  <div class="cards-row cards-4">
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--red); background: rgba(192,57,43,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Bench Disaster"</div>
+      <div class="card-sub">Most points left on the bench</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--red);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13H5v-2h14z"/></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">son of a doge ⭐️⭐️</div>
+    <div class="winner-mgr">M B</div>
+    
+    <div class="sm-winner-val">
+      46
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">Project X - Nnaemeka Ezugwu</span>
+      
+      <span class="runner-val">
+        21
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">Pamparam ⭐️ ⭐️ ⭐️ - Milen Kindekov</span>
+      
+      <span class="runner-val">
+        21
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--red); background: rgba(192,57,43,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Hit Merchant"</div>
+      <div class="card-sub">Most points burned on -4 hits</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--red);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13H5v-2h14z"/></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">Saka FC</div>
+    <div class="winner-mgr">Chris B</div>
+    
+    <div class="sm-winner-val">
+      8
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">Project X - Nnaemeka Ezugwu</span>
+      
+      <span class="runner-val">
+        0
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">No Name - Akash Patel</span>
+      
+      <span class="runner-val">
+        0
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--green); background: rgba(39,174,96,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Scrooge"</div>
+      <div class="card-sub">Most cash left rotting in the bank</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><text x="12" y="18" text-anchor="middle" font-size="18" font-weight="700" font-family="Georgia,serif">&pound;</text></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">AntiAlgoFPL</div>
+    <div class="winner-mgr">Amit Putty</div>
+    
+    <div class="sm-winner-val">
+      &pound;3.0m
+      
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">TODHFODH FC - Sahil Vora</span>
+      
+      <span class="runner-val">
+        &pound;2.5m
+        
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">Releven Tigers FC - Stephen Rudd</span>
+      
+      <span class="runner-val">
+        &pound;1.0m
+        
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--green); background: rgba(39,174,96,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"The Tinkerman"</div>
+      <div class="card-sub">Most transfers made all season</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">Change Name</div>
+    <div class="winner-mgr">Jay Curtis</div>
+    
+    <div class="sm-winner-val">
+      12
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">Saka FC - Chris B</span>
+      
+      <span class="runner-val">
+        3
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">AntiAlgoFPL - Amit Putty</span>
+      
+      <span class="runner-val">
+        1
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+  </div>
+
+  <div class="cards-row cards-4">
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--green); background: rgba(39,174,96,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Set &amp;amp; Forget"</div>
+      <div class="card-sub">Fewest transfers made</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm0 4a2 2 0 110 4 2 2 0 010-4zm0 10c-2 0-4-1-4-2.5 0-1.5 2.67-2.5 4-2.5s4 1 4 2.5c0 1.5-2 2.5-4 2.5z"/></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">Project X</div>
+    <div class="winner-mgr">Nnaemeka Ezugwu</div>
+    
+    <div class="sm-winner-val">
+      0
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">No Name - Akash Patel</span>
+      
+      <span class="runner-val">
+        0
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">Bluehomie (YouTube) - Bluehomie -YouTube-</span>
+      
+      <span class="runner-val">
+        0
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--green); background: rgba(39,174,96,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Mr Template"</div>
+      <div class="card-sub">Most template XI (avg league ownership)</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4a4.5 4.5 0 00-4.35 3.38A3.5 3.5 0 004 10.5 3.5 3.5 0 007.5 14h9a3.5 3.5 0 003.5-3.5 3.5 3.5 0 00-3.65-3.12A4.5 4.5 0 0012 4z"/><path d="M8 15v2m4-2v3m4-3v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">TML ⭐️⭐️</div>
+    <div class="winner-mgr">Aman Sharma</div>
+    
+    <div class="sm-winner-val">
+      46%
+      
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">FC MarRow - Kris McCarthy</span>
+      
+      <span class="runner-val">
+        40%
+        
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">No Name - Akash Patel</span>
+      
+      <span class="runner-val">
+        39%
+        
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--green); background: rgba(39,174,96,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"The Hipster"</div>
+      <div class="card-sub">Least template XI</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 23c-3.6 0-7-2.4-7-7 0-3 1.8-5.4 3.5-7.5.8-1 1.5-2 2-3 .3-.5 1-.5 1.2 0 .3.7.6 1.3 1 2a9.5 9.5 0 011.8-2.5c.4-.4 1-.2 1.2.3.5 1.5.8 3 .8 4.2 0 0 .2-.3.5-.8.4-.5 1.1-.4 1.3.2C19.3 12 19 15 19 16c0 4.6-3.4 7-7 7zm0-12c-1 1.5-3 4-3 5.5a3 3 0 006 0c0-1.5-2-4-3-5.5z"/></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">Saka FC</div>
+    <div class="winner-mgr">Chris B</div>
+    
+    <div class="sm-winner-val">
+      13%
+      
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">Bluehomie (YouTube) - Bluehomie -YouTube-</span>
+      
+      <span class="runner-val">
+        16%
+        
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">Vault 101 XI - ALEXIS DRITSAS</span>
+      
+      <span class="runner-val">
+        23%
+        
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+    
+
+
+<div class="card small-card" style="border-left: 4px solid var(--green); background: rgba(39,174,96,0.04);">
+  <div class="card-head">
+    <div>
+      <div class="card-title">"Teacher&#39;s Pet"</div>
+      <div class="card-sub">Most captain points (season)</div>
+    </div>
+    <div class="card-icon sm-icon" style="border-color: var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><text x="12" y="18" text-anchor="middle" font-size="18" font-weight="900" font-family="-apple-system,sans-serif">C</text></svg>
+</div>
+  </div>
+  
+  <div class="sm-winner">
+    <div class="winner-name">Luceros</div>
+    <div class="winner-mgr">Claude-Noel Tamakloe</div>
+    
+    <div class="sm-winner-val">
+      56
+    </div>
+    
+  </div>
+  
+  <div class="card-runners">
+    
+    <div class="runner-row">
+      <span class="runner-pos">2.</span>
+      <span class="runner-info">FC MarRow - Kris McCarthy</span>
+      
+      <span class="runner-val">
+        46
+      </span>
+      
+    </div>
+    
+    <div class="runner-row">
+      <span class="runner-pos">3.</span>
+      <span class="runner-info">Project X - Nnaemeka Ezugwu</span>
+      
+      <span class="runner-val">
+        40
+      </span>
+      
+    </div>
+    
+  </div>
+  
+  
+</div>
+
+  </div>
+
+  <div class="cards-row cards-4">
+    <div class="card small-card" style="border-left:4px solid var(--green);">
+      <div class="card-head"><div>
+        <div class="card-title">"Lone Wolf"</div>
+        <div class="card-sub">Best haul by a one-man-band differential</div>
+      </div><div class="card-icon sm-icon" style="border-color:var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm0 4a2 2 0 110 4 2 2 0 010-4zm0 10c-2 0-4-1-4-2.5 0-1.5 2.67-2.5 4-2.5s4 1 4 2.5c0 1.5-2 2.5-4 2.5z"/></svg>
+</div></div>
+      
+      <div class="sm-winner">
+        <div class="winner-name">Saka FC</div>
+        <div class="winner-mgr">Semenyo &middot; GW1</div>
+        <div class="sm-winner-val">15 pts</div>
+      </div>
+      
+    </div>
+
+    <div class="card small-card" style="border-left:4px solid var(--green);">
+      <div class="card-head"><div>
+        <div class="card-title">"Ride or Die"</div>
+        <div class="card-sub">Longest unbroken run holding one player</div>
+      </div><div class="card-icon sm-icon" style="border-color:var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 23c-3.6 0-7-2.4-7-7 0-3 1.8-5.4 3.5-7.5.8-1 1.5-2 2-3 .3-.5 1-.5 1.2 0 .3.7.6 1.3 1 2a9.5 9.5 0 011.8-2.5c.4-.4 1-.2 1.2.3.5 1.5.8 3 .8 4.2 0 0 .2-.3.5-.8.4-.5 1.1-.4 1.3.2C19.3 12 19 15 19 16c0 4.6-3.4 7-7 7zm0-12c-1 1.5-3 4-3 5.5a3 3 0 006 0c0-1.5-2-4-3-5.5z"/></svg>
+</div></div>
+      
+      <div class="sm-winner">
+        <div class="winner-name">Project X</div>
+        <div class="winner-mgr">Saka</div>
+        <div class="sm-winner-val">2 GWs</div>
+      </div>
+      
+    </div>
+
+    <div class="card small-card" style="border-left:4px solid var(--green);">
+      <div class="card-head"><div>
+        <div class="card-title">"Captain Marvel"</div>
+        <div class="card-sub">Best single captain pick of the season</div>
+      </div><div class="card-icon sm-icon" style="border-color:var(--green);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><text x="12" y="18" text-anchor="middle" font-size="18" font-weight="900" font-family="-apple-system,sans-serif">C</text></svg>
+</div></div>
+      
+      <div class="sm-winner">
+        <div class="winner-name">Luceros</div>
+        <div class="winner-mgr">João Pedro &middot; GW2</div>
+        <div class="sm-winner-val">30 pts</div>
+      </div>
+      
+    </div>
+
+    <div class="card small-card" style="border-left:4px solid var(--red); background:rgba(192,57,43,0.04);">
+      <div class="card-head"><div>
+        <div class="card-title">"Captain Calamity"</div>
+        <div class="card-sub">Worst single captain pick of the season</div>
+      </div><div class="card-icon sm-icon" style="border-color:var(--red);">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><text x="12" y="18" text-anchor="middle" font-size="18" font-weight="900" font-family="-apple-system,sans-serif">C</text></svg>
+</div></div>
+      
+      <div class="sm-winner">
+        <div class="winner-name">Arteta Ballers</div>
+        <div class="winner-mgr">Haaland &middot; GW2</div>
+        <div class="sm-winner-val neg">4 pts</div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+
+<div id="numbers" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">12. By the Numbers</div>
+    <div class="section-sub">Consistency &amp;amp; rank trajectory</div>
+  </div>
+  <div class="section-right">Gameweek 2</div>
+</div>
+
+
+  <h3 class="sub-title">Consistency</h3>
+  <p class="stat-note">Std Dev = how much each manager's weekly score swings (lower = steadier). "Wks &gt; Avg" counts gameweeks beaten the league's weekly average.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="ctr" style="width:28px">#</th><th>Team</th><th>Manager</th>
+      <th class="num">Avg</th><th class="num">Best</th><th class="num">Worst</th>
+      <th class="num">Std Dev</th><th class="num">Wks &gt; Avg</th>
+    </tr></thead>
+    <tbody>
+      
+      <tr>
+        <td class="rank-cell">1</td>
+        <td class="bold">son of a doge ⭐️⭐️</td>
+        <td>M B</td>
+        <td class="num">79.5</td>
+        <td class="num pos">91</td>
+        <td class="num neg">68</td>
+        <td class="num">11.5</td>
+        <td class="num">2/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">2</td>
+        <td class="bold">Luceros</td>
+        <td>Claude-Noel Tamakloe</td>
+        <td class="num">68.5</td>
+        <td class="num pos">73</td>
+        <td class="num neg">64</td>
+        <td class="num">4.5</td>
+        <td class="num">2/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">3</td>
+        <td class="bold">Releven Tigers FC</td>
+        <td>Stephen Rudd</td>
+        <td class="num">68.0</td>
+        <td class="num pos">69</td>
+        <td class="num neg">67</td>
+        <td class="num">1.0</td>
+        <td class="num">2/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">4</td>
+        <td class="bold">Livin&#39; Saliba Loca</td>
+        <td>Darius Goodarzi</td>
+        <td class="num">66.0</td>
+        <td class="num pos">92</td>
+        <td class="num neg">40</td>
+        <td class="num">26.0</td>
+        <td class="num">1/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">5</td>
+        <td class="bold">No Name</td>
+        <td>Akash Patel</td>
+        <td class="num">62.5</td>
+        <td class="num pos">75</td>
+        <td class="num neg">50</td>
+        <td class="num">12.5</td>
+        <td class="num">1/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">6</td>
+        <td class="bold">Arteta Ballers</td>
+        <td>Kelvin Ampene</td>
+        <td class="num">59.5</td>
+        <td class="num pos">61</td>
+        <td class="num neg">58</td>
+        <td class="num">1.5</td>
+        <td class="num">2/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">7</td>
+        <td class="bold">FC MarRow</td>
+        <td>Kris McCarthy</td>
+        <td class="num">58.5</td>
+        <td class="num pos">62</td>
+        <td class="num neg">55</td>
+        <td class="num">3.5</td>
+        <td class="num">1/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">8</td>
+        <td class="bold">TML ⭐️⭐️</td>
+        <td>Aman Sharma</td>
+        <td class="num">58.0</td>
+        <td class="num pos">76</td>
+        <td class="num neg">40</td>
+        <td class="num">18.0</td>
+        <td class="num">1/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">9</td>
+        <td class="bold">Bluehomie (YouTube)</td>
+        <td>Bluehomie -YouTube-</td>
+        <td class="num">57.5</td>
+        <td class="num pos">75</td>
+        <td class="num neg">40</td>
+        <td class="num">17.5</td>
+        <td class="num">1/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">10</td>
+        <td class="bold">Skill McGill</td>
+        <td>Kartar Gill</td>
+        <td class="num">54.0</td>
+        <td class="num pos">61</td>
+        <td class="num neg">47</td>
+        <td class="num">7.0</td>
+        <td class="num">1/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">11</td>
+        <td class="bold">Papua New Quinney</td>
+        <td>Adam Quinney</td>
+        <td class="num">53.5</td>
+        <td class="num pos">61</td>
+        <td class="num neg">46</td>
+        <td class="num">7.5</td>
+        <td class="num">1/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">12</td>
+        <td class="bold">Pamparam ⭐️ ⭐️ ⭐️</td>
+        <td>Milen Kindekov</td>
+        <td class="num">53.0</td>
+        <td class="num pos">57</td>
+        <td class="num neg">49</td>
+        <td class="num">4.0</td>
+        <td class="num">0/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">13</td>
+        <td class="bold">Twickers United</td>
+        <td>Martin Borizanov</td>
+        <td class="num">53.0</td>
+        <td class="num pos">55</td>
+        <td class="num neg">51</td>
+        <td class="num">2.0</td>
+        <td class="num">0/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">14</td>
+        <td class="bold">Vault 101 XI</td>
+        <td>ALEXIS DRITSAS</td>
+        <td class="num">50.5</td>
+        <td class="num pos">60</td>
+        <td class="num neg">41</td>
+        <td class="num">9.5</td>
+        <td class="num">1/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">15</td>
+        <td class="bold">The Refugees</td>
+        <td>Aarif Kassam</td>
+        <td class="num">50.5</td>
+        <td class="num pos">54</td>
+        <td class="num neg">47</td>
+        <td class="num">3.5</td>
+        <td class="num">0/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">16</td>
+        <td class="bold">AntiAlgoFPL</td>
+        <td>Amit Putty</td>
+        <td class="num">48.0</td>
+        <td class="num pos">63</td>
+        <td class="num neg">33</td>
+        <td class="num">15.0</td>
+        <td class="num">1/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">17</td>
+        <td class="bold">Change Name</td>
+        <td>Jay Curtis</td>
+        <td class="num">47.0</td>
+        <td class="num pos">51</td>
+        <td class="num neg">43</td>
+        <td class="num">4.0</td>
+        <td class="num">0/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">18</td>
+        <td class="bold">TODHFODH FC</td>
+        <td>Sahil Vora</td>
+        <td class="num">46.5</td>
+        <td class="num pos">57</td>
+        <td class="num neg">36</td>
+        <td class="num">10.5</td>
+        <td class="num">0/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">19</td>
+        <td class="bold">Project X</td>
+        <td>Nnaemeka Ezugwu</td>
+        <td class="num">46.0</td>
+        <td class="num pos">47</td>
+        <td class="num neg">45</td>
+        <td class="num">1.0</td>
+        <td class="num">0/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">20</td>
+        <td class="bold">Caesar ⭐</td>
+        <td>Sunny Sharma</td>
+        <td class="num">45.5</td>
+        <td class="num pos">64</td>
+        <td class="num neg">27</td>
+        <td class="num">18.5</td>
+        <td class="num">1/2</td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">21</td>
+        <td class="bold">Saka FC</td>
+        <td>Chris B</td>
+        <td class="num">49.0</td>
+        <td class="num pos">54</td>
+        <td class="num neg">44</td>
+        <td class="num">5.0</td>
+        <td class="num">1/2</td>
+      </tr>
+      
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub-title" style="margin-top:18px;">Rank Trajectory</h3>
+  <p class="stat-note">Overall-rank journey across the season. <span class="pos">&#9650;</span> = green-arrow gameweeks, <span class="neg">&#9660;</span> = red-arrow gameweeks.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Team</th><th>Manager</th>
+      <th class="num">Start OR</th><th class="num">Now OR</th><th class="num">Net</th>
+      <th class="num"><span class="pos">&#9650;</span></th><th class="num"><span class="neg">&#9660;</span></th>
+      <th class="num">Best OR</th><th class="num">Worst OR</th>
+    </tr></thead>
+    <tbody>
+      
+      <tr>
+        <td class="bold">son of a doge ⭐️⭐️</td>
+        <td>M B</td>
+        <td class="num muted">1.2m</td>
+        <td class="num bold">11k</td>
+        <td class="num bold pos">1.2m</td>
+        <td class="num pos">1</td>
+        <td class="num neg">0</td>
+        <td class="num">11k</td>
+        <td class="num">1.2m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Luceros</td>
+        <td>Claude-Noel Tamakloe</td>
+        <td class="num muted">1.9m</td>
+        <td class="num bold">308k</td>
+        <td class="num bold pos">1.6m</td>
+        <td class="num pos">1</td>
+        <td class="num neg">0</td>
+        <td class="num">308k</td>
+        <td class="num">1.9m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Releven Tigers FC</td>
+        <td>Stephen Rudd</td>
+        <td class="num muted">1.1m</td>
+        <td class="num bold">348k</td>
+        <td class="num bold pos">742k</td>
+        <td class="num pos">1</td>
+        <td class="num neg">0</td>
+        <td class="num">348k</td>
+        <td class="num">1.1m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Livin&#39; Saliba Loca</td>
+        <td>Darius Goodarzi</td>
+        <td class="num muted">19k</td>
+        <td class="num bold">554k</td>
+        <td class="num bold neg">-535k</td>
+        <td class="num pos">0</td>
+        <td class="num neg">1</td>
+        <td class="num">19k</td>
+        <td class="num">554k</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">No Name</td>
+        <td>Akash Patel</td>
+        <td class="num muted">468k</td>
+        <td class="num bold">1.1m</td>
+        <td class="num bold neg">-616k</td>
+        <td class="num pos">0</td>
+        <td class="num neg">1</td>
+        <td class="num">468k</td>
+        <td class="num">1.1m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Arteta Ballers</td>
+        <td>Kelvin Ampene</td>
+        <td class="num muted">2.6m</td>
+        <td class="num bold">1.9m</td>
+        <td class="num bold pos">705k</td>
+        <td class="num pos">1</td>
+        <td class="num neg">0</td>
+        <td class="num">1.9m</td>
+        <td class="num">2.6m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">FC MarRow</td>
+        <td>Kris McCarthy</td>
+        <td class="num muted">4.2m</td>
+        <td class="num bold">2.2m</td>
+        <td class="num bold pos">2.0m</td>
+        <td class="num pos">1</td>
+        <td class="num neg">0</td>
+        <td class="num">2.2m</td>
+        <td class="num">4.2m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">TML ⭐️⭐️</td>
+        <td>Aman Sharma</td>
+        <td class="num muted">401k</td>
+        <td class="num bold">2.3m</td>
+        <td class="num bold neg">-1.9m</td>
+        <td class="num pos">0</td>
+        <td class="num neg">1</td>
+        <td class="num">401k</td>
+        <td class="num">2.3m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Bluehomie (YouTube)</td>
+        <td>Bluehomie -YouTube-</td>
+        <td class="num muted">468k</td>
+        <td class="num bold">2.5m</td>
+        <td class="num bold neg">-2.0m</td>
+        <td class="num pos">0</td>
+        <td class="num neg">1</td>
+        <td class="num">468k</td>
+        <td class="num">2.5m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Skill McGill</td>
+        <td>Kartar Gill</td>
+        <td class="num muted">2.6m</td>
+        <td class="num bold">4.0m</td>
+        <td class="num bold neg">-1.3m</td>
+        <td class="num pos">0</td>
+        <td class="num neg">1</td>
+        <td class="num">2.6m</td>
+        <td class="num">4.0m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Papua New Quinney</td>
+        <td>Adam Quinney</td>
+        <td class="num muted">6.9m</td>
+        <td class="num bold">4.2m</td>
+        <td class="num bold pos">2.7m</td>
+        <td class="num pos">1</td>
+        <td class="num neg">0</td>
+        <td class="num">4.2m</td>
+        <td class="num">6.9m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Pamparam ⭐️ ⭐️ ⭐️</td>
+        <td>Milen Kindekov</td>
+        <td class="num muted">3.7m</td>
+        <td class="num bold">4.3m</td>
+        <td class="num bold neg">-620k</td>
+        <td class="num pos">0</td>
+        <td class="num neg">1</td>
+        <td class="num">3.7m</td>
+        <td class="num">4.3m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Twickers United</td>
+        <td>Martin Borizanov</td>
+        <td class="num muted">4.2m</td>
+        <td class="num bold">4.3m</td>
+        <td class="num bold neg">-50k</td>
+        <td class="num pos">0</td>
+        <td class="num neg">1</td>
+        <td class="num">4.2m</td>
+        <td class="num">4.3m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Vault 101 XI</td>
+        <td>ALEXIS DRITSAS</td>
+        <td class="num muted">8.0m</td>
+        <td class="num bold">5.3m</td>
+        <td class="num bold pos">2.7m</td>
+        <td class="num pos">1</td>
+        <td class="num neg">0</td>
+        <td class="num">5.3m</td>
+        <td class="num">8.0m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">The Refugees</td>
+        <td>Aarif Kassam</td>
+        <td class="num muted">4.6m</td>
+        <td class="num bold">5.4m</td>
+        <td class="num bold neg">-884k</td>
+        <td class="num pos">0</td>
+        <td class="num neg">1</td>
+        <td class="num">4.6m</td>
+        <td class="num">5.4m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">AntiAlgoFPL</td>
+        <td>Amit Putty</td>
+        <td class="num muted">9.1m</td>
+        <td class="num bold">6.4m</td>
+        <td class="num bold pos">2.7m</td>
+        <td class="num pos">1</td>
+        <td class="num neg">0</td>
+        <td class="num">6.4m</td>
+        <td class="num">9.1m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Change Name</td>
+        <td>Jay Curtis</td>
+        <td class="num muted">7.6m</td>
+        <td class="num bold">6.7m</td>
+        <td class="num bold pos">942k</td>
+        <td class="num pos">1</td>
+        <td class="num neg">0</td>
+        <td class="num">6.7m</td>
+        <td class="num">7.6m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">TODHFODH FC</td>
+        <td>Sahil Vora</td>
+        <td class="num muted">3.7m</td>
+        <td class="num bold">6.9m</td>
+        <td class="num bold neg">-3.3m</td>
+        <td class="num pos">0</td>
+        <td class="num neg">1</td>
+        <td class="num">3.7m</td>
+        <td class="num">6.9m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Project X</td>
+        <td>Nnaemeka Ezugwu</td>
+        <td class="num muted">7.2m</td>
+        <td class="num bold">7.0m</td>
+        <td class="num bold pos">153k</td>
+        <td class="num pos">1</td>
+        <td class="num neg">0</td>
+        <td class="num">7.0m</td>
+        <td class="num">7.2m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Caesar ⭐</td>
+        <td>Sunny Sharma</td>
+        <td class="num muted">1.9m</td>
+        <td class="num bold">7.2m</td>
+        <td class="num bold neg">-5.2m</td>
+        <td class="num pos">0</td>
+        <td class="num neg">1</td>
+        <td class="num">1.9m</td>
+        <td class="num">7.2m</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Saka FC</td>
+        <td>Chris B</td>
+        <td class="num muted">7.4m</td>
+        <td class="num bold">7.5m</td>
+        <td class="num bold neg">-50k</td>
+        <td class="num pos">0</td>
+        <td class="num neg">1</td>
+        <td class="num">7.4m</td>
+        <td class="num">7.5m</td>
+      </tr>
+      
+    </tbody>
+  </table>
+  </div>
+</div>
+
+
+<div id="transfer-lab" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">13. Transfer Lab</div>
+    <div class="section-sub">Activity, hits &amp;amp; habits</div>
+  </div>
+  <div class="section-right">Gameweek 2</div>
+</div>
+
+
+  
+  <div class="pill" style="margin-bottom:14px;">
+    <div class="pill-top">Biggest Bandwagon</div>
+    <div class="pill-main">Reijnders (MCI)</div>
+    <div class="pill-sub">3 managers piled in &mdash; GW2</div>
+  </div>
+  
+
+  <p class="stat-note">"Net" = points gained by players bought minus players sold, after hit costs. "Deadline%" = share of transfers made in the final 3 hours before the deadline.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Team</th><th>Manager</th>
+      <th class="num">Transfers</th><th class="num">Hits</th><th class="num">Hit Pts</th>
+      <th class="num">Net</th><th class="num">Deadline%</th>
+    </tr></thead>
+    <tbody>
+      
+      <tr>
+        <td class="bold">Change Name</td>
+        <td>Jay Curtis</td>
+        <td class="num">12</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold pos">+27</td>
+        <td class="num">92%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Saka FC</td>
+        <td>Chris B</td>
+        <td class="num">3</td>
+        <td class="num">2</td>
+        <td class="num neg">-8</td>
+        <td class="num bold neg">-17</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">AntiAlgoFPL</td>
+        <td>Amit Putty</td>
+        <td class="num">1</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold pos">+1</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Livin&#39; Saliba Loca</td>
+        <td>Darius Goodarzi</td>
+        <td class="num">1</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold pos">+4</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Releven Tigers FC</td>
+        <td>Stephen Rudd</td>
+        <td class="num">1</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Skill McGill</td>
+        <td>Kartar Gill</td>
+        <td class="num">1</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Papua New Quinney</td>
+        <td>Adam Quinney</td>
+        <td class="num">1</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold pos">+6</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Luceros</td>
+        <td>Claude-Noel Tamakloe</td>
+        <td class="num">1</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Arteta Ballers</td>
+        <td>Kelvin Ampene</td>
+        <td class="num">1</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold pos">+2</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">FC MarRow</td>
+        <td>Kris McCarthy</td>
+        <td class="num">1</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">The Refugees</td>
+        <td>Aarif Kassam</td>
+        <td class="num">1</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold pos">+5</td>
+        <td class="num">100%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">TODHFODH FC</td>
+        <td>Sahil Vora</td>
+        <td class="num">1</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Project X</td>
+        <td>Nnaemeka Ezugwu</td>
+        <td class="num">0</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">No Name</td>
+        <td>Akash Patel</td>
+        <td class="num">0</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Bluehomie (YouTube)</td>
+        <td>Bluehomie -YouTube-</td>
+        <td class="num">0</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Pamparam ⭐️ ⭐️ ⭐️</td>
+        <td>Milen Kindekov</td>
+        <td class="num">0</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Caesar ⭐</td>
+        <td>Sunny Sharma</td>
+        <td class="num">0</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">TML ⭐️⭐️</td>
+        <td>Aman Sharma</td>
+        <td class="num">0</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">son of a doge ⭐️⭐️</td>
+        <td>M B</td>
+        <td class="num">0</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Twickers United</td>
+        <td>Martin Borizanov</td>
+        <td class="num">0</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">0%</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Vault 101 XI</td>
+        <td>ALEXIS DRITSAS</td>
+        <td class="num">0</td>
+        <td class="num">0</td>
+        <td class="num neg">0</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">0%</td>
+      </tr>
+      
+    </tbody>
+  </table>
+  </div>
+</div>
+
+
+<div id="defcon" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">14. Defensive Contributions</div>
+    <div class="section-sub">DefCon points (2025/26 scoring)</div>
+  </div>
+  <div class="section-right">Gameweek 2</div>
+</div>
+
+
+  
+  <p class="stat-note">DefCon = 2 pts for defenders with 10+ tackles/CBI, and midfielders/forwards with 12+ tackles/CBI/recoveries. These now feed the xPts model too.</p>
+  <div class="two-col">
+    <div>
+      <h3 class="sub-title">League DefCon Kings</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Player</th><th>Team</th><th class="ctr">Pos</th><th class="num">DefCon Pts</th><th class="num">Wks</th></tr></thead>
+        <tbody>
+          
+          <tr>
+            <td class="bold">Senesi</td>
+            <td>BOU</td>
+            <td class="ctr">DEF</td>
+            <td class="num bold pos">4</td>
+            <td class="num muted">2</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Van den Berg</td>
+            <td>BRE</td>
+            <td class="ctr">DEF</td>
+            <td class="num bold pos">4</td>
+            <td class="num muted">2</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Wieffer</td>
+            <td>BHA</td>
+            <td class="ctr">MID</td>
+            <td class="num bold pos">4</td>
+            <td class="num muted">2</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Lacroix</td>
+            <td>CRY</td>
+            <td class="ctr">DEF</td>
+            <td class="num bold pos">4</td>
+            <td class="num muted">2</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Tarkowski</td>
+            <td>EVE</td>
+            <td class="ctr">DEF</td>
+            <td class="num bold pos">4</td>
+            <td class="num muted">2</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Virgil</td>
+            <td>LIV</td>
+            <td class="ctr">DEF</td>
+            <td class="num bold pos">4</td>
+            <td class="num muted">2</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Burn</td>
+            <td>NEW</td>
+            <td class="ctr">DEF</td>
+            <td class="num bold pos">4</td>
+            <td class="num muted">2</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Saliba</td>
+            <td>ARS</td>
+            <td class="ctr">DEF</td>
+            <td class="num bold pos">2</td>
+            <td class="num muted">1</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Zubimendi</td>
+            <td>ARS</td>
+            <td class="ctr">MID</td>
+            <td class="num bold pos">2</td>
+            <td class="num muted">1</td>
+          </tr>
+          
+          <tr>
+            <td class="bold">Cash</td>
+            <td>AVL</td>
+            <td class="ctr">DEF</td>
+            <td class="num bold pos">2</td>
+            <td class="num muted">1</td>
+          </tr>
+          
+        </tbody>
+      </table>
+      </div>
+    </div>
+    <div>
+      <h3 class="sub-title">"Park the Bus" &mdash; manager DefCon</h3>
+      <p class="stat-note">DefCon points racked up by each manager's starting XI.</p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th class="ctr" style="width:28px">#</th><th>Team</th><th>Manager</th><th class="num">DefCon Pts</th></tr></thead>
+        <tbody>
+          
+          <tr>
+            <td class="rank-cell">1</td>
+            <td class="bold">Bluehomie (YouTube)</td>
+            <td>Bluehomie -YouTube-</td>
+            <td class="num bold">8</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">2</td>
+            <td class="bold">Papua New Quinney</td>
+            <td>Adam Quinney</td>
+            <td class="num bold">6</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">3</td>
+            <td class="bold">AntiAlgoFPL</td>
+            <td>Amit Putty</td>
+            <td class="num bold">6</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">4</td>
+            <td class="bold">Saka FC</td>
+            <td>Chris B</td>
+            <td class="num bold">4</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">5</td>
+            <td class="bold">Pamparam ⭐️ ⭐️ ⭐️</td>
+            <td>Milen Kindekov</td>
+            <td class="num bold">4</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">6</td>
+            <td class="bold">Twickers United</td>
+            <td>Martin Borizanov</td>
+            <td class="num bold">4</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">7</td>
+            <td class="bold">Luceros</td>
+            <td>Claude-Noel Tamakloe</td>
+            <td class="num bold">2</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">8</td>
+            <td class="bold">Vault 101 XI</td>
+            <td>ALEXIS DRITSAS</td>
+            <td class="num bold">2</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">9</td>
+            <td class="bold">son of a doge ⭐️⭐️</td>
+            <td>M B</td>
+            <td class="num bold">2</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">10</td>
+            <td class="bold">Project X</td>
+            <td>Nnaemeka Ezugwu</td>
+            <td class="num bold">2</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">11</td>
+            <td class="bold">FC MarRow</td>
+            <td>Kris McCarthy</td>
+            <td class="num bold">2</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">12</td>
+            <td class="bold">Skill McGill</td>
+            <td>Kartar Gill</td>
+            <td class="num bold">2</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">13</td>
+            <td class="bold">Livin&#39; Saliba Loca</td>
+            <td>Darius Goodarzi</td>
+            <td class="num bold">2</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">14</td>
+            <td class="bold">Caesar ⭐</td>
+            <td>Sunny Sharma</td>
+            <td class="num bold">2</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">15</td>
+            <td class="bold">Releven Tigers FC</td>
+            <td>Stephen Rudd</td>
+            <td class="num bold">2</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">16</td>
+            <td class="bold">TODHFODH FC</td>
+            <td>Sahil Vora</td>
+            <td class="num bold">2</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">17</td>
+            <td class="bold">Change Name</td>
+            <td>Jay Curtis</td>
+            <td class="num bold">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">18</td>
+            <td class="bold">Arteta Ballers</td>
+            <td>Kelvin Ampene</td>
+            <td class="num bold">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">19</td>
+            <td class="bold">The Refugees</td>
+            <td>Aarif Kassam</td>
+            <td class="num bold">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">20</td>
+            <td class="bold">TML ⭐️⭐️</td>
+            <td>Aman Sharma</td>
+            <td class="num bold">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">21</td>
+            <td class="bold">No Name</td>
+            <td>Akash Patel</td>
+            <td class="num bold">0</td>
+          </tr>
+          
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+  
+</div>
+
+
+<div id="alt-tables" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">15. Alternative Tables</div>
+    <div class="section-sub">If only one thing counted&amp;hellip;</div>
+  </div>
+  <div class="section-right">Gameweek 2</div>
+</div>
+
+
+  <div class="two-col">
+    <div>
+      <h3 class="sub-title">Captaincy League</h3>
+      <p class="stat-note">Standings if only captain points counted.</p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th class="ctr" style="width:28px">#</th><th>Manager</th><th class="num">Cap Pts</th><th class="num">Avg</th><th class="num">Hauls</th><th class="num">Blanks</th></tr></thead>
+        <tbody>
+          
+          <tr>
+            <td class="rank-cell">1</td>
+            <td class="bold">Luceros</td>
+            <td class="num bold">56</td>
+            <td class="num">28.0</td>
+            <td class="num pos">2</td>
+            <td class="num neg">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">2</td>
+            <td class="bold">FC MarRow</td>
+            <td class="num bold">46</td>
+            <td class="num">23.0</td>
+            <td class="num pos">1</td>
+            <td class="num neg">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">3</td>
+            <td class="bold">Project X</td>
+            <td class="num bold">40</td>
+            <td class="num">20.0</td>
+            <td class="num pos">1</td>
+            <td class="num neg">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">4</td>
+            <td class="bold">No Name</td>
+            <td class="num bold">30</td>
+            <td class="num">15.0</td>
+            <td class="num pos">1</td>
+            <td class="num neg">1</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">5</td>
+            <td class="bold">Bluehomie (YouTube)</td>
+            <td class="num bold">30</td>
+            <td class="num">15.0</td>
+            <td class="num pos">1</td>
+            <td class="num neg">1</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">6</td>
+            <td class="bold">Caesar ⭐</td>
+            <td class="num bold">30</td>
+            <td class="num">15.0</td>
+            <td class="num pos">1</td>
+            <td class="num neg">1</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">7</td>
+            <td class="bold">TML ⭐️⭐️</td>
+            <td class="num bold">30</td>
+            <td class="num">15.0</td>
+            <td class="num pos">1</td>
+            <td class="num neg">1</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">8</td>
+            <td class="bold">Livin&#39; Saliba Loca</td>
+            <td class="num bold">30</td>
+            <td class="num">15.0</td>
+            <td class="num pos">1</td>
+            <td class="num neg">1</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">9</td>
+            <td class="bold">Arteta Ballers</td>
+            <td class="num bold">30</td>
+            <td class="num">15.0</td>
+            <td class="num pos">1</td>
+            <td class="num neg">1</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">10</td>
+            <td class="bold">The Refugees</td>
+            <td class="num bold">28</td>
+            <td class="num">14.0</td>
+            <td class="num pos">0</td>
+            <td class="num neg">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">11</td>
+            <td class="bold">Change Name</td>
+            <td class="num bold">28</td>
+            <td class="num">14.0</td>
+            <td class="num pos">0</td>
+            <td class="num neg">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">12</td>
+            <td class="bold">Pamparam ⭐️ ⭐️ ⭐️</td>
+            <td class="num bold">26</td>
+            <td class="num">13.0</td>
+            <td class="num pos">0</td>
+            <td class="num neg">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">13</td>
+            <td class="bold">son of a doge ⭐️⭐️</td>
+            <td class="num bold">26</td>
+            <td class="num">13.0</td>
+            <td class="num pos">0</td>
+            <td class="num neg">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">14</td>
+            <td class="bold">Twickers United</td>
+            <td class="num bold">26</td>
+            <td class="num">13.0</td>
+            <td class="num pos">0</td>
+            <td class="num neg">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">15</td>
+            <td class="bold">Skill McGill</td>
+            <td class="num bold">26</td>
+            <td class="num">13.0</td>
+            <td class="num pos">0</td>
+            <td class="num neg">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">16</td>
+            <td class="bold">Papua New Quinney</td>
+            <td class="num bold">26</td>
+            <td class="num">13.0</td>
+            <td class="num pos">0</td>
+            <td class="num neg">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">17</td>
+            <td class="bold">TODHFODH FC</td>
+            <td class="num bold">26</td>
+            <td class="num">13.0</td>
+            <td class="num pos">0</td>
+            <td class="num neg">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">18</td>
+            <td class="bold">Releven Tigers FC</td>
+            <td class="num bold">20</td>
+            <td class="num">10.0</td>
+            <td class="num pos">0</td>
+            <td class="num neg">1</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">19</td>
+            <td class="bold">AntiAlgoFPL</td>
+            <td class="num bold">18</td>
+            <td class="num">9.0</td>
+            <td class="num pos">0</td>
+            <td class="num neg">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">20</td>
+            <td class="bold">Saka FC</td>
+            <td class="num bold">18</td>
+            <td class="num">9.0</td>
+            <td class="num pos">0</td>
+            <td class="num neg">0</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">21</td>
+            <td class="bold">Vault 101 XI</td>
+            <td class="num bold">8</td>
+            <td class="num">4.0</td>
+            <td class="num pos">0</td>
+            <td class="num neg">2</td>
+          </tr>
+          
+        </tbody>
+      </table>
+      </div>
+    </div>
+    <div>
+      <h3 class="sub-title">No-Hits League</h3>
+      <p class="stat-note">Standings if every &minus;4 hit were refunded. Movement vs the real table shown on the right.</p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th class="ctr" style="width:28px">#</th><th>Manager</th><th class="num">No-Hit Total</th><th class="num">Hits Saved</th><th class="num">Move</th></tr></thead>
+        <tbody>
+          
+          <tr>
+            <td class="rank-cell">1</td>
+            <td class="bold">son of a doge ⭐️⭐️</td>
+            <td class="num bold">159</td>
+            <td class="num muted">0</td>
+            <td class="num muted">&ndash;</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">2</td>
+            <td class="bold">Luceros</td>
+            <td class="num bold">137</td>
+            <td class="num muted">0</td>
+            <td class="num muted">&ndash;</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">3</td>
+            <td class="bold">Releven Tigers FC</td>
+            <td class="num bold">136</td>
+            <td class="num muted">0</td>
+            <td class="num muted">&ndash;</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">4</td>
+            <td class="bold">Livin&#39; Saliba Loca</td>
+            <td class="num bold">132</td>
+            <td class="num muted">0</td>
+            <td class="num muted">&ndash;</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">5</td>
+            <td class="bold">No Name</td>
+            <td class="num bold">125</td>
+            <td class="num muted">0</td>
+            <td class="num muted">&ndash;</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">6</td>
+            <td class="bold">Arteta Ballers</td>
+            <td class="num bold">119</td>
+            <td class="num muted">0</td>
+            <td class="num muted">&ndash;</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">7</td>
+            <td class="bold">FC MarRow</td>
+            <td class="num bold">117</td>
+            <td class="num muted">0</td>
+            <td class="num muted">&ndash;</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">8</td>
+            <td class="bold">TML ⭐️⭐️</td>
+            <td class="num bold">116</td>
+            <td class="num muted">0</td>
+            <td class="num muted">&ndash;</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">9</td>
+            <td class="bold">Bluehomie (YouTube)</td>
+            <td class="num bold">115</td>
+            <td class="num muted">0</td>
+            <td class="num muted">&ndash;</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">10</td>
+            <td class="bold">Skill McGill</td>
+            <td class="num bold">108</td>
+            <td class="num muted">0</td>
+            <td class="num muted">&ndash;</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">11</td>
+            <td class="bold">Papua New Quinney</td>
+            <td class="num bold">107</td>
+            <td class="num muted">0</td>
+            <td class="num muted">&ndash;</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">12</td>
+            <td class="bold">Pamparam ⭐️ ⭐️ ⭐️</td>
+            <td class="num bold">106</td>
+            <td class="num muted">0</td>
+            <td class="num muted">&ndash;</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">13</td>
+            <td class="bold">Twickers United</td>
+            <td class="num bold">106</td>
+            <td class="num muted">0</td>
+            <td class="num muted">&ndash;</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">14</td>
+            <td class="bold">Vault 101 XI</td>
+            <td class="num bold">101</td>
+            <td class="num muted">0</td>
+            <td class="num muted">&ndash;</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">15</td>
+            <td class="bold">The Refugees</td>
+            <td class="num bold">101</td>
+            <td class="num muted">0</td>
+            <td class="num muted">&ndash;</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">16</td>
+            <td class="bold">Saka FC</td>
+            <td class="num bold">98</td>
+            <td class="num muted">8</td>
+            <td class="num pos">+5</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">17</td>
+            <td class="bold">AntiAlgoFPL</td>
+            <td class="num bold">96</td>
+            <td class="num muted">0</td>
+            <td class="num neg">-1</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">18</td>
+            <td class="bold">Change Name</td>
+            <td class="num bold">94</td>
+            <td class="num muted">0</td>
+            <td class="num neg">-1</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">19</td>
+            <td class="bold">TODHFODH FC</td>
+            <td class="num bold">93</td>
+            <td class="num muted">0</td>
+            <td class="num neg">-1</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">20</td>
+            <td class="bold">Project X</td>
+            <td class="num bold">92</td>
+            <td class="num muted">0</td>
+            <td class="num neg">-1</td>
+          </tr>
+          
+          <tr>
+            <td class="rank-cell">21</td>
+            <td class="bold">Caesar ⭐</td>
+            <td class="num bold">91</td>
+            <td class="num muted">0</td>
+            <td class="num neg">-1</td>
+          </tr>
+          
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="h2h" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">16. Head to Head</div>
+    <div class="section-sub">Every manager vs every other, on weekly points</div>
+  </div>
+  <div class="section-right">Gameweek 2</div>
+</div>
+
+
+  <h3 class="sub-title">Records</h3>
+  <p class="stat-note">Each gameweek, your score is compared against every other manager's. "Nemesis" beats you most; your "Bunny" you beat most.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="ctr" style="width:28px">#</th><th>Manager</th>
+      <th class="num">W</th><th class="num">D</th><th class="num">L</th><th class="num">Win%</th>
+      <th>Nemesis</th><th>Bunny</th>
+    </tr></thead>
+    <tbody>
+      
+      <tr>
+        <td class="rank-cell">1</td>
+        <td class="bold">son of a doge ⭐️⭐️</td>
+        <td class="num pos">35</td>
+        <td class="num muted">0</td>
+        <td class="num neg">5</td>
+        <td class="num bold">87.5%</td>
+        <td class="neg">No Name <span class="muted">(1)</span></td>
+        <td class="pos">Project X <span class="muted">(2)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">2</td>
+        <td class="bold">Releven Tigers FC</td>
+        <td class="num pos">34</td>
+        <td class="num muted">0</td>
+        <td class="num neg">6</td>
+        <td class="num bold">85.0%</td>
+        <td class="neg">No Name <span class="muted">(1)</span></td>
+        <td class="pos">Project X <span class="muted">(2)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">3</td>
+        <td class="bold">Luceros</td>
+        <td class="num pos">32</td>
+        <td class="num muted">1</td>
+        <td class="num neg">7</td>
+        <td class="num bold">80.0%</td>
+        <td class="neg">son of a doge ⭐️⭐️ <span class="muted">(2)</span></td>
+        <td class="pos">Project X <span class="muted">(2)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">4</td>
+        <td class="bold">No Name</td>
+        <td class="num pos">26</td>
+        <td class="num muted">1</td>
+        <td class="num neg">13</td>
+        <td class="num bold">65.0%</td>
+        <td class="neg">AntiAlgoFPL <span class="muted">(1)</span></td>
+        <td class="pos">Project X <span class="muted">(2)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">5</td>
+        <td class="bold">Arteta Ballers</td>
+        <td class="num pos">24</td>
+        <td class="num muted">1</td>
+        <td class="num neg">15</td>
+        <td class="num bold">60.0%</td>
+        <td class="neg">son of a doge ⭐️⭐️ <span class="muted">(2)</span></td>
+        <td class="pos">Project X <span class="muted">(2)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">6</td>
+        <td class="bold">FC MarRow</td>
+        <td class="num pos">23</td>
+        <td class="num muted">1</td>
+        <td class="num neg">16</td>
+        <td class="num bold">57.5%</td>
+        <td class="neg">son of a doge ⭐️⭐️ <span class="muted">(2)</span></td>
+        <td class="pos">Project X <span class="muted">(2)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">7</td>
+        <td class="bold">Livin&#39; Saliba Loca</td>
+        <td class="num pos">22</td>
+        <td class="num muted">2</td>
+        <td class="num neg">16</td>
+        <td class="num bold">55.0%</td>
+        <td class="neg">Project X <span class="muted">(1)</span></td>
+        <td class="pos">Caesar ⭐ <span class="muted">(2)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">8</td>
+        <td class="bold">TML ⭐️⭐️</td>
+        <td class="num pos">21</td>
+        <td class="num muted">2</td>
+        <td class="num neg">17</td>
+        <td class="num bold">52.5%</td>
+        <td class="neg">Project X <span class="muted">(1)</span></td>
+        <td class="pos">Caesar ⭐ <span class="muted">(2)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">9</td>
+        <td class="bold">Papua New Quinney</td>
+        <td class="num pos">20</td>
+        <td class="num muted">0</td>
+        <td class="num neg">20</td>
+        <td class="num bold">50.0%</td>
+        <td class="neg">son of a doge ⭐️⭐️ <span class="muted">(2)</span></td>
+        <td class="pos">Project X <span class="muted">(2)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">10</td>
+        <td class="bold">Bluehomie (YouTube)</td>
+        <td class="num pos">19</td>
+        <td class="num muted">3</td>
+        <td class="num neg">18</td>
+        <td class="num bold">47.5%</td>
+        <td class="neg">Project X <span class="muted">(1)</span></td>
+        <td class="pos">Caesar ⭐ <span class="muted">(2)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">11</td>
+        <td class="bold">AntiAlgoFPL</td>
+        <td class="num pos">17</td>
+        <td class="num muted">0</td>
+        <td class="num neg">23</td>
+        <td class="num bold">42.5%</td>
+        <td class="neg">son of a doge ⭐️⭐️ <span class="muted">(2)</span></td>
+        <td class="pos">Project X <span class="muted">(1)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">12</td>
+        <td class="bold">Pamparam ⭐️ ⭐️ ⭐️</td>
+        <td class="num pos">17</td>
+        <td class="num muted">1</td>
+        <td class="num neg">22</td>
+        <td class="num bold">42.5%</td>
+        <td class="neg">No Name <span class="muted">(2)</span></td>
+        <td class="pos">Project X <span class="muted">(2)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">13</td>
+        <td class="bold">Twickers United</td>
+        <td class="num pos">17</td>
+        <td class="num muted">2</td>
+        <td class="num neg">21</td>
+        <td class="num bold">42.5%</td>
+        <td class="neg">son of a doge ⭐️⭐️ <span class="muted">(2)</span></td>
+        <td class="pos">Project X <span class="muted">(2)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">14</td>
+        <td class="bold">Skill McGill</td>
+        <td class="num pos">16</td>
+        <td class="num muted">3</td>
+        <td class="num neg">21</td>
+        <td class="num bold">40.0%</td>
+        <td class="neg">No Name <span class="muted">(2)</span></td>
+        <td class="pos">TODHFODH FC <span class="muted">(2)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">15</td>
+        <td class="bold">Vault 101 XI</td>
+        <td class="num pos">15</td>
+        <td class="num muted">0</td>
+        <td class="num neg">25</td>
+        <td class="num bold">37.5%</td>
+        <td class="neg">son of a doge ⭐️⭐️ <span class="muted">(2)</span></td>
+        <td class="pos">Project X <span class="muted">(1)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">16</td>
+        <td class="bold">Saka FC</td>
+        <td class="num pos">15</td>
+        <td class="num muted">0</td>
+        <td class="num neg">25</td>
+        <td class="num bold">37.5%</td>
+        <td class="neg">son of a doge ⭐️⭐️ <span class="muted">(2)</span></td>
+        <td class="pos">Change Name <span class="muted">(2)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">17</td>
+        <td class="bold">Caesar ⭐</td>
+        <td class="num pos">13</td>
+        <td class="num muted">1</td>
+        <td class="num neg">26</td>
+        <td class="num bold">32.5%</td>
+        <td class="neg">No Name <span class="muted">(2)</span></td>
+        <td class="pos">Project X <span class="muted">(1)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">18</td>
+        <td class="bold">Change Name</td>
+        <td class="num pos">12</td>
+        <td class="num muted">1</td>
+        <td class="num neg">27</td>
+        <td class="num bold">30.0%</td>
+        <td class="neg">son of a doge ⭐️⭐️ <span class="muted">(2)</span></td>
+        <td class="pos">Project X <span class="muted">(1)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">19</td>
+        <td class="bold">The Refugees</td>
+        <td class="num pos">11</td>
+        <td class="num muted">2</td>
+        <td class="num neg">27</td>
+        <td class="num bold">27.5%</td>
+        <td class="neg">No Name <span class="muted">(2)</span></td>
+        <td class="pos">Project X <span class="muted">(1)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">20</td>
+        <td class="bold">TODHFODH FC</td>
+        <td class="num pos">10</td>
+        <td class="num muted">1</td>
+        <td class="num neg">29</td>
+        <td class="num bold">25.0%</td>
+        <td class="neg">No Name <span class="muted">(2)</span></td>
+        <td class="pos">Project X <span class="muted">(1)</span></td>
+      </tr>
+      
+      <tr>
+        <td class="rank-cell">21</td>
+        <td class="bold">Project X</td>
+        <td class="num pos">9</td>
+        <td class="num muted">2</td>
+        <td class="num neg">29</td>
+        <td class="num bold">22.5%</td>
+        <td class="neg">No Name <span class="muted">(2)</span></td>
+        <td class="pos">AntiAlgoFPL <span class="muted">(1)</span></td>
+      </tr>
+      
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub-title" style="margin-top:18px;">Grid</h3>
+  <p class="stat-note">Row vs column, as W&ndash;D&ndash;L. Green = row manager leads the matchup.</p>
+  <div class="h2h-wrap">
+  <table class="h2h">
+    <thead><tr>
+      <th class="row-hdr"></th>
+      <th>son of a</th><th>Releven </th><th>Luceros</th><th>No Name</th><th>Arteta B</th><th>FC MarRo</th><th>Livin&#39; S</th><th>TML ⭐️⭐️</th><th>Papua Ne</th><th>Bluehomi</th><th>AntiAlgo</th><th>Pamparam</th><th>Twickers</th><th>Skill Mc</th><th>Vault 10</th><th>Saka FC</th><th>Caesar ⭐</th><th>Change N</th><th>The Refu</th><th>TODHFODH</th><th>Project </th>
+    </tr></thead>
+    <tbody>
+      
+      <tr>
+        <td class="row-hdr">son of a doge ⭐️⭐️</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">Releven Tigers FC</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">Luceros</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">1-1-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">No Name</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">1-1-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">Arteta Ballers</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">1-1-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">FC MarRow</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">1-1-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">Livin&#39; Saliba Loca</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="pos">1-1-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">1-1-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">TML ⭐️⭐️</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-1-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">1-1-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">Papua New Quinney</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">Bluehomie (YouTube)</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-1-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-1-1</td>
+        
+          <td class="neg">0-1-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">AntiAlgoFPL</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">Pamparam ⭐️ ⭐️ ⭐️</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">1-1-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">Twickers United</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-1-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">1-1-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">Skill McGill</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-1-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">1-1-0</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="pos">1-1-0</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">Vault 101 XI</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">Saka FC</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">2-0-0</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">Caesar ⭐</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-1-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">Change Name</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-1-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">The Refugees</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-1-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="pos">1-1-0</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">TODHFODH FC</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-1-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+          <td class="muted">1-0-1</td>
+        
+      </tr>
+      
+      <tr>
+        <td class="row-hdr">Project X</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-0-2</td>
+        
+          <td class="neg">0-1-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="neg">0-1-1</td>
+        
+          <td class="muted">1-0-1</td>
+        
+          <td class="diag">&ndash;</td>
+          
+        
+      </tr>
+      
+    </tbody>
+  </table>
+  </div>
+</div>
+
+
+<div id="around" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">17. Around the League</div>
+    <div class="section-sub">Player-level league color</div>
+  </div>
+  <div class="section-right">Gameweek 2</div>
+</div>
+
+
+  <div class="two-col">
+    <div>
+      <h3 class="sub-title">League Darlings</h3>
+      <p class="stat-note">Most-owned players across the season (avg % of the league).</p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Player</th><th>Team</th><th class="num">Avg Own</th></tr></thead>
+        <tbody>
+          
+          <tr><td class="bold">Palmer</td><td>CHE</td><td class="num">83%</td></tr>
+          
+          <tr><td class="bold">Dúbravka</td><td>BUR</td><td class="num">76%</td></tr>
+          
+          <tr><td class="bold">M.Salah</td><td>LIV</td><td class="num">60%</td></tr>
+          
+          <tr><td class="bold">Marc Guiu</td><td>CHE</td><td class="num">55%</td></tr>
+          
+          <tr><td class="bold">João Pedro</td><td>CHE</td><td class="num">52%</td></tr>
+          
+        </tbody>
+      </table>
+      </div>
+
+      <h3 class="sub-title" style="margin-top:18px;">The Ones That Got Away</h3>
+      <p class="stat-note">Highest scorers <em>nobody</em> in the league ever owned.</p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Player</th><th>Team</th><th class="ctr">Pos</th><th class="num">Pts</th></tr></thead>
+        <tbody>
+          
+          <tr><td class="bold">Cullen</td><td>BUR</td><td class="ctr">MID</td><td class="num bold">18</td></tr>
+          
+          <tr><td class="bold">Romero</td><td>TOT</td><td class="ctr">DEF</td><td class="num bold">13</td></tr>
+          
+          <tr><td class="bold">J.Palhinha</td><td>TOT</td><td class="ctr">MID</td><td class="num bold">12</td></tr>
+          
+          <tr><td class="bold">Hudson-Odoi</td><td>NFO</td><td class="ctr">MID</td><td class="num bold">12</td></tr>
+          
+          <tr><td class="bold">Lewis</td><td>MCI</td><td class="ctr">DEF</td><td class="num bold">12</td></tr>
+          
+        </tbody>
+      </table>
+      </div>
+    </div>
+    <div>
+      <h3 class="sub-title">The Filthiest</h3>
+      <p class="stat-note">Most-carded players owned by the league.</p>
+      
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Player</th><th>Team</th><th class="num">&#129003;</th><th class="num">&#128997;</th></tr></thead>
+        <tbody>
+          
+          <tr><td class="bold">Gordon</td><td>NEW</td><td class="num">0</td><td class="num neg">1</td></tr>
+          
+          <tr><td class="bold">F.Kadıoğlu</td><td>BHA</td><td class="num">2</td><td class="num neg">0</td></tr>
+          
+          <tr><td class="bold">Konsa</td><td>AVL</td><td class="num">0</td><td class="num neg">1</td></tr>
+          
+          <tr><td class="bold">Richarlison</td><td>TOT</td><td class="num">1</td><td class="num neg">0</td></tr>
+          
+          <tr><td class="bold">Johnson</td><td>CRY</td><td class="num">1</td><td class="num neg">0</td></tr>
+          
+        </tbody>
+      </table>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+
 <div id="progression" class="section">
   
 <div class="section-hdr">
   <div class="section-left">
-    <div class="section-title">10. Season Progression</div>
+    <div class="section-title">18. Season Progression</div>
     <div class="section-sub">Per-manager journey through the season</div>
   </div>
   <div class="section-right">Gameweek 2</div>
@@ -4705,7 +8248,7 @@
 
 
 <div class="footer">
-  Generated by <strong>fpl-scraper</strong> &middot; Data: fantasy.premierleague.com &middot; 2026-06-06 07:51 UTC
+  Generated by <strong>fpl-scraper</strong> &middot; Data: fantasy.premierleague.com &middot; 2026-06-07 07:53 UTC
 </div>
 
 </div>
@@ -4950,7 +8493,7 @@
     var GREEN = '#37a76b', RED = '#b03a2e', SLATE = '#2d3e50',
         BLUE = '#3498db', ORANGE = '#f39c12';
     var gwBreakdown = [{"base": 86, "captain_bonus": 5, "chip": "", "entry_name": "son of a doge \u2b50\ufe0f\u2b50\ufe0f", "gross": 91, "hits": 0, "net": 91, "player_name": "M B", "transfer_net": 0}, {"base": 58, "captain_bonus": 15, "chip": "", "entry_name": "Luceros", "gross": 73, "hits": 0, "net": 73, "player_name": "Claude-Noel Tamakloe", "transfer_net": 0}, {"base": 65, "captain_bonus": 2, "chip": "", "entry_name": "Releven Tigers FC", "gross": 67, "hits": 0, "net": 67, "player_name": "Stephen Rudd", "transfer_net": 0}, {"base": 57, "captain_bonus": 6, "chip": "bboost", "entry_name": "AntiAlgoFPL", "gross": 63, "hits": 0, "net": 63, "player_name": "Amit Putty", "transfer_net": 1}, {"base": 47, "captain_bonus": 15, "chip": "", "entry_name": "FC MarRow", "gross": 62, "hits": 0, "net": 62, "player_name": "Kris McCarthy", "transfer_net": 0}, {"base": 56, "captain_bonus": 5, "chip": "", "entry_name": "Papua New Quinney", "gross": 61, "hits": 0, "net": 61, "player_name": "Adam Quinney", "transfer_net": 6}, {"base": 58, "captain_bonus": 2, "chip": "", "entry_name": "Vault 101 XI", "gross": 60, "hits": 0, "net": 60, "player_name": "ALEXIS DRITSAS", "transfer_net": 0}, {"base": 56, "captain_bonus": 2, "chip": "", "entry_name": "Arteta Ballers", "gross": 58, "hits": 0, "net": 58, "player_name": "Kelvin Ampene", "transfer_net": 2}, {"base": 56, "captain_bonus": 6, "chip": "", "entry_name": "Saka FC", "gross": 62, "hits": 8, "net": 54, "player_name": "Chris B", "transfer_net": -17}, {"base": 46, "captain_bonus": 5, "chip": "", "entry_name": "Twickers United", "gross": 51, "hits": 0, "net": 51, "player_name": "Martin Borizanov", "transfer_net": 0}, {"base": 45, "captain_bonus": 6, "chip": "wildcard", "entry_name": "Change Name", "gross": 51, "hits": 0, "net": 51, "player_name": "Jay Curtis", "transfer_net": 27}, {"base": 48, "captain_bonus": 2, "chip": "", "entry_name": "No Name", "gross": 50, "hits": 0, "net": 50, "player_name": "Akash Patel", "transfer_net": 0}, {"base": 44, "captain_bonus": 5, "chip": "", "entry_name": "Pamparam \u2b50\ufe0f \u2b50\ufe0f \u2b50\ufe0f", "gross": 49, "hits": 0, "net": 49, "player_name": "Milen Kindekov", "transfer_net": 0}, {"base": 42, "captain_bonus": 5, "chip": "", "entry_name": "Skill McGill", "gross": 47, "hits": 0, "net": 47, "player_name": "Kartar Gill", "transfer_net": 0}, {"base": 41, "captain_bonus": 6, "chip": "", "entry_name": "The Refugees", "gross": 47, "hits": 0, "net": 47, "player_name": "Aarif Kassam", "transfer_net": 5}, {"base": 35, "captain_bonus": 12, "chip": "", "entry_name": "Project X", "gross": 47, "hits": 0, "net": 47, "player_name": "Nnaemeka Ezugwu", "transfer_net": 0}, {"base": 38, "captain_bonus": 2, "chip": "", "entry_name": "Livin\u0027 Saliba Loca", "gross": 40, "hits": 0, "net": 40, "player_name": "Darius Goodarzi", "transfer_net": 4}, {"base": 38, "captain_bonus": 2, "chip": "", "entry_name": "TML \u2b50\ufe0f\u2b50\ufe0f", "gross": 40, "hits": 0, "net": 40, "player_name": "Aman Sharma", "transfer_net": 0}, {"base": 38, "captain_bonus": 2, "chip": "", "entry_name": "Bluehomie (YouTube)", "gross": 40, "hits": 0, "net": 40, "player_name": "Bluehomie -YouTube-", "transfer_net": 0}, {"base": 31, "captain_bonus": 5, "chip": "", "entry_name": "TODHFODH FC", "gross": 36, "hits": 0, "net": 36, "player_name": "Sahil Vora", "transfer_net": 0}, {"base": 25, "captain_bonus": 2, "chip": "", "entry_name": "Caesar \u2b50", "gross": 27, "hits": 0, "net": 27, "player_name": "Sunny Sharma", "transfer_net": 0}];
-    var xptsData    = [{"diff": 7.0, "entry_id": 688665, "entry_name": "Livin\u0027 Saliba Loca", "player_name": "Darius Goodarzi", "total_actual": 132, "total_xpts": 125.0, "xpts_rank": 1}, {"diff": -1.2, "entry_id": 283505, "entry_name": "Bluehomie (YouTube)", "player_name": "Bluehomie -YouTube-", "total_actual": 115, "total_xpts": 116.2, "xpts_rank": 2}, {"diff": 20.9, "entry_id": 2552017, "entry_name": "Luceros", "player_name": "Claude-Noel Tamakloe", "total_actual": 137, "total_xpts": 116.1, "xpts_rank": 3}, {"diff": 45.2, "entry_id": 399887, "entry_name": "son of a doge \u2b50\ufe0f\u2b50\ufe0f", "player_name": "M B", "total_actual": 159, "total_xpts": 113.8, "xpts_rank": 4}, {"diff": 18.6, "entry_id": 183289, "entry_name": "No Name", "player_name": "Akash Patel", "total_actual": 125, "total_xpts": 106.4, "xpts_rank": 5}, {"diff": 17.2, "entry_id": 2844638, "entry_name": "Arteta Ballers", "player_name": "Kelvin Ampene", "total_actual": 119, "total_xpts": 101.8, "xpts_rank": 6}, {"diff": 36.4, "entry_id": 783862, "entry_name": "Releven Tigers FC", "player_name": "Stephen Rudd", "total_actual": 136, "total_xpts": 99.6, "xpts_rank": 7}, {"diff": 16.7, "entry_id": 353210, "entry_name": "TML \u2b50\ufe0f\u2b50\ufe0f", "player_name": "Aman Sharma", "total_actual": 116, "total_xpts": 99.3, "xpts_rank": 8}, {"diff": -8.2, "entry_id": 332468, "entry_name": "Caesar \u2b50", "player_name": "Sunny Sharma", "total_actual": 91, "total_xpts": 99.2, "xpts_rank": 9}, {"diff": 8.8, "entry_id": 3919386, "entry_name": "Vault 101 XI", "player_name": "ALEXIS DRITSAS", "total_actual": 101, "total_xpts": 92.2, "xpts_rank": 10}, {"diff": 16.5, "entry_id": 319258, "entry_name": "Pamparam \u2b50\ufe0f \u2b50\ufe0f \u2b50\ufe0f", "player_name": "Milen Kindekov", "total_actual": 106, "total_xpts": 89.5, "xpts_rank": 11}, {"diff": 19.8, "entry_id": 1368884, "entry_name": "Skill McGill", "player_name": "Kartar Gill", "total_actual": 108, "total_xpts": 88.2, "xpts_rank": 12}, {"diff": 18.8, "entry_id": 939296, "entry_name": "Twickers United", "player_name": "Martin Borizanov", "total_actual": 106, "total_xpts": 87.2, "xpts_rank": 13}, {"diff": 10.7, "entry_id": 239187, "entry_name": "AntiAlgoFPL", "player_name": "Amit Putty", "total_actual": 96, "total_xpts": 85.3, "xpts_rank": 14}, {"diff": 34.6, "entry_id": 2875908, "entry_name": "FC MarRow", "player_name": "Kris McCarthy", "total_actual": 117, "total_xpts": 82.4, "xpts_rank": 15}, {"diff": 25.1, "entry_id": 2169092, "entry_name": "Papua New Quinney", "player_name": "Adam Quinney", "total_actual": 107, "total_xpts": 81.9, "xpts_rank": 16}, {"diff": 16.9, "entry_id": 4725749, "entry_name": "Saka FC", "player_name": "Chris B", "total_actual": 98, "total_xpts": 81.1, "xpts_rank": 17}, {"diff": 22.8, "entry_id": 6621143, "entry_name": "The Refugees", "player_name": "Aarif Kassam", "total_actual": 101, "total_xpts": 78.2, "xpts_rank": 18}, {"diff": 15.5, "entry_id": 6967740, "entry_name": "TODHFODH FC", "player_name": "Sahil Vora", "total_actual": 93, "total_xpts": 77.5, "xpts_rank": 19}, {"diff": 15.0, "entry_id": 44049, "entry_name": "Project X", "player_name": "Nnaemeka Ezugwu", "total_actual": 92, "total_xpts": 77.0, "xpts_rank": 20}, {"diff": 19.8, "entry_id": 7490363, "entry_name": "Change Name", "player_name": "Jay Curtis", "total_actual": 94, "total_xpts": 74.2, "xpts_rank": 21}];
+    var xptsData    = [{"diff": 5.0, "entry_id": 688665, "entry_name": "Livin\u0027 Saliba Loca", "player_name": "Darius Goodarzi", "total_actual": 132, "total_xpts": 127.0, "xpts_rank": 1}, {"diff": -9.2, "entry_id": 283505, "entry_name": "Bluehomie (YouTube)", "player_name": "Bluehomie -YouTube-", "total_actual": 115, "total_xpts": 124.2, "xpts_rank": 2}, {"diff": 18.9, "entry_id": 2552017, "entry_name": "Luceros", "player_name": "Claude-Noel Tamakloe", "total_actual": 137, "total_xpts": 118.1, "xpts_rank": 3}, {"diff": 43.2, "entry_id": 399887, "entry_name": "son of a doge \u2b50\ufe0f\u2b50\ufe0f", "player_name": "M B", "total_actual": 159, "total_xpts": 115.8, "xpts_rank": 4}, {"diff": 18.6, "entry_id": 183289, "entry_name": "No Name", "player_name": "Akash Patel", "total_actual": 125, "total_xpts": 106.4, "xpts_rank": 5}, {"diff": 32.4, "entry_id": 783862, "entry_name": "Releven Tigers FC", "player_name": "Stephen Rudd", "total_actual": 136, "total_xpts": 103.6, "xpts_rank": 6}, {"diff": 17.2, "entry_id": 2844638, "entry_name": "Arteta Ballers", "player_name": "Kelvin Ampene", "total_actual": 119, "total_xpts": 101.8, "xpts_rank": 7}, {"diff": -10.2, "entry_id": 332468, "entry_name": "Caesar \u2b50", "player_name": "Sunny Sharma", "total_actual": 91, "total_xpts": 101.2, "xpts_rank": 8}, {"diff": 16.7, "entry_id": 353210, "entry_name": "TML \u2b50\ufe0f\u2b50\ufe0f", "player_name": "Aman Sharma", "total_actual": 116, "total_xpts": 99.3, "xpts_rank": 9}, {"diff": 6.8, "entry_id": 3919386, "entry_name": "Vault 101 XI", "player_name": "ALEXIS DRITSAS", "total_actual": 101, "total_xpts": 94.2, "xpts_rank": 10}, {"diff": 12.5, "entry_id": 319258, "entry_name": "Pamparam \u2b50\ufe0f \u2b50\ufe0f \u2b50\ufe0f", "player_name": "Milen Kindekov", "total_actual": 106, "total_xpts": 93.5, "xpts_rank": 11}, {"diff": 4.7, "entry_id": 239187, "entry_name": "AntiAlgoFPL", "player_name": "Amit Putty", "total_actual": 96, "total_xpts": 91.3, "xpts_rank": 12}, {"diff": 14.8, "entry_id": 939296, "entry_name": "Twickers United", "player_name": "Martin Borizanov", "total_actual": 106, "total_xpts": 91.2, "xpts_rank": 13}, {"diff": 17.8, "entry_id": 1368884, "entry_name": "Skill McGill", "player_name": "Kartar Gill", "total_actual": 108, "total_xpts": 90.2, "xpts_rank": 14}, {"diff": 19.1, "entry_id": 2169092, "entry_name": "Papua New Quinney", "player_name": "Adam Quinney", "total_actual": 107, "total_xpts": 87.9, "xpts_rank": 15}, {"diff": 12.9, "entry_id": 4725749, "entry_name": "Saka FC", "player_name": "Chris B", "total_actual": 98, "total_xpts": 85.1, "xpts_rank": 16}, {"diff": 32.6, "entry_id": 2875908, "entry_name": "FC MarRow", "player_name": "Kris McCarthy", "total_actual": 117, "total_xpts": 84.4, "xpts_rank": 17}, {"diff": 13.5, "entry_id": 6967740, "entry_name": "TODHFODH FC", "player_name": "Sahil Vora", "total_actual": 93, "total_xpts": 79.5, "xpts_rank": 18}, {"diff": 13.0, "entry_id": 44049, "entry_name": "Project X", "player_name": "Nnaemeka Ezugwu", "total_actual": 92, "total_xpts": 79.0, "xpts_rank": 19}, {"diff": 22.8, "entry_id": 6621143, "entry_name": "The Refugees", "player_name": "Aarif Kassam", "total_actual": 101, "total_xpts": 78.2, "xpts_rank": 20}, {"diff": 19.8, "entry_id": 7490363, "entry_name": "Change Name", "player_name": "Jay Curtis", "total_actual": 94, "total_xpts": 74.2, "xpts_rank": 21}];
 
     /* GW Score Breakdown — Stacked Horizontal Bar */
     try {
