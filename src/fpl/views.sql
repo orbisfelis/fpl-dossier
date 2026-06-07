@@ -25,6 +25,10 @@ CREATE VIEW v_player_event_points AS
         SUM(expected_assists)           AS xa,
         SUM(expected_goal_involvements) AS xgi,
         SUM(expected_goals_conceded)    AS xgc,
+        SUM(clearances_blocks_interceptions) AS cbi,
+        SUM(recoveries)                 AS recoveries,
+        SUM(tackles)                    AS tackles,
+        SUM(defensive_contribution)     AS def_con,
         COUNT(*)                        AS fixtures_played
     FROM player_gameweeks
     GROUP BY element, event;
