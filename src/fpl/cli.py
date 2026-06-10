@@ -59,6 +59,7 @@ def main(argv: list[str] | None = None) -> int:
                     help="Output format: md (default) or html")
     rp.add_argument("--output", "-o", type=Path, default=None,
                     help="Output path (default: /data/reports/dossier_GW{N}.{fmt})")
+    _add_narrative_opts(rp)
 
     # publish --------------------------------------------------------------
     pp = subparsers.add_parser("publish", parents=[common],
@@ -75,6 +76,7 @@ def main(argv: list[str] | None = None) -> int:
                     help="Season label for the docs/<season>/ folder (default: derived, e.g. 25-26)")
     pp.add_argument("--docs", type=Path, default=DEFAULT_DOCS,
                     help=f"GitHub Pages output dir (default: {DEFAULT_DOCS})")
+    _add_narrative_opts(pp)
 
     # shell ----------------------------------------------------------------
     subparsers.add_parser("shell", parents=[common],
@@ -103,13 +105,15 @@ def main(argv: list[str] | None = None) -> int:
             ext = args.fmt
             output = args.db.parent / "reports" / f"dossier_GW{gw_label}.{ext}"
         path = generate_report(args.db, output, args.league, args.gw,
-                               fmt=args.fmt)
+                               fmt=args.fmt, narrative=args.narrative,
+                               refresh_narrative=args.refresh_narrative)
         print(f"Report written: {path}")
 
     elif args.command == "publish":
         season_dir = publish_reports(
             args.db, args.league, args.docs,
             season=args.season, event=args.gw, all_gws=args.all_gws,
+            narrative=args.narrative, refresh_narrative=args.refresh_narrative,
         )
         print(f"Published to: {season_dir} (manifest + index.html updated)")
 
@@ -121,6 +125,16 @@ def main(argv: list[str] | None = None) -> int:
         return subprocess.call(["sqlite3", str(args.db)])
 
     return 0
+
+
+def _add_narrative_opts(p: argparse.ArgumentParser) -> None:
+    """The top 'Week in Words' narrative source, shared by report + publish."""
+    p.add_argument("--narrative", choices=["auto", "llm", "phrases"], default="auto",
+                   help="Top narrative source: 'llm' writes it with the Claude API "
+                        "(needs ANTHROPIC_API_KEY), 'phrases' uses the offline "
+                        "phrase banks, 'auto' (default) picks llm when a key is set")
+    p.add_argument("--refresh-narrative", action="store_true",
+                   help="Regenerate the LLM narrative even if a cached one exists")
 
 
 def _env_int(name: str) -> int | None:
