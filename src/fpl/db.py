@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS players (
     selected_by_percent     REAL,
     total_points            INTEGER,
     form                    REAL,
-    status                  TEXT
+    status                  TEXT,
+    ep_next                 REAL                        -- FPL's expected points, next GW
 );
 
 CREATE TABLE IF NOT EXISTS gameweeks (
@@ -202,12 +203,15 @@ class Store:
     def _migrate(self) -> None:
         """Add columns introduced after a DB was first created (SQLite has no
         ALTER ... IF NOT EXISTS, so we diff against PRAGMA table_info)."""
-        existing = {r[1] for r in self.conn.execute("PRAGMA table_info(player_gameweeks)")}
+        pgw = {r[1] for r in self.conn.execute("PRAGMA table_info(player_gameweeks)")}
         for col in ("clearances_blocks_interceptions", "recoveries",
                     "tackles", "defensive_contribution"):
-            if col not in existing:
+            if col not in pgw:
                 self.conn.execute(
                     f"ALTER TABLE player_gameweeks ADD COLUMN {col} INTEGER")
+        players = {r[1] for r in self.conn.execute("PRAGMA table_info(players)")}
+        if "ep_next" not in players:
+            self.conn.execute("ALTER TABLE players ADD COLUMN ep_next REAL")
 
     # ----- Reference -----
 
@@ -221,14 +225,15 @@ class Store:
         self.conn.executemany(
             """INSERT OR REPLACE INTO players
                 (id, web_name, first_name, second_name, team_id, element_type,
-                 now_cost, selected_by_percent, total_points, form, status)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+                 now_cost, selected_by_percent, total_points, form, status, ep_next)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
             [(p["id"], p["web_name"], p.get("first_name"), p.get("second_name"),
               p["team"], p["element_type"], p["now_cost"],
               _to_float(p.get("selected_by_percent")),
               p.get("total_points"),
               _to_float(p.get("form")),
-              p.get("status")) for p in players],
+              p.get("status"),
+              _to_float(p.get("ep_next"))) for p in players],
         )
 
     def upsert_gameweeks(self, events: Iterable[dict]) -> None:

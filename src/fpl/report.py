@@ -9,16 +9,44 @@ from __future__ import annotations
 import json
 import logging
 import math
+import random
 import re
 import sqlite3
 import statistics
 from collections import defaultdict
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from itertools import groupby
 from pathlib import Path
 from textwrap import dedent
 
 POS_LABEL = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD"}
+GOAL_PTS = {1: 6, 2: 6, 3: 5, 4: 4}  # FPL points per goal by position
+
+# Legal FPL formations as (DEF, MID, FWD); GK is always exactly 1.
+FORMATIONS = [(3, 4, 3), (3, 5, 2), (4, 3, 3), (4, 4, 2), (4, 5, 1),
+              (5, 2, 3), (5, 3, 2), (5, 4, 1)]
+
+# "Rage transfer" window: within ~2h of the final whistle of the previous GW's
+# last kickoff, plus 24h of stewing time.
+RAGE_WINDOW = timedelta(hours=26)
+
+
+def _best_xi_points(squad: list[tuple[int, int]]) -> int | None:
+    """Best hindsight XI total from a squad of (element_type, points) tuples,
+    respecting formation rules. None if no legal XI exists."""
+    by_pos: dict[int, list[int]] = {1: [], 2: [], 3: [], 4: []}
+    for t, p in squad:
+        by_pos.setdefault(t if t in by_pos else 4, []).append(p)
+    for v in by_pos.values():
+        v.sort(reverse=True)
+    best = None
+    for d, m, f in FORMATIONS:
+        if not by_pos[1] or len(by_pos[2]) < d or len(by_pos[3]) < m or len(by_pos[4]) < f:
+            continue
+        s = by_pos[1][0] + sum(by_pos[2][:d]) + sum(by_pos[3][:m]) + sum(by_pos[4][:f])
+        if best is None or s > best:
+            best = s
+    return best
 
 log = logging.getLogger(__name__)
 
@@ -36,6 +64,8 @@ def _ensure_columns(conn: sqlite3.Connection) -> None:
                 "tackles", "defensive_contribution"):
         if col not in existing:
             conn.execute(f"ALTER TABLE player_gameweeks ADD COLUMN {col} INTEGER")
+    if "ep_next" not in {r[1] for r in conn.execute("PRAGMA table_info(players)")}:
+        conn.execute("ALTER TABLE players ADD COLUMN ep_next REAL")
 
 
 def current_season(today: date | None = None) -> str:
@@ -703,6 +733,59 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
         if r["chip"] == "freehit":
             fh_gws[r["entry_id"]].add(r["event"])
 
+    # Helpers for chip valuation. The "value" of a reshape chip (Wildcard, Free
+    # Hit) is the points gained by the new team vs. the counterfactual of keeping
+    # the old team — both scored captain-aware so the comparison is symmetric:
+    #   • old (frozen) team carries its pre-chip captain/VC for every week,
+    #   • new team's captain is counted as a double only (so a Triple Captain or
+    #     Bench Boost played in the window doesn't get credited to the reshape).
+    def _team_cap_vc(entry_id: int, ev: int):
+        rows = conn.execute(
+            "SELECT element, is_captain, is_vice_captain FROM manager_picks "
+            "WHERE entry_id = ? AND event = ? AND (is_captain = 1 OR is_vice_captain = 1)",
+            (entry_id, ev)).fetchall()
+        cap = next((r[0] for r in rows if r[1]), None)
+        vc = next((r[0] for r in rows if r[2]), None)
+        return cap, vc
+
+    def _player_week(element, ev: int):
+        if element is None:
+            return None
+        return conn.execute(
+            "SELECT event_points, minutes FROM v_player_event_points "
+            "WHERE element = ? AND event = ?", (element, ev)).fetchone()
+
+    def _frozen_team_week(elements: list[int], cap_el, vc_el, ev: int) -> int:
+        """Points a fixed XI scores in event `ev`, doubling the held captain
+        (or the vice-captain if the captain didn't play that week)."""
+        if not elements:
+            return 0
+        ph = ",".join("?" * len(elements))
+        xi = conn.execute(
+            f"SELECT COALESCE(SUM(event_points), 0) AS p FROM v_player_event_points "
+            f"WHERE element IN ({ph}) AND event = ?", elements + [ev]).fetchone()["p"]
+        cr = _player_week(cap_el, ev)
+        if cr and (cr["minutes"] or 0) > 0:
+            return xi + (cr["event_points"] or 0)
+        vr = _player_week(vc_el, ev)
+        if vr and (vr["minutes"] or 0) > 0:
+            return xi + (vr["event_points"] or 0)
+        return xi
+
+    def _actual_team_week(entry_id: int, ev: int) -> int:
+        """Points the manager's actual XI scored in event `ev`, captain doubled
+        (TC counted as a double, bench excluded — isolates the squad)."""
+        xi = conn.execute(
+            "SELECT COALESCE(SUM(pev.event_points), 0) AS p FROM manager_picks mp "
+            "JOIN v_player_event_points pev "
+            "  ON pev.element = mp.element AND pev.event = mp.event "
+            "WHERE mp.entry_id = ? AND mp.event = ? AND mp.multiplier > 0",
+            (entry_id, ev)).fetchone()["p"]
+        cr = conn.execute(
+            "SELECT captain_raw_points FROM v_captain_points "
+            "WHERE entry_id = ? AND event = ?", (entry_id, ev)).fetchone()
+        return xi + ((cr["captain_raw_points"] or 0) if cr else 0)
+
     wc_maestro = []
     wc_activations = [r for r in chip_rows if r["chip"] == "wildcard"]
     for wc in wc_activations:
@@ -723,32 +806,27 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
         if not old_elements:
             continue
 
-        placeholders = ",".join("?" * len(old_elements))
+        old_cap, old_vc = _team_cap_vc(eid, pre_gw)
         window_end = min(wc_gw + 4, event)
         total_old = 0
         total_new = 0
+        counted = 0
         gw_details = []
 
         for gw in range(wc_gw, window_end + 1):
-            old_pts_row = conn.execute(f"""
-                SELECT COALESCE(SUM(pev.event_points), 0) AS pts
-                FROM v_player_event_points pev
-                WHERE pev.element IN ({placeholders}) AND pev.event = ?
-            """, old_elements + [gw]).fetchone()
-            old_pts = old_pts_row["pts"] if old_pts_row else 0
-
-            new_pts_row = conn.execute("""
-                SELECT points FROM manager_gameweeks
-                WHERE entry_id = ? AND event = ?
-            """, (eid, gw)).fetchone()
-            new_pts = new_pts_row["points"] if new_pts_row else 0
-
+            if gw in fh_gws.get(eid, set()):
+                continue  # Free Hit week fields a one-off team, not the WC squad
+            old_pts = _frozen_team_week(old_elements, old_cap, old_vc, gw)
+            new_pts = _actual_team_week(eid, gw)
             total_old += old_pts
             total_new += new_pts
+            counted += 1
             gw_details.append({"gw": gw, "old_pts": old_pts, "new_pts": new_pts,
                                "diff": new_pts - old_pts})
 
-        num_gws = window_end - wc_gw + 1
+        if counted == 0:
+            continue
+        num_gws = counted
         wc_maestro.append({
             "entry_id": eid,
             "entry_name": wc["entry_name"],
@@ -798,28 +876,20 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
             value = bb_row["bench_pts"] if bb_row else 0
 
         elif chip_type == "freehit":
-            actual_row = conn.execute("""
-                SELECT points FROM manager_gameweeks
-                WHERE entry_id = ? AND event = ?
-            """, (eid, gw)).fetchone()
-            actual_pts = actual_row["points"] if actual_row else 0
+            # Same reshape comparison as the wildcard, over the single FH week:
+            # the one-off FH team vs. holding the previous team (captain/VC kept).
             pre_gw = gw - 1
+            while pre_gw >= 1 and pre_gw in fh_gws.get(eid, set()):
+                pre_gw -= 1
             old_pts = 0
             if pre_gw >= 1:
-                old_xi = conn.execute("""
+                fh_cap, fh_vc = _team_cap_vc(eid, pre_gw)
+                old_elements = [row[0] for row in conn.execute("""
                     SELECT element FROM manager_picks
                     WHERE entry_id = ? AND event = ? AND multiplier > 0
-                """, (eid, pre_gw)).fetchall()
-                old_elements = [row[0] for row in old_xi]
-                if old_elements:
-                    ph = ",".join("?" * len(old_elements))
-                    old_pts_row = conn.execute(f"""
-                        SELECT COALESCE(SUM(pev.event_points), 0) AS pts
-                        FROM v_player_event_points pev
-                        WHERE pev.element IN ({ph}) AND pev.event = ?
-                    """, old_elements + [gw]).fetchone()
-                    old_pts = old_pts_row["pts"] if old_pts_row else 0
-            value = actual_pts - old_pts
+                """, (eid, pre_gw)).fetchall()]
+                old_pts = _frozen_team_week(old_elements, fh_cap, fh_vc, gw)
+            value = _actual_team_week(eid, gw) - old_pts
 
         elif chip_type == "3xc":
             cap_row = conn.execute("""
@@ -1523,11 +1593,703 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
         lm = (tb.get("last_minute") if tb else 0) or 0
         cost = sum(r["event_transfers_cost"] or 0 for r in rows)
         transfer_lab.append({
+            "entry_id": eid,
             "entry_name": n[0], "player_name": n[1], "transfers": t,
             "hits": cost // 4, "hit_pts": cost, "net": season_pnl.get(eid, 0) - cost,
             "last_minute_pct": round(100 * lm / t) if t else 0,
         })
     transfer_lab.sort(key=lambda r: r["transfers"], reverse=True)
+
+    # =====================================================================
+    # FORWARD-LOOKING + COUNTERFACTUAL + RIVALRY STATS
+    # =====================================================================
+
+    # --- Crystal Ball: projected points for the upcoming GW (FPL ep_next) ---
+    max_event = conn.execute("""
+        SELECT MAX(mg.event) AS e FROM manager_gameweeks mg
+        JOIN managers m ON m.entry_id = mg.entry_id WHERE m.league_id = ?
+    """, (league_id,)).fetchone()["e"]
+    next_gw = conn.execute(
+        "SELECT id FROM gameweeks WHERE id = ? AND finished = 0", (event + 1,)).fetchone()
+    has_ep = conn.execute(
+        "SELECT 1 FROM players WHERE ep_next IS NOT NULL AND ep_next > 0 LIMIT 1").fetchone()
+    show_crystal = bool(next_gw) and event == max_event and bool(has_ep)
+    crystal_ball = []
+    if show_crystal:
+        for r in _rows(conn.execute("""
+            SELECT mp.entry_id, SUM(COALESCE(p.ep_next, 0) * mp.multiplier) AS proj
+            FROM manager_picks mp
+            JOIN managers m ON m.entry_id = mp.entry_id
+            JOIN players p ON p.id = mp.element
+            WHERE m.league_id = ? AND mp.event = ? AND mp.multiplier > 0
+            GROUP BY mp.entry_id
+        """, (league_id, event))):
+            n = _name(r["entry_id"])
+            crystal_ball.append({
+                "entry_name": n[0], "player_name": n[1],
+                "proj": round(r["proj"] or 0, 1),
+                "captain_name": captain_map.get(r["entry_id"], {"name": "-"})["name"],
+            })
+        crystal_ball.sort(key=lambda r: r["proj"], reverse=True)
+
+    # --- Attacking Returns: player leaders (league-owned) ---
+    attack_player: dict[int, dict] = {}
+    for r in _rows(conn.execute(f"""
+        SELECT pev.element, p.web_name, t.short_name AS team, p.element_type,
+               SUM(pev.goals) AS goals, SUM(pev.assists) AS assists
+        FROM v_player_event_points pev
+        JOIN players p ON p.id = pev.element
+        JOIN teams t ON t.id = p.team_id
+        WHERE pev.event <= ? AND pev.element IN ({league_owned_sql})
+        GROUP BY pev.element
+    """, (event, league_id))):
+        g, a = r["goals"] or 0, r["assists"] or 0
+        ap = g * GOAL_PTS.get(r["element_type"], 4) + a * 3
+        if ap > 0:
+            attack_player[r["element"]] = {
+                "web_name": r["web_name"], "team": r["team"],
+                "pos": POS_LABEL.get(r["element_type"], "?"),
+                "goals": g, "assists": a, "attack_pts": ap}
+    attack_leaders = sorted(attack_player.values(),
+                            key=lambda r: r["attack_pts"], reverse=True)[:10]
+
+    # --- The Entertainers: attacking points across each manager's XI ---
+    attack_mgr: dict[int, int] = defaultdict(int)
+    for r in _rows(conn.execute("""
+        SELECT mp.entry_id, p.element_type, pev.goals, pev.assists
+        FROM manager_picks mp
+        JOIN managers m ON m.entry_id = mp.entry_id
+        JOIN players p ON p.id = mp.element
+        JOIN v_player_event_points pev
+          ON pev.element = mp.element AND pev.event = mp.event
+        WHERE m.league_id = ? AND mp.event <= ? AND mp.multiplier > 0
+    """, (league_id, event))):
+        attack_mgr[r["entry_id"]] += ((r["goals"] or 0) * GOAL_PTS.get(r["element_type"], 4)
+                                      + (r["assists"] or 0) * 3)
+    entertainers = sorted(
+        ({"entry_name": _name(e)[0], "player_name": _name(e)[1], "value": v}
+         for e, v in attack_mgr.items()), key=lambda r: r["value"], reverse=True)
+
+    # --- Emperor's New Clothes: popular players with the worst returns ---
+    half_season = max(1, event // 2)
+    emperors = _rows(conn.execute("""
+        SELECT p.web_name, t.short_name AS team, p.element_type,
+               ROUND(AVG(own.owners) * 100.0 / ?, 0) AS avg_pct,
+               COALESCE(SUM(pev.event_points), 0) AS pts,
+               COALESCE(SUM(pev.minutes), 0) AS minutes
+        FROM v_ownership_event own
+        JOIN players p ON p.id = own.element
+        JOIN teams t ON t.id = p.team_id
+        LEFT JOIN v_player_event_points pev
+          ON pev.element = own.element AND pev.event = own.event
+        WHERE own.event <= ?
+        GROUP BY own.element
+        HAVING AVG(own.owners) >= ? AND COUNT(*) >= ?
+        ORDER BY pts ASC LIMIT 5
+    """, (mgr_count or 1, event, max(2, 0.2 * (mgr_count or 1)), half_season)))
+    for r in emperors:
+        r["pos"] = POS_LABEL.get(r["element_type"], "?")
+
+    # --- Sliding Doors: last GW's XI scored on this GW vs what they did ---
+    sliding_doors = []
+    if event > 1:
+        actual_this = {r["entry_id"]: (r["points"] or 0) for r in leaderboard_raw}
+        for r in _rows(conn.execute("""
+            SELECT mp.entry_id,
+                   SUM(COALESCE(pev.event_points, 0) * mp.multiplier) AS standpat
+            FROM manager_picks mp
+            JOIN managers m ON m.entry_id = mp.entry_id
+            LEFT JOIN v_player_event_points pev
+              ON pev.element = mp.element AND pev.event = ?
+            WHERE m.league_id = ? AND mp.event = ? AND mp.multiplier > 0
+            GROUP BY mp.entry_id
+        """, (event, league_id, event - 1))):
+            eid = r["entry_id"]
+            n = _name(eid)
+            sp = r["standpat"] or 0
+            actual = actual_this.get(eid, 0)
+            sliding_doors.append({"entry_name": n[0], "player_name": n[1],
+                                  "standpat": sp, "actual": actual,
+                                  "diff": actual - sp})
+        sliding_doors.sort(key=lambda r: r["diff"], reverse=True)
+
+    # --- What If You'd Done Nothing: GW1 XI held all season ---
+    actual_total = {eid: (rows[-1]["total_points"] or 0) for eid, rows in series.items()}
+    donothing = []
+    for r in _rows(conn.execute("""
+        SELECT mp.entry_id,
+               SUM(COALESCE(pev.event_points, 0) * mp.multiplier) AS pts
+        FROM manager_picks mp
+        JOIN managers m ON m.entry_id = mp.entry_id
+        LEFT JOIN v_player_event_points pev
+          ON pev.element = mp.element AND pev.event <= ?
+        WHERE m.league_id = ? AND mp.event = 1 AND mp.multiplier > 0
+        GROUP BY mp.entry_id
+    """, (event, league_id))):
+        eid = r["entry_id"]
+        n = _name(eid)
+        dn = r["pts"] or 0
+        donothing.append({"entry_name": n[0], "player_name": n[1], "donothing": dn,
+                          "actual": actual_total.get(eid, 0),
+                          "diff": actual_total.get(eid, 0) - dn})
+    donothing.sort(key=lambda r: r["donothing"], reverse=True)
+    for i, r in enumerate(donothing, 1):
+        r["dn_pos"] = i
+
+    # --- Should've Kept Him: the let-go player who scored most afterwards ---
+    # Driven off end-of-GW squads (manager_picks), not the transfer log, so
+    # wildcard/free-hit churn doesn't double-count provisional moves. For each
+    # player a manager owned, take the last GW they held him; if that's before
+    # the current GW, tally the points he scored in the spell after.
+    kept_best: dict[int, dict] = {}
+    for r in _rows(conn.execute("""
+        SELECT lo.entry_id, lo.element, lo.last_owned,
+               SUM(COALESCE(pev.event_points, 0)) AS pts_after
+        FROM (
+            SELECT mp.entry_id, mp.element, MAX(mp.event) AS last_owned
+            FROM manager_picks mp
+            JOIN managers m ON m.entry_id = mp.entry_id
+            WHERE m.league_id = ? AND mp.event <= ?
+            GROUP BY mp.entry_id, mp.element
+        ) lo
+        JOIN v_player_event_points pev
+          ON pev.element = lo.element AND pev.event > lo.last_owned AND pev.event <= ?
+        WHERE lo.last_owned < ?
+        GROUP BY lo.entry_id, lo.element
+    """, (league_id, event, event, event))):
+        eid = r["entry_id"]
+        pa = r["pts_after"] or 0
+        if pa > kept_best.get(eid, {"value": -1})["value"]:
+            kept_best[eid] = {"element": r["element"], "value": pa,
+                              "sold_gw": r["last_owned"]}
+    should_kept = sorted(
+        ({"entry_name": _name(eid)[0], "player_name": _name(eid)[1],
+          "pick": elt_names.get(info["element"], "?"), "sold_gw": info["sold_gw"],
+          "value": info["value"]} for eid, info in kept_best.items()),
+        key=lambda r: r["value"], reverse=True)
+
+    # --- Captain Regret: points missed vs always captaining your best player ---
+    maxraw = {(r["entry_id"], r["event"]): (r["max_raw"] or 0) for r in _rows(conn.execute("""
+        SELECT mp.entry_id, mp.event, MAX(COALESCE(pev.event_points, 0)) AS max_raw
+        FROM manager_picks mp
+        JOIN managers m ON m.entry_id = mp.entry_id
+        LEFT JOIN v_player_event_points pev
+          ON pev.element = mp.element AND pev.event = mp.event
+        WHERE m.league_id = ? AND mp.event <= ? AND mp.multiplier > 0
+        GROUP BY mp.entry_id, mp.event
+    """, (league_id, event)))}
+    regret_acc: dict[int, dict] = defaultdict(lambda: {"regret": 0, "perfect": 0, "actual": 0})
+    for r in _rows(conn.execute("""
+        SELECT cp.entry_id, cp.event, cp.captain_raw_points AS craw
+        FROM v_captain_points cp
+        JOIN managers m ON m.entry_id = cp.entry_id
+        WHERE m.league_id = ? AND cp.event <= ?
+    """, (league_id, event))):
+        mr = maxraw.get((r["entry_id"], r["event"]), 0)
+        cr = r["craw"] or 0
+        d = regret_acc[r["entry_id"]]
+        d["regret"] += max(0, mr - cr)
+        d["perfect"] += mr
+        d["actual"] += cr
+    captain_regret = sorted(
+        ({"entry_name": _name(eid)[0], "player_name": _name(eid)[1],
+          "regret": d["regret"], "perfect": d["perfect"], "actual": d["actual"]}
+         for eid, d in regret_acc.items()), key=lambda r: r["regret"], reverse=True)
+    captain_hindsight = [{"entry_name": r["entry_name"], "player_name": r["player_name"],
+                          "value": r["regret"]} for r in captain_regret[:3]]
+
+    # --- Doppelgangers: most similar squads (avg XI overlap over the season) ---
+    xi_sets: dict[int, dict[int, set]] = defaultdict(dict)
+    for r in _rows(conn.execute("""
+        SELECT mp.entry_id, mp.event, mp.element
+        FROM manager_picks mp
+        JOIN managers m ON m.entry_id = mp.entry_id
+        WHERE m.league_id = ? AND mp.event <= ? AND mp.multiplier > 0
+    """, (league_id, event))):
+        xi_sets[r["entry_id"]].setdefault(r["event"], set()).add(r["element"])
+    doppel = []
+    dop_ids = list(xi_sets.keys())
+    for i in range(len(dop_ids)):
+        for j in range(i + 1, len(dop_ids)):
+            a, b = dop_ids[i], dop_ids[j]
+            common = set(xi_sets[a]) & set(xi_sets[b])
+            if not common:
+                continue
+            overlap = sum(len(xi_sets[a][ev] & xi_sets[b][ev]) for ev in common)
+            doppel.append({"a": _name(a)[0], "b": _name(b)[0],
+                           "overlap": round(overlap / (len(common) * 11) * 100, 1)})
+    doppelgangers = sorted(doppel, key=lambda r: r["overlap"], reverse=True)[:5]
+
+    # --- Head-to-Head Bullies: most lopsided rivalries ---
+    bullies = []
+    seen_pairs = set()
+    for a in eids:
+        for b, (w, _d, lo) in h2h_records[a].items():
+            if (b, a) in seen_pairs:
+                continue
+            seen_pairs.add((a, b))
+            if w > lo:
+                bullies.append({"bully": _name(a)[0], "victim": _name(b)[0],
+                                "w": w, "l": lo, "margin": w - lo})
+            elif lo > w:
+                bullies.append({"bully": _name(b)[0], "victim": _name(a)[0],
+                                "w": lo, "l": w, "margin": lo - w})
+    h2h_bullies = sorted(bullies, key=lambda r: r["margin"], reverse=True)[:5]
+
+    # =====================================================================
+    # DISRESPECT PACK 2 + ANALYTICS — Perfect You, Jinx, FOMO, Ghost XI,
+    # Title Race, Rage Transfers, Decision Attribution, PAR, Squad Churn
+    # =====================================================================
+
+    ptypes = {r["id"]: r["element_type"]
+              for r in _rows(conn.execute("SELECT id, element_type FROM players"))}
+    pstat: dict[tuple[int, int], tuple[int, int]] = {}
+    for r in _rows(conn.execute(
+            "SELECT element, event, event_points, minutes "
+            "FROM v_player_event_points WHERE event <= ?", (event,))):
+        pstat[(r["element"], r["event"])] = (r["event_points"] or 0, r["minutes"] or 0)
+
+    all_picks = _rows(conn.execute("""
+        SELECT mp.entry_id, mp.event, mp.element, mp.multiplier, mp.position
+        FROM manager_picks mp
+        JOIN managers m ON m.entry_id = mp.entry_id
+        WHERE m.league_id = ? AND mp.event <= ?
+    """, (league_id, event)))
+    squad15: dict[int, dict[int, list]] = defaultdict(dict)
+    for r in all_picks:
+        squad15[r["entry_id"]].setdefault(r["event"], []).append(
+            (r["element"], r["multiplier"], r["position"]))
+
+    bb_weeks = {(r["entry_id"], r["event"]) for r in chip_rows if r["chip"] == "bboost"}
+
+    # --- The Perfect You + Ghost XI (one pass over every squad-week) ---
+    sel_err_total: dict[int, int] = defaultdict(int)
+    ghost_counts: dict[int, int] = defaultdict(int)
+    squad_raw: dict[int, int] = defaultdict(int)       # season XI raw pts (incl BB bench)
+    weekly_score: dict[int, dict[int, int]] = defaultdict(dict)  # XI-only raw, for PAR
+    for eid, by_ev in squad15.items():
+        for ev, picks in by_ev.items():
+            xi_raw = 0
+            bench_bb_pts = 0
+            squad_tp = []
+            for el, mult, pos in picks:
+                pts, minutes = pstat.get((el, ev), (0, 0))
+                squad_tp.append((ptypes.get(el, 4), pts))
+                if mult > 0:
+                    xi_raw += pts
+                    if minutes == 0:
+                        ghost_counts[eid] += 1
+                    if pos > 11:
+                        bench_bb_pts += pts   # only possible on a BB week
+            squad_raw[eid] += xi_raw
+            weekly_score[eid][ev] = xi_raw - bench_bb_pts
+            if (eid, ev) in bb_weeks:
+                continue   # all 15 counted: no selection error possible
+            best = _best_xi_points(squad_tp)
+            if best is not None:
+                sel_err_total[eid] += max(0, best - xi_raw)
+
+    perfect_you = []
+    for eid, rows in series.items():
+        n = _name(eid)
+        actual = rows[-1]["total_points"] or 0
+        hits = sum(r["event_transfers_cost"] or 0 for r in rows)
+        cap = regret_acc[eid]["regret"] if eid in regret_acc else 0
+        sel = sel_err_total.get(eid, 0)
+        waste = sel + cap + hits
+        perfect_you.append({
+            "entry_name": n[0], "player_name": n[1],
+            "actual": actual, "sel": sel, "cap": cap, "hits": hits,
+            "perfect": actual + waste, "waste": waste,
+            "real_pos": real_pos.get(eid),
+        })
+    perfect_you.sort(key=lambda r: r["perfect"], reverse=True)
+    for i, r in enumerate(perfect_you, 1):
+        r["pos_change"] = (r["real_pos"] - i) if r["real_pos"] else None
+
+    ghost_xi_top = sorted(
+        ({"entry_name": _name(e)[0], "player_name": _name(e)[1], "value": v}
+         for e, v in ghost_counts.items()),
+        key=lambda r: r["value"], reverse=True)[:3]
+
+    # --- The Jinx + Buy High Sell Low (squad-delta based, FH weeks skipped) ---
+    owned = {eid: {ev: {el for el, _m, _p in picks} for ev, picks in by_ev.items()}
+             for eid, by_ev in squad15.items()}
+
+    jinx_rows = []
+    fomo_rows = []
+    for eid, by_ev in owned.items():
+        fh = fh_gws.get(eid, set())
+        n = _name(eid)
+
+        jinx_total = 0
+        worst = None
+        buys = 0
+        bought_form = 0.0
+        delivered = 0.0
+        for ev in sorted(by_ev):
+            nxt = ev + 1
+            if nxt in by_ev and ev not in fh and nxt not in fh:
+                for el in by_ev[ev] - by_ev[nxt]:
+                    pts = pstat.get((el, nxt), (0, 0))[0]
+                    jinx_total += pts
+                    if worst is None or pts > worst[2]:
+                        worst = (el, nxt, pts)
+            prev = ev - 1
+            if prev in by_ev and ev not in fh and prev not in fh:
+                for el in by_ev[ev] - by_ev[prev]:
+                    pre_evs = range(max(1, ev - 3), ev)
+                    post_evs = range(ev, min(event, ev + 2) + 1)
+                    pre_avg = sum(pstat.get((el, g), (0, 0))[0] for g in pre_evs) / len(pre_evs)
+                    post_avg = sum(pstat.get((el, g), (0, 0))[0] for g in post_evs) / len(post_evs)
+                    buys += 1
+                    bought_form += pre_avg
+                    delivered += post_avg
+
+        if worst:
+            jinx_rows.append({
+                "entry_name": n[0], "player_name": n[1], "value": jinx_total,
+                "worst_pick": elt_names.get(worst[0], "?"),
+                "worst_gw": worst[1], "worst_pts": worst[2],
+            })
+        if buys:
+            fomo_rows.append({
+                "entry_name": n[0], "player_name": n[1], "buys": buys,
+                "bought_form": round(bought_form / buys, 1),
+                "delivered": round(delivered / buys, 1),
+                "value": round(bought_form - delivered, 1),
+            })
+    jinx_rows.sort(key=lambda r: r["value"], reverse=True)
+    jinx_top = jinx_rows[:3]
+    fomo_rows.sort(key=lambda r: r["value"], reverse=True)
+    fomo_top = fomo_rows[:3]
+
+    # --- Title Race / The Bottle Job (league-rank history) ---
+    rank_hist: dict[int, list] = defaultdict(list)
+    for r in season_table:
+        rank_hist[r["entry_id"]].append((r["event"], r["tml_rank"]))
+    title_race = []
+    for eid, hist in rank_hist.items():
+        hist.sort()
+        ranks = [t for _ev, t in hist]
+        n = _name(eid)
+        final = real_pos.get(eid) or ranks[-1]
+        title_race.append({
+            "entry_name": n[0], "player_name": n[1],
+            "weeks_first": sum(1 for t in ranks if t == 1),
+            "weeks_top3": sum(1 for t in ranks if t <= 3),
+            "peak": min(ranks), "final": final, "fall": final - min(ranks),
+        })
+    title_race.sort(key=lambda r: (-r["weeks_first"], -r["weeks_top3"], r["final"]))
+    # A real bottle job led the league and didn't win; failing that, the
+    # biggest fall from a top-3 peak.
+    bottlers = [r for r in title_race if r["peak"] <= 3 and r["fall"] > 0]
+    bottle_job = max(bottlers, key=lambda r: (r["weeks_first"], r["fall"])) if bottlers else None
+
+    # --- Rage Transfers + Squad Churn (added to the Transfer Lab table) ---
+    last_kick: dict[int, datetime] = {}
+    for r in _rows(conn.execute(
+            "SELECT event, MAX(kickoff_time) AS k FROM fixtures "
+            "WHERE event IS NOT NULL AND kickoff_time IS NOT NULL GROUP BY event")):
+        try:
+            last_kick[r["event"]] = datetime.fromisoformat(r["k"].replace("Z", "+00:00"))
+        except (TypeError, ValueError):
+            pass
+
+    rage_counts: dict[int, list[int]] = defaultdict(lambda: [0, 0])   # [rage, total]
+    for r in _rows(conn.execute("""
+        SELECT mt.entry_id, mt.event, mt.time
+        FROM manager_transfers mt
+        JOIN managers m ON m.entry_id = mt.entry_id
+        WHERE m.league_id = ? AND mt.event <= ?
+    """, (league_id, event))):
+        rc = rage_counts[r["entry_id"]]
+        rc[1] += 1
+        prev_end = last_kick.get(r["event"] - 1)
+        if prev_end is None or not r["time"]:
+            continue
+        try:
+            t = datetime.fromisoformat(r["time"].replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if t <= prev_end + RAGE_WINDOW:
+            rc[0] += 1
+
+    players_used = {eid: len(set().union(*by_ev.values()))
+                    for eid, by_ev in owned.items() if by_ev}
+    for r in transfer_lab:
+        rage, tot = rage_counts.get(r["entry_id"], [0, 0])
+        r["rage_pct"] = round(100 * rage / tot) if tot else 0
+        r["players_used"] = players_used.get(r["entry_id"], 0)
+
+    churn_corr = None
+    pairs = [(players_used[eid], real_pos[eid]) for eid in players_used if eid in real_pos]
+    if len(pairs) >= 3:
+        try:
+            churn_corr = round(statistics.correlation(
+                [float(p[0]) for p in pairs], [float(p[1]) for p in pairs]), 2)
+        except statistics.StatisticsError:
+            churn_corr = None
+
+    # --- Decision Attribution: total = XI raw + captaincy extra − hits ---
+    cap_extra = {r["entry_id"]: r["extra"] or 0 for r in _rows(conn.execute("""
+        SELECT cp.entry_id,
+               SUM(cp.captain_effective_points - cp.captain_raw_points) AS extra
+        FROM v_captain_points cp
+        JOIN managers m ON m.entry_id = cp.entry_id
+        WHERE m.league_id = ? AND cp.event <= ?
+        GROUP BY cp.entry_id
+    """, (league_id, event)))}
+
+    attribution = []
+    for eid, rows in series.items():
+        n = _name(eid)
+        hits = sum(r["event_transfers_cost"] or 0 for r in rows)
+        attribution.append({
+            "entry_name": n[0], "player_name": n[1],
+            "squad": squad_raw.get(eid, 0), "captaincy": cap_extra.get(eid, 0),
+            "hits": hits, "total": rows[-1]["total_points"] or 0,
+        })
+    nmgr = len(attribution) or 1
+    base_squad = sum(r["squad"] for r in attribution) / nmgr
+    base_cap = sum(r["captaincy"] for r in attribution) / nmgr
+    base_hits = sum(r["hits"] for r in attribution) / nmgr
+    attribution_base = {"squad": round(base_squad), "cap": round(base_cap),
+                        "hits": round(base_hits),
+                        "total": round(base_squad + base_cap - base_hits)}
+    for r in attribution:
+        r["squad_d"] = round(r["squad"] - base_squad)
+        r["cap_d"] = round(r["captaincy"] - base_cap)
+        r["hits_d"] = round(base_hits - r["hits"])   # fewer hits than average = positive
+        r["recon"] = r["squad"] + r["captaincy"] - r["hits"]
+    attribution.sort(key=lambda r: r["total"], reverse=True)
+
+    # --- PAR: Points Above Replacement vs the league's template XI ---
+    own_by_ev: dict[int, list] = defaultdict(list)
+    for r in _rows(conn.execute(
+            "SELECT event, element, starters, captains "
+            "FROM v_ownership_event WHERE event <= ?", (event,))):
+        own_by_ev[r["event"]].append(r)
+
+    cap_raw_ev = {(r["entry_id"], r["event"]): r["captain_raw_points"] or 0
+                  for r in _rows(conn.execute("""
+        SELECT cp.entry_id, cp.event, cp.captain_raw_points
+        FROM v_captain_points cp
+        JOIN managers m ON m.entry_id = cp.entry_id
+        WHERE m.league_id = ? AND cp.event <= ?
+    """, (league_id, event)))}
+
+    template_total = 0
+    template_by_ev: dict[int, int] = {}
+    for ev, own_rows in own_by_ev.items():
+        cands: dict[int, list] = {1: [], 2: [], 3: [], 4: []}
+        for r in own_rows:
+            t = ptypes.get(r["element"])
+            if t in cands:
+                cands[t].append((r["starters"] or 0, r["element"]))
+        for v in cands.values():
+            v.sort(reverse=True)
+        best_own = None
+        best_sel = None
+        for d, m_, f in FORMATIONS:
+            if not cands[1] or len(cands[2]) < d or len(cands[3]) < m_ or len(cands[4]) < f:
+                continue
+            own_sum = (cands[1][0][0] + sum(s for s, _e in cands[2][:d])
+                       + sum(s for s, _e in cands[3][:m_])
+                       + sum(s for s, _e in cands[4][:f]))
+            if best_own is None or own_sum > best_own:
+                best_own = own_sum
+                best_sel = ([cands[1][0][1]] + [e for _s, e in cands[2][:d]]
+                            + [e for _s, e in cands[3][:m_]]
+                            + [e for _s, e in cands[4][:f]])
+        if not best_sel:
+            continue
+        tpl = sum(pstat.get((el, ev), (0, 0))[0] for el in best_sel)
+        most_cap = max(own_rows, key=lambda r: (r["captains"] or 0, r["starters"] or 0))
+        tpl += pstat.get((most_cap["element"], ev), (0, 0))[0]
+        template_by_ev[ev] = tpl
+        template_total += tpl
+
+    par_table = []
+    for eid in series:
+        n = _name(eid)
+        mine = sum(weekly_score.get(eid, {}).get(ev, 0) + cap_raw_ev.get((eid, ev), 0)
+                   for ev in template_by_ev)
+        par_table.append({"entry_name": n[0], "player_name": n[1],
+                          "score": mine, "par": mine - template_total})
+    par_table.sort(key=lambda r: r["par"], reverse=True)
+
+    # =====================================================================
+    # THE WEEK IN WORDS — deterministic editorial narrative.
+    # Seeded per (league, GW) so the same report always renders the same
+    # prose, but each gameweek draws different phrasings from the banks.
+    # =====================================================================
+    rng = random.Random(league_id * 100 + event)
+
+    def _esc(s) -> str:
+        return (str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
+    def _b(s) -> str:
+        return f"<strong>{_esc(s)}</strong>"
+
+    disgraces: list[str] = []
+    shockers: list[str] = []
+    nerd: list[str] = []
+
+    # --- Disgraces ---
+    if len(gw_points_sorted) >= 2:
+        worst_w = gw_points_sorted[-1]
+        gap = round((gw_avg or 0) - (worst_w["points"] or 0))
+        pts_s = f"{worst_w['points']} points"
+        disgraces.append(rng.choice([
+            f"The wooden spoon goes to {_b(worst_w['entry_name'])} ({_esc(worst_w['player_name'])}), whose {_b(pts_s)} landed {gap} below the league average. Frame it.",
+            f"Somebody had to finish last, and {_b(worst_w['entry_name'])} volunteered enthusiastically: {_b(pts_s)}, a full {gap} under par.",
+            f"{_b(worst_w['entry_name'])} propped up the entire gameweek with {_b(pts_s)} — {gap} short of average and somehow legal.",
+        ]))
+
+    if len(captains) >= 2:
+        wc_w, bc_w = captains[-1], captains[0]
+        if (wc_w["captain_effective_points"] or 0) <= 6:
+            disgraces.append(rng.choice([
+                f"{_b(wc_w['entry_name'])} handed the armband to {_esc(wc_w['captain_name'])} for a princely {_b(wc_w['captain_effective_points'])} points, while {_esc(bc_w['entry_name'])} was banking {bc_w['captain_effective_points']} from {_esc(bc_w['captain_name'])}.",
+                f"Captaincy masterclass from {_b(wc_w['entry_name'])}: {_esc(wc_w['captain_name'])} returned {_b(wc_w['captain_effective_points'])}. For reference, {_esc(bc_w['entry_name'])}'s {_esc(bc_w['captain_name'])} managed {bc_w['captain_effective_points']}.",
+            ]))
+
+    bench_w = max(leaderboard, key=lambda r: r["points_on_bench"] or 0, default=None)
+    if bench_w and (bench_w["points_on_bench"] or 0) >= 10:
+        disgraces.append(rng.choice([
+            f"{_b(bench_w['entry_name'])} left {_b(bench_w['points_on_bench'])} points warming the bench — selection by coin toss, presumably.",
+            f"Meanwhile {_b(bench_w['entry_name'])}'s bench outdid itself: {_b(bench_w['points_on_bench'])} points watching from the sidelines.",
+        ]))
+
+    burned = [r for r in leaderboard
+              if (r["event_transfers_cost"] or 0) > 0 and (r["transfer_net"] or 0) < 0]
+    if burned:
+        hit_w = min(burned, key=lambda r: r["transfer_net"])
+        disgraces.append(rng.choice([
+            f"{_b(hit_w['entry_name'])} paid {hit_w['event_transfers_cost']} points in hits for the privilege of losing {_b(abs(hit_w['transfer_net']))} more — premium-rate self-sabotage.",
+            f"Special mention to {_b(hit_w['entry_name'])}, who took a -{hit_w['event_transfers_cost']} hit and still came out {_b(abs(hit_w['transfer_net']))} points worse off on transfers.",
+        ]))
+
+    if sliding_doors:
+        sd_w = sliding_doors[-1]
+        if sd_w["diff"] <= -5:
+            disgraces.append(
+                f"And the Sliding Doors award: had {_b(sd_w['entry_name'])} simply gone on holiday this week, last week's team would have scored {sd_w['standpat']} — instead the meddling produced {sd_w['actual']}. That's {_b(abs(sd_w['diff']))} points of pure activity tax.")
+
+    ghosts_week: dict[int, int] = {}
+    for g_eid, g_by_ev in squad15.items():
+        g = sum(1 for el, m_, _p in (g_by_ev.get(event) or [])
+                if m_ > 0 and pstat.get((el, event), (0, 0))[1] == 0)
+        if g:
+            ghosts_week[g_eid] = g
+    if ghosts_week:
+        g_eid, g_n = max(ghosts_week.items(), key=lambda kv: kv[1])
+        if g_n >= 2:
+            disgraces.append(
+                f"{_b(_name(g_eid)[0])} fielded {_b(g_n)} players who recorded zero minutes. Bold strategy: you can't blank if you never play.")
+
+    # --- Shockers ---
+    if gw_points_sorted:
+        top_w = gw_points_sorted[0]
+        margin = (top_w["points"] or 0) - ((gw_points_sorted[1]["points"] or 0)
+                                           if len(gw_points_sorted) > 1 else 0)
+        if margin >= 5:
+            shockers.append(rng.choice([
+                f"{_b(top_w['entry_name'])} ({_esc(top_w['player_name'])}) ran away with the week: {_b(top_w['points'])} points, {margin} clear of the field.",
+                f"No contest at the top — {_b(top_w['entry_name'])} posted {_b(top_w['points'])}, daylight second ({margin} back).",
+            ]))
+        else:
+            shockers.append(
+                f"{_b(top_w['entry_name'])} took Manager of the Week with {_b(top_w['points'])} points.")
+
+    if gw_stats.get("new_leader"):
+        nl = gw_stats["new_leader"]
+        shockers.append(
+            f"There's a new name on the perch: {_b(nl['entry_name'])} seizes top spot, up from {_ordinal(nl['from_pos'])}.")
+
+    riser = gw_stats.get("biggest_riser")
+    if riser and (riser.get("movement") or 0) >= 3:
+        shockers.append(
+            f"{_b(riser['entry_name'])} rocketed {_b(riser['movement'])} places up the table.")
+
+    bt = gw_stats.get("best_transfer")
+    if bt and (bt.get("net") or 0) >= 8:
+        shockers.append(rng.choice([
+            f"Transfer of the week: {_b(bt['entry_name'])} swapped {_esc(bt['sold'])} for {_esc(bt['bought'])} and pocketed {_b('+' + str(bt['net']))}.",
+            f"{_b(bt['entry_name'])} saw the future, buying {_esc(bt['bought'])} for {_esc(bt['sold'])} — a {_b('+' + str(bt['net']))} stroke of genius.",
+        ]))
+
+    week_chips = [c for c in chip_detail if c["event"] == event]
+    for c in sorted(week_chips, key=lambda r: r["points"], reverse=True)[:2]:
+        if c["points"] >= 8:
+            shockers.append(
+                f"{_b(c['entry_name'])} cashed the {c['chip_label']} for {_b(c['points'])} points.")
+        elif c["points"] <= 2:
+            shockers.append(
+                f"{_b(c['entry_name'])} burned the {c['chip_label']} for a grand total of {_b(c['points'])}. Worth the wait.")
+
+    week_starters = {r["element"]: (r["starters"] or 0) for r in own_by_ev.get(event, [])}
+    solo_best = None
+    for s_eid, s_by_ev in squad15.items():
+        for el, m_, _p in (s_by_ev.get(event) or []):
+            if m_ > 0 and week_starters.get(el) == 1:
+                p = pstat.get((el, event), (0, 0))[0]
+                if solo_best is None or p > solo_best[2]:
+                    solo_best = (s_eid, el, p)
+    if solo_best and solo_best[2] >= 10:
+        shockers.append(
+            f"Differential of the week: {_b(_name(solo_best[0])[0])} was the only manager starting {_esc(elt_names.get(solo_best[1], '?'))}, who duly hauled {_b(solo_best[2])}.")
+
+    # --- Nerd corner ---
+    if fpl_avg is not None and gw_avg is not None:
+        diff = gw_avg - fpl_avg
+        if diff >= 2:
+            nerd.append(
+                f"Collectively respectable: the league averaged {_b('%.1f' % gw_avg)}, {('%+.0f' % diff)} against the global FPL average of {fpl_avg}.")
+        elif diff <= -2:
+            nerd.append(
+                f"The league averaged {_b('%.1f' % gw_avg)} this week — {('%.0f' % abs(diff))} points {_b('below')} the global FPL average. Eleven million casuals would like a word.")
+        else:
+            nerd.append(
+                f"The league averaged {_b('%.1f' % gw_avg)}, dead level with the rest of the world ({fpl_avg}).")
+
+    tpl_week = template_by_ev.get(event)
+    if tpl_week:
+        beat = sum(1 for t_eid in series
+                   if weekly_score.get(t_eid, {}).get(event, 0)
+                   + cap_raw_ev.get((t_eid, event), 0) > tpl_week)
+        if beat == 0:
+            nerd.append(
+                f"The league's template XI would have scored {_b(tpl_week)} this week. Number of managers who beat it: {_b('zero')}. Original thinking remains overrated.")
+        else:
+            nerd.append(
+                f"The template XI benchmark scored {_b(tpl_week)} this week; only {_b(beat)} of {mgr_count} managers beat the autopilot.")
+
+    dc_week_el = {r["element"]: r["def_con"] or 0 for r in _rows(conn.execute(
+        "SELECT element, def_con FROM v_player_event_points WHERE event = ?", (event,)))}
+    dc_week_mgr: dict[int, int] = defaultdict(int)
+    for d_eid, d_by_ev in squad15.items():
+        for el, m_, _p in (d_by_ev.get(event) or []):
+            if m_ > 0:
+                dc_week_mgr[d_eid] += defcon_points(ptypes.get(el, 4), dc_week_el.get(el, 0))
+    if dc_week_mgr:
+        d_eid, d_v = max(dc_week_mgr.items(), key=lambda kv: kv[1])
+        if d_v >= 6:
+            nerd.append(
+                f"Park-the-bus report: {_b(_name(d_eid)[0])}'s XI ground out {_b(d_v)} DefCon points, the week's high. Beautiful? No. Points? Yes.")
+
+    if event >= 5 and luckiest:
+        lk = luckiest[0]
+        if (lk.get("diff") or 0) > 0:
+            nerd.append(
+                f"The xPts model maintains that {_b(lk['entry_name'])} is the league's luckiest manager, running {_b('+%.0f' % lk['diff'])} above expected. Regression is patient.")
+
+    narrative = [p for p in (
+        {"label": "The Disgraces", "color": "var(--red)", "html": " ".join(disgraces)},
+        {"label": "The Shockers", "color": "var(--slate)", "html": " ".join(shockers)},
+        {"label": "The Nerd Corner", "color": "var(--green)", "html": " ".join(nerd)},
+    ) if p["html"]]
 
     return {
         "event": event,
@@ -1630,6 +2392,36 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
         "got_away": got_away,
         "filthiest": filthiest,
         "bandwagon": bandwagon,
+        "emperors": emperors,
+        # Forward-looking / counterfactual / rivalry
+        "show_crystal": show_crystal,
+        "crystal_ball": crystal_ball,
+        "next_event": event + 1,
+        "attack_leaders": attack_leaders,
+        "entertainers": entertainers,
+        "sliding_doors": sliding_doors,
+        "donothing": donothing,
+        "should_kept": should_kept,
+        "captain_regret": captain_regret,
+        "captain_hindsight": captain_hindsight,
+        "doppelgangers": doppelgangers,
+        "h2h_bullies": h2h_bullies,
+        # Disrespect pack 2 + analytics
+        "perfect_you": perfect_you,
+        "ghost_xi_top": ghost_xi_top,
+        "jinx_rows": jinx_rows,
+        "jinx_top": jinx_top,
+        "fomo_rows": fomo_rows,
+        "fomo_top": fomo_top,
+        "title_race": title_race,
+        "bottle_job": bottle_job,
+        "attribution": attribution,
+        "attribution_base": attribution_base,
+        "par_table": par_table,
+        "template_total": template_total,
+        "churn_corr": churn_corr,
+        # Narrative
+        "narrative": narrative,
     }
 
 

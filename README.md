@@ -95,23 +95,56 @@ the dropdown. Override the label with `--season 26-27` if needed.
 Beyond the core leaderboard / captains / transfers / chips / xPts sections, the
 report includes a layer of season-long analysis:
 
+- **The Week in Words** — a generated editorial at the top of every report:
+  *The Disgraces* (wooden spoon, captaincy disasters, bench crimes, hits that
+  backfired, ghost starters), *The Shockers* (MOTW, new leaders, transfer of
+  the week, chips cashed, differential hauls) and *The Nerd Corner* (league vs
+  world, template-XI benchmark, DefCon, luck). Fully deterministic — phrasing
+  is seeded per league + gameweek, so republishing a GW always produces the
+  same prose, while each week reads differently.
+- **Crystal Ball** — each manager's current squad projected onto the *upcoming*
+  gameweek using FPL's expected points (captain doubled). Only shown live
+  mid-season, when there's an unfinished next GW (hidden on a finished-season
+  archive).
 - **Hall of Records** — banter awards: Mr Reliable / The Rollercoaster
   (consistency), Magnum Opus / The Stinker (best & worst single GW), Bench
   Disaster, Hit Merchant, Scrooge, The Tinkerman, Mr Template / The Hipster,
-  Lone Wolf, Ride or Die, Captain Marvel / Calamity.
+  Lone Wolf, Ride or Die, Captain Marvel / Calamity, Captain Hindsight, plus
+  **The Ghost XI** (starts handed to 0-minute players), **The Bottle Job**
+  (led the league, didn't win), **The Jinx** and **The FOMO Tax**.
 - **By the Numbers** — a consistency table (avg / best / worst / std dev /
-  weeks above league average) and a rank-trajectory table (green vs red arrows).
+  weeks above league average), a rank-trajectory table (green vs red arrows),
+  **The Title Race** (weeks on top, peak, fall) and **Where Your Season Came
+  From** — an exact decomposition of every total into starting-XI points +
+  captaincy bonus − hits, shown as deltas vs the league average.
 - **Transfer Lab** — activity, hits, net transfer P&L and each manager's
-  deadline-day habit, plus the biggest bandwagon.
+  deadline-day habit, **Rage%** (transfers within a day of the previous GW's
+  final whistle), **players used** (squad churn, with its correlation to final
+  position), the biggest bandwagon, **Should've Kept Him** (the let-go player
+  who scored most afterwards), **Sliding Doors** (last GW's XI scored on this
+  GW vs what they actually did), **The Jinx** (next-week points by dropped
+  players) and **Buy High, Sell Low** (form bought vs form received).
 - **Defensive Contributions** — DefCon points (2025/26 scoring) for league-owned
   players and a "Park the Bus" manager ranking. **DefCon also feeds the xPts
   model**, so defenders/midfielders earning defensive points are no longer
   flagged as "lucky".
-- **Alternative Tables** — captaincy-only and "no-hits" standings.
+- **Attacking Returns** — the flip side: points from goals & assists, with
+  league attacking kings and a "The Entertainers" manager ranking.
+- **Captain's Corner** also carries a season **Captain Regret** table (actual vs
+  perfect captaincy).
+- **Who Should Be Top** adds **Points Above Replacement** — every manager
+  scored against the league's "template manager" (most-started XI + most-
+  captained player, re-picked weekly).
+- **Alternative Tables** — captaincy-only and "no-hits" standings,
+  **What If You'd Done Nothing** (your GW1 XI held all season) and
+  **The Perfect You** (your ceiling season: perfect hindsight XI, perfect
+  captain, no hits — and exactly how many points you wasted).
 - **Head to Head** — every manager vs every other on weekly points, with a
-  full W-D-L grid and each manager's Nemesis & Bunny.
-- **Around the League** — league darlings, the best players nobody owned, and
-  the filthiest (most-carded) owned players.
+  full W-D-L grid, each manager's Nemesis & Bunny, the most lopsided **Bullies**,
+  and **Doppelgangers** (who's been copying who).
+- **Around the League** — league darlings, the best players nobody owned, the
+  filthiest (most-carded) owned players, and **The Emperor's New Clothes**
+  (consistently owned but never returned).
 
 > **DefCon needs a full scrape.** The defensive-action fields
 > (`tackles`, `clearances_blocks_interceptions`, `recoveries`,
@@ -120,6 +153,19 @@ report includes a layer of season-long analysis:
 > Databases created before this feature are migrated automatically (the new
 > columns are added on next open) but stay empty until the next full scrape —
 > the DefCon section shows a reminder until then.
+
+> **Crystal Ball needs a live scrape.** Projections use FPL's `ep_next`, a
+> snapshot only valid for the upcoming gameweek, so it's captured at scrape time
+> and the section appears only when generating the latest GW mid-season.
+
+## Possible future improvements
+
+- **LLM-generated narrative.** "The Week in Words" currently draws from seeded
+  phrase banks (no network, fully offline, deterministic). An optional mode —
+  e.g. `fpl report --narrative llm` — could instead send the gameweek's stats to
+  the Claude API (`claude-opus-4-8`) for genuinely bespoke, varied prose, while
+  falling back to the deterministic version when offline or when no key is set.
+  Would add an `anthropic` dependency and require an `ANTHROPIC_API_KEY`.
 
 ## End-of-season archive
 
