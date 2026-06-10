@@ -12,8 +12,10 @@ import math
 import os
 import random
 import re
+import shutil
 import sqlite3
 import statistics
+import subprocess
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 from itertools import groupby
@@ -112,15 +114,21 @@ def generate_report(db_path: Path, output: Path, league_id: int,
     data["season"] = season or current_season()
     conn.close()
 
-    # Optionally let Claude write the top narrative (HTML only). "auto" uses the
-    # LLM when ANTHROPIC_API_KEY is set, otherwise the deterministic version.
+    # Optionally let Claude write the top narrative (HTML only). "auto" prefers
+    # the API when ANTHROPIC_API_KEY is set, then the local `claude` CLI login,
+    # else the deterministic phrase banks.
     if fmt == "html":
         mode = narrative
         if mode == "auto":
-            mode = "llm" if os.environ.get("ANTHROPIC_API_KEY") else "phrases"
-        if mode == "llm":
-            written = llm_narrative(data.get("narrative_facts") or {}, league_id,
-                                    event, db_path, refresh=refresh_narrative)
+            if os.environ.get("ANTHROPIC_API_KEY"):
+                mode = "llm"
+            elif shutil.which("claude"):
+                mode = "cli"
+            else:
+                mode = "phrases"
+        if mode in ("llm", "cli"):
+            written = write_narrative(data.get("narrative_facts") or {}, league_id,
+                                      event, db_path, mode, refresh=refresh_narrative)
             if written is not None:
                 data["narrative"] = written
 
@@ -277,17 +285,105 @@ def _narrative_html(text: str) -> str:
     return re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", esc)
 
 
-def llm_narrative(facts: dict, league_id: int, event: int, db_path: Path,
-                  refresh: bool = False) -> list[dict] | None:
-    """Narrative paragraphs written by Claude from the gameweek facts, or None to
-    fall back to the deterministic phrase-bank version. Returns None when there's
-    nothing worth writing about, no API key, the SDK is missing, or the call
-    fails — so publishing never breaks. Results are cached per (league, GW) in
-    the DB; pass refresh=True to regenerate.
-    """
-    if not facts or len(facts) <= 4:        # only the bare header fields present
+def _parse_narrative_json(text: str) -> dict | None:
+    """Pull the first JSON object out of model output (tolerates ``` fences or
+    stray preamble) and return it, or None if there isn't a usable one."""
+    m = re.search(r"\{.*\}", text or "", re.S)
+    if not m:
         return None
+    try:
+        d = json.loads(m.group(0))
+    except (TypeError, ValueError):
+        return None
+    return d if isinstance(d, dict) else None
+
+
+def _shape_narrative(parsed: dict) -> list[dict] | None:
+    out = [{"label": lbl, "color": col, "html": _narrative_html(parsed.get(key, ""))}
+           for lbl, col, key in (
+               ("The Disgraces", "var(--red)", "disgraces"),
+               ("The Shockers", "var(--slate)", "shockers"),
+               ("The Nerd Corner", "var(--green)", "nerd"))
+           if (parsed.get(key) or "").strip()]
+    return out or None
+
+
+def _provider_api(facts: dict) -> dict | None:
+    """Generate the narrative JSON via the Anthropic API (needs ANTHROPIC_API_KEY)."""
     if not os.environ.get("ANTHROPIC_API_KEY"):
+        return None
+    try:
+        import anthropic
+    except ImportError:
+        log.warning("anthropic package not installed — using phrase-bank narrative")
+        return None
+    try:
+        client = anthropic.Anthropic(timeout=90)
+        resp = client.messages.create(
+            model=_NARRATIVE_MODEL,
+            max_tokens=2000,
+            thinking={"type": "adaptive"},
+            system=_NARRATIVE_SYSTEM,
+            output_config={"effort": "medium",
+                           "format": {"type": "json_schema", "schema": _NARRATIVE_SCHEMA}},
+            messages=[{"role": "user", "content":
+                       "Gameweek facts (JSON):\n```json\n"
+                       + json.dumps(facts, indent=2) + "\n```\n\nWrite the three paragraphs."}],
+        )
+    except Exception as e:   # auth, rate limit, network, bad request, …
+        log.warning("API narrative failed (%s) — using phrase-bank narrative", e)
+        return None
+    return _parse_narrative_json(next((b.text for b in resp.content if b.type == "text"), ""))
+
+
+def _provider_cli(facts: dict) -> dict | None:
+    """Generate the narrative JSON via the local ``claude`` CLI, using whatever
+    Claude Code login is configured — no API key required. Needs the binary on
+    PATH and an active `claude` session."""
+    claude = shutil.which("claude")
+    if not claude:
+        log.warning("claude CLI not found on PATH — using phrase-bank narrative")
+        return None
+    prompt = (
+        _NARRATIVE_SYSTEM
+        + "\n\nGameweek facts (JSON):\n```json\n" + json.dumps(facts, indent=2)
+        + "\n```\n\nReturn ONLY a JSON object with string keys "
+          '"disgraces", "shockers" and "nerd" — no other text.')
+    try:
+        proc = subprocess.run(
+            [claude, "-p", prompt, "--model", _NARRATIVE_MODEL,
+             "--output-format", "json"],
+            capture_output=True, text=True, timeout=180)
+    except Exception as e:   # binary missing mid-run, timeout, etc.
+        log.warning("claude CLI failed (%s) — using phrase-bank narrative", e)
+        return None
+    if proc.returncode != 0:
+        log.warning("claude CLI exited %d — using phrase-bank narrative: %s",
+                    proc.returncode, (proc.stderr or "").strip()[:200])
+        return None
+    # `--output-format json` wraps the reply: {"result": "<text>", ...}
+    text = proc.stdout
+    try:
+        env = json.loads(proc.stdout)
+        if isinstance(env, dict) and "result" in env:
+            text = env["result"]
+    except (TypeError, ValueError):
+        pass
+    return _parse_narrative_json(text)
+
+
+_NARRATIVE_PROVIDERS = {"llm": _provider_api, "cli": _provider_cli}
+
+
+def write_narrative(facts: dict, league_id: int, event: int, db_path: Path,
+                    mode: str, refresh: bool = False) -> list[dict] | None:
+    """Narrative paragraphs written by Claude (via the ``mode`` provider) from the
+    gameweek facts, or None to fall back to the deterministic phrase-bank version.
+    Returns None when there's nothing worth writing about or the provider is
+    unavailable/fails — so publishing never breaks. Cached per (league, GW) in
+    the DB; pass refresh=True to regenerate."""
+    provider = _NARRATIVE_PROVIDERS.get(mode)
+    if provider is None or not facts or len(facts) <= 4:  # 4 = bare header fields
         return None
 
     cache = sqlite3.connect(db_path)
@@ -306,42 +402,10 @@ def llm_narrative(facts: dict, league_id: int, event: int, db_path: Path,
                 except (TypeError, ValueError):
                     pass
 
-        try:
-            import anthropic
-        except ImportError:
-            log.warning("anthropic package not installed — using phrase-bank narrative")
+        parsed = provider(facts)
+        if not parsed:
             return None
-
-        try:
-            client = anthropic.Anthropic(timeout=90)
-            resp = client.messages.create(
-                model=_NARRATIVE_MODEL,
-                max_tokens=2000,
-                thinking={"type": "adaptive"},
-                system=_NARRATIVE_SYSTEM,
-                output_config={"effort": "medium",
-                               "format": {"type": "json_schema", "schema": _NARRATIVE_SCHEMA}},
-                messages=[{"role": "user", "content":
-                           "Gameweek facts (JSON):\n```json\n"
-                           + json.dumps(facts, indent=2) + "\n```\n\nWrite the three paragraphs."}],
-            )
-        except Exception as e:   # auth, rate limit, network, bad request, …
-            log.warning("LLM narrative failed (%s) — using phrase-bank narrative", e)
-            return None
-
-        text = next((b.text for b in resp.content if b.type == "text"), "")
-        try:
-            parsed = json.loads(text)
-        except (TypeError, ValueError):
-            log.warning("LLM narrative returned unparseable output — using phrase-bank")
-            return None
-
-        out = [{"label": lbl, "color": col, "html": _narrative_html(parsed.get(key, ""))}
-               for lbl, col, key in (
-                   ("The Disgraces", "var(--red)", "disgraces"),
-                   ("The Shockers", "var(--slate)", "shockers"),
-                   ("The Nerd Corner", "var(--green)", "nerd"))
-               if (parsed.get(key) or "").strip()]
+        out = _shape_narrative(parsed)
         if not out:
             return None
 
@@ -351,7 +415,7 @@ def llm_narrative(facts: dict, league_id: int, event: int, db_path: Path,
             (league_id, event, _NARRATIVE_MODEL, json.dumps(out),
              datetime.now(timezone.utc).isoformat()))
         cache.commit()
-        log.info("LLM narrative written for GW%d", event)
+        log.info("%s narrative written for GW%d", mode.upper(), event)
         return out
     finally:
         cache.close()
