@@ -100,10 +100,11 @@ report includes a layer of season-long analysis:
   backfired, ghost starters), *The Shockers* (MOTW, new leaders, transfer of
   the week, chips cashed, differential hauls) and *The Nerd Corner* (league vs
   world, template-XI benchmark, DefCon, luck). Written by **Claude**
-  (`claude-opus-4-8`) when an `ANTHROPIC_API_KEY` is set — see
-  [AI narrative](#ai-narrative) — otherwise generated from offline phrase banks
-  seeded per league + gameweek (deterministic, so republishing a GW reproduces
-  the same prose). Either way it draws only on the gameweek's real facts.
+  (`claude-opus-4-8`) — via an API key or your local `claude` CLI login —
+  when one is available (see [AI narrative](#ai-narrative)); otherwise generated
+  from offline phrase banks seeded per league + gameweek (deterministic, so
+  republishing a GW reproduces the same prose). Either way it draws only on the
+  gameweek's real facts.
 - **Crystal Ball** — each manager's current squad projected onto the *upcoming*
   gameweek using FPL's expected points (captain doubled). Only shown live
   mid-season, when there's an unfinished next GW (hidden on a finished-season
@@ -162,37 +163,51 @@ report includes a layer of season-long analysis:
 
 ## AI narrative
 
-"The Week in Words" can be written by the Claude API (`claude-opus-4-8`) for
-genuinely bespoke, varied prose instead of the offline phrase banks. It's a
-single small request per gameweek, fed only the structured facts the report
-already computed (it can't invent players or numbers), and the result is cached
-in the DB so republishing the same GW costs nothing.
+"The Week in Words" can be written by Claude (`claude-opus-4-8`) for genuinely
+bespoke, varied prose instead of the offline phrase banks. Either way it's fed
+*only* the structured facts the report already computed (it can't invent players
+or numbers), and the result is cached in the DB so republishing the same GW
+costs nothing. There are two ways to wire it up:
+
+**Option A — API key.** A single small API request per gameweek.
 
 ```bash
-# 1. Put your key in .env (this file is git-ignored — never commit it)
+# Put your key in .env (git-ignored — never commit it). docker compose passes
+# .env into the container for you.
 echo 'ANTHROPIC_API_KEY=sk-ant-...' >> .env
-
-# 2. That's it — publish/report use the AI narrative automatically when a key
-#    is present. docker compose passes .env into the container for you.
 docker compose run --rm fpl publish
-
-# Force which source to use, regardless of the key:
-docker compose run --rm fpl publish --narrative llm       # require the AI version
-docker compose run --rm fpl publish --narrative phrases   # force offline phrase banks
-docker compose run --rm fpl publish --refresh-narrative   # rewrite even if cached
 ```
 
-The `--narrative` (`auto` | `llm` | `phrases`) and `--refresh-narrative` flags
-work on both `fpl report` and `fpl publish`. With `auto` (the default) the AI
-version is used when `ANTHROPIC_API_KEY` is set and the offline version
-otherwise; any API hiccup (missing key, rate limit, network) falls back to the
-phrase banks so publishing never breaks. A full `--all` backfill makes one
-request per gameweek (≈£1 for a 38-GW season on Opus); the weekly run is a
-single request.
+**Option B — your `claude` CLI login (no key).** Runs the narrative through the
+[Claude Code](https://claude.com/claude-code) CLI using your existing
+`claude` login (your Claude subscription), so there's no API key anywhere. The
+`claude` binary must be on `PATH` and logged in, which means running `fpl`
+**directly** (not via the stock Docker image, which doesn't ship the CLI):
 
-> **Never commit your key.** Keep it in `.env` (already in `.gitignore`) or the
-> host environment — it is never written into `docs/`, the cache, or any
-> tracked file.
+```bash
+pip install -r requirements.txt
+claude login                                   # one-off, if not already
+PYTHONPATH=src python -m fpl publish --db data/25_26_fpl.db --narrative cli
+```
+
+The `--narrative` (`auto` | `llm` | `cli` | `phrases`) and `--refresh-narrative`
+flags work on both `fpl report` and `fpl publish`:
+
+| Value | Source |
+|-------|--------|
+| `llm` | Claude **API** (needs `ANTHROPIC_API_KEY`) |
+| `cli` | local logged-in **`claude` CLI** (no key) |
+| `phrases` | offline phrase banks (deterministic) |
+| `auto` *(default)* | API key if set, else the `claude` CLI, else phrases |
+
+Any hiccup (no key, CLI not logged in, rate limit, network, bad output) falls
+back to the phrase banks, so publishing never breaks. A full `--all` backfill
+makes one request per gameweek (≈£1 for a 38-GW season on the API; on the CLI it
+draws from your subscription); the weekly run is a single request.
+
+> **Never commit your key.** With Option A keep it in `.env` (already in
+> `.gitignore`) or the host environment; Option B needs no key at all. The key
+> is never written into `docs/`, the cache, or any tracked file.
 
 ## End-of-season archive
 

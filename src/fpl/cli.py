@@ -129,10 +129,12 @@ def main(argv: list[str] | None = None) -> int:
 
 def _add_narrative_opts(p: argparse.ArgumentParser) -> None:
     """The top 'Week in Words' narrative source, shared by report + publish."""
-    p.add_argument("--narrative", choices=["auto", "llm", "phrases"], default="auto",
-                   help="Top narrative source: 'llm' writes it with the Claude API "
-                        "(needs ANTHROPIC_API_KEY), 'phrases' uses the offline "
-                        "phrase banks, 'auto' (default) picks llm when a key is set")
+    p.add_argument("--narrative", choices=["auto", "llm", "cli", "phrases"],
+                   default="auto",
+                   help="Top narrative source: 'llm' = Claude API (needs "
+                        "ANTHROPIC_API_KEY); 'cli' = local logged-in `claude` CLI "
+                        "(no key); 'phrases' = offline phrase banks; 'auto' "
+                        "(default) prefers the API key, then the CLI, else phrases")
     p.add_argument("--refresh-narrative", action="store_true",
                    help="Regenerate the LLM narrative even if a cached one exists")
 
