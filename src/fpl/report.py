@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import os
 import random
 import re
 import sqlite3
@@ -81,7 +82,8 @@ def current_season(today: date | None = None) -> str:
 
 def generate_report(db_path: Path, output: Path, league_id: int,
                     event: int | None = None, fmt: str = "md",
-                    season: str | None = None) -> Path:
+                    season: str | None = None, narrative: str = "auto",
+                    refresh_narrative: bool = False) -> Path:
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
 
@@ -110,6 +112,18 @@ def generate_report(db_path: Path, output: Path, league_id: int,
     data["season"] = season or current_season()
     conn.close()
 
+    # Optionally let Claude write the top narrative (HTML only). "auto" uses the
+    # LLM when ANTHROPIC_API_KEY is set, otherwise the deterministic version.
+    if fmt == "html":
+        mode = narrative
+        if mode == "auto":
+            mode = "llm" if os.environ.get("ANTHROPIC_API_KEY") else "phrases"
+        if mode == "llm":
+            written = llm_narrative(data.get("narrative_facts") or {}, league_id,
+                                    event, db_path, refresh=refresh_narrative)
+            if written is not None:
+                data["narrative"] = written
+
     output.parent.mkdir(parents=True, exist_ok=True)
 
     if fmt == "html":
@@ -127,7 +141,8 @@ def generate_report(db_path: Path, output: Path, league_id: int,
 
 def publish_reports(db_path: Path, league_id: int, docs_dir: Path,
                     season: str | None = None, event: int | None = None,
-                    all_gws: bool = False) -> Path:
+                    all_gws: bool = False, narrative: str = "auto",
+                    refresh_narrative: bool = False) -> Path:
     """Render HTML report(s) into ``docs/<season>/GW<N>.html``, then rebuild the
     manifest and the root ``index.html`` redirect that drive the GW/season
     dropdown on GitHub Pages."""
@@ -148,7 +163,8 @@ def publish_reports(db_path: Path, league_id: int, docs_dir: Path,
 
     for ev in targets:
         generate_report(db_path, season_dir / f"GW{ev}.html", league_id,
-                        ev, fmt="html", season=season)
+                        ev, fmt="html", season=season, narrative=narrative,
+                        refresh_narrative=refresh_narrative)
 
     manifest = build_manifest(docs_dir)
     (docs_dir / "manifest.json").write_text(
@@ -214,6 +230,131 @@ def _write_index(docs_dir: Path, manifest: dict) -> None:
         <body>Redirecting to <a href="{url}">the latest Dossier</a>&hellip;</body>
         </html>
     """), encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# Optional LLM-written narrative (Claude API)
+# ---------------------------------------------------------------------------
+
+_NARRATIVE_MODEL = "claude-opus-4-8"
+
+_NARRATIVE_SYSTEM = (
+    "You are a sharp, witty sports columnist writing the weekly editorial for a "
+    "Fantasy Premier League mini-league report. Produce exactly three short "
+    "paragraphs, in this order and spirit:\n"
+    "1. disgraces — ruthlessly but playfully mock the week's worst decisions and "
+    "performances: the wooden spoon, captaincy howlers, bench disasters, hits that "
+    "backfired, players who never got off the bench.\n"
+    "2. shockers — celebrate the standout moments: the top score, a new league "
+    "leader, the transfer of the week, chips that paid off, brave differentials.\n"
+    "3. nerd — one or two dry, analytical observations: the league vs the wider "
+    "FPL world, the template-XI benchmark, defensive-contribution points, xPts luck.\n\n"
+    "Hard rules: use ONLY the facts given in the JSON — never invent players, "
+    "managers, clubs, numbers or events, and never imply a fact that isn't there. "
+    "If something is absent, leave it out. Keep each paragraph to 2-4 sentences. Be "
+    "specific and genuinely funny, not generic filler. Wrap key team/manager/player "
+    "names and standout numbers in **double asterisks** for emphasis. Plain prose "
+    "only — no HTML, no markdown headings, no bullet lists. British spelling. Do not "
+    "address the reader as 'you'."
+)
+
+_NARRATIVE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "disgraces": {"type": "string"},
+        "shockers": {"type": "string"},
+        "nerd": {"type": "string"},
+    },
+    "required": ["disgraces", "shockers", "nerd"],
+    "additionalProperties": False,
+}
+
+
+def _narrative_html(text: str) -> str:
+    """Escape model output, then promote **bold** markers to <strong> — so the
+    rendered HTML can never contain arbitrary tags from the model or the data."""
+    esc = str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", esc)
+
+
+def llm_narrative(facts: dict, league_id: int, event: int, db_path: Path,
+                  refresh: bool = False) -> list[dict] | None:
+    """Narrative paragraphs written by Claude from the gameweek facts, or None to
+    fall back to the deterministic phrase-bank version. Returns None when there's
+    nothing worth writing about, no API key, the SDK is missing, or the call
+    fails — so publishing never breaks. Results are cached per (league, GW) in
+    the DB; pass refresh=True to regenerate.
+    """
+    if not facts or len(facts) <= 4:        # only the bare header fields present
+        return None
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        return None
+
+    cache = sqlite3.connect(db_path)
+    try:
+        cache.execute(
+            "CREATE TABLE IF NOT EXISTS narrative_cache ("
+            "league_id INTEGER NOT NULL, event INTEGER NOT NULL, model TEXT, "
+            "content TEXT, created_at TEXT, PRIMARY KEY (league_id, event))")
+        if not refresh:
+            row = cache.execute(
+                "SELECT content FROM narrative_cache WHERE league_id = ? AND event = ?",
+                (league_id, event)).fetchone()
+            if row:
+                try:
+                    return json.loads(row[0])
+                except (TypeError, ValueError):
+                    pass
+
+        try:
+            import anthropic
+        except ImportError:
+            log.warning("anthropic package not installed — using phrase-bank narrative")
+            return None
+
+        try:
+            client = anthropic.Anthropic(timeout=90)
+            resp = client.messages.create(
+                model=_NARRATIVE_MODEL,
+                max_tokens=2000,
+                thinking={"type": "adaptive"},
+                system=_NARRATIVE_SYSTEM,
+                output_config={"effort": "medium",
+                               "format": {"type": "json_schema", "schema": _NARRATIVE_SCHEMA}},
+                messages=[{"role": "user", "content":
+                           "Gameweek facts (JSON):\n```json\n"
+                           + json.dumps(facts, indent=2) + "\n```\n\nWrite the three paragraphs."}],
+            )
+        except Exception as e:   # auth, rate limit, network, bad request, …
+            log.warning("LLM narrative failed (%s) — using phrase-bank narrative", e)
+            return None
+
+        text = next((b.text for b in resp.content if b.type == "text"), "")
+        try:
+            parsed = json.loads(text)
+        except (TypeError, ValueError):
+            log.warning("LLM narrative returned unparseable output — using phrase-bank")
+            return None
+
+        out = [{"label": lbl, "color": col, "html": _narrative_html(parsed.get(key, ""))}
+               for lbl, col, key in (
+                   ("The Disgraces", "var(--red)", "disgraces"),
+                   ("The Shockers", "var(--slate)", "shockers"),
+                   ("The Nerd Corner", "var(--green)", "nerd"))
+               if (parsed.get(key) or "").strip()]
+        if not out:
+            return None
+
+        cache.execute(
+            "INSERT OR REPLACE INTO narrative_cache "
+            "(league_id, event, model, content, created_at) VALUES (?,?,?,?,?)",
+            (league_id, event, _NARRATIVE_MODEL, json.dumps(out),
+             datetime.now(timezone.utc).isoformat()))
+        cache.commit()
+        log.info("LLM narrative written for GW%d", event)
+        return out
+    finally:
+        cache.close()
 
 
 # ---------------------------------------------------------------------------
@@ -2291,6 +2432,88 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
         {"label": "The Nerd Corner", "color": "var(--green)", "html": " ".join(nerd)},
     ) if p["html"]]
 
+    # --- Structured facts for the optional LLM-written narrative ---
+    # Same signals as the deterministic prose above, as machine-readable JSON.
+    facts: dict = {
+        "gameweek": event, "managers": mgr_count,
+        "league_average": round(gw_avg, 1) if gw_avg is not None else None,
+        "fpl_average": fpl_avg,
+    }
+    if gw_points_sorted:
+        worst = gw_points_sorted[-1]
+        facts["wooden_spoon"] = {
+            "team": worst["entry_name"], "manager": worst["player_name"],
+            "points": worst["points"],
+            "below_average": round((gw_avg or 0) - (worst["points"] or 0))}
+        top = gw_points_sorted[0]
+        facts["manager_of_the_week"] = {
+            "team": top["entry_name"], "manager": top["player_name"],
+            "points": top["points"],
+            "margin_over_second": (top["points"] or 0)
+            - ((gw_points_sorted[1]["points"] or 0) if len(gw_points_sorted) > 1 else 0)}
+    if captains:
+        bc, wcp = captains[0], captains[-1]
+        facts["best_captain"] = {
+            "team": bc["entry_name"], "manager": bc["player_name"],
+            "captain": bc["captain_name"], "points": bc["captain_effective_points"]}
+        if (wcp["captain_effective_points"] or 0) <= 6:
+            facts["worst_captain"] = {
+                "team": wcp["entry_name"], "manager": wcp["player_name"],
+                "captain": wcp["captain_name"], "points": wcp["captain_effective_points"]}
+    if bench_w and (bench_w["points_on_bench"] or 0) >= 8:
+        facts["bench_disaster"] = {
+            "team": bench_w["entry_name"], "manager": bench_w["player_name"],
+            "bench_points": bench_w["points_on_bench"]}
+    if burned:
+        hw = min(burned, key=lambda r: r["transfer_net"])
+        facts["worst_hit"] = {
+            "team": hw["entry_name"], "manager": hw["player_name"],
+            "hit_cost": hw["event_transfers_cost"], "net_transfer_points": hw["transfer_net"]}
+    if sliding_doors and sliding_doors[-1]["diff"] <= -5:
+        sd = sliding_doors[-1]
+        facts["sliding_doors"] = {
+            "team": sd["entry_name"], "manager": sd["player_name"],
+            "stand_pat_points": sd["standpat"], "actual_points": sd["actual"],
+            "points_lost": abs(sd["diff"])}
+    if ghosts_week:
+        ge, gn = max(ghosts_week.items(), key=lambda kv: kv[1])
+        if gn >= 2:
+            facts["ghost_xi"] = {"team": _name(ge)[0], "manager": _name(ge)[1],
+                                 "zero_minute_starters": gn}
+    if gw_stats.get("new_leader"):
+        nl = gw_stats["new_leader"]
+        facts["new_leader"] = {"team": nl["entry_name"], "from_position": nl["from_pos"]}
+    rs = gw_stats.get("biggest_riser")
+    if rs and (rs.get("movement") or 0) >= 3:
+        facts["biggest_riser"] = {"team": rs["entry_name"], "places_climbed": rs["movement"]}
+    bt2 = gw_stats.get("best_transfer")
+    if bt2 and (bt2.get("net") or 0) >= 8:
+        facts["transfer_of_the_week"] = {
+            "team": bt2["entry_name"], "bought": bt2["bought"],
+            "sold": bt2["sold"], "net_points": bt2["net"]}
+    if week_chips:
+        facts["chips_played"] = [
+            {"team": c["entry_name"], "manager": c["player_name"],
+             "chip": c["chip_label"], "points": c["points"]} for c in week_chips]
+    if solo_best and solo_best[2] >= 10:
+        facts["differential_of_the_week"] = {
+            "team": _name(solo_best[0])[0],
+            "player": elt_names.get(solo_best[1], "?"), "points": solo_best[2]}
+    if tpl_week:
+        beat_n = sum(1 for te in series
+                     if weekly_score.get(te, {}).get(event, 0)
+                     + cap_raw_ev.get((te, event), 0) > tpl_week)
+        facts["template_benchmark"] = {
+            "points": tpl_week, "managers_who_beat_it": beat_n, "total_managers": mgr_count}
+    if dc_week_mgr:
+        de, dv = max(dc_week_mgr.items(), key=lambda kv: kv[1])
+        if dv >= 6:
+            facts["defcon_high"] = {"team": _name(de)[0], "manager": _name(de)[1],
+                                    "defcon_points": dv}
+    if event >= 5 and luckiest and (luckiest[0].get("diff") or 0) > 0:
+        facts["luckiest_manager"] = {
+            "team": luckiest[0]["entry_name"], "xpts_overperformance": luckiest[0]["diff"]}
+
     return {
         "event": event,
         "league_id": league_id,
@@ -2422,6 +2645,7 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
         "churn_corr": churn_corr,
         # Narrative
         "narrative": narrative,
+        "narrative_facts": facts,
     }
 
 
