@@ -430,6 +430,19 @@
     font-size: 11px; color: var(--muted); text-align: center;
   }
 
+  /* ==================== NARRATIVE ==================== */
+  .narrative-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    padding: 16px 20px; margin-bottom: 12px;
+  }
+  .nar-label {
+    font-size: 10px; font-weight: 800; letter-spacing: .1em;
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .nar-text { font-size: 14px; line-height: 1.75; }
+  .nar-text strong { color: var(--slate); }
+
   /* ==================== EXTENDED STATS ==================== */
   .stat-note { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
   .h2h-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -567,6 +580,7 @@
 <nav class="nav">
   <a class="nav-brand" href="#">THE <span>DOSSIER</span></a>
   <div class="nav-links">
+    <a href="#story">Story</a>
     <a href="#fame">Fame</a>
     <a href="#shame">Shame</a>
     <a href="#leaderboard">Table</a>
@@ -577,10 +591,12 @@
     <a href="#motm">MOTM</a>
     <a href="#scout">Scout</a>
     <a href="#xpts">xPts</a>
+    {% if show_crystal %}<a href="#crystal">Crystal Ball</a>{% endif %}
     <a href="#records">Records</a>
     <a href="#numbers">Numbers</a>
     <a href="#transfer-lab">Transfer Lab</a>
     <a href="#defcon">DefCon</a>
+    <a href="#attacking">Attack</a>
     <a href="#alt-tables">Alt Tables</a>
     <a href="#h2h">H2H</a>
     <a href="#around">League</a>
@@ -618,6 +634,23 @@
 </div>
 
 <div class="wrap">
+
+{# ==================== THE WEEK IN WORDS ==================== #}
+{% if narrative %}
+<div id="story" class="section">
+  <div class="fame-hdr">
+    <div class="hdr-title">The Week in Words</div>
+    <div class="hdr-sub">GW{{ event }} &mdash; an editorial nobody asked for</div>
+  </div>
+
+  {% for p in narrative %}
+  <div class="narrative-card">
+    <div class="nar-label" style="color: {{ p.color }};">{{ p.label }}</div>
+    <div class="nar-text">{{ p.html|safe }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 
 {# ==================== HALL OF FAME ==================== #}
 <div id="fame" class="section">
@@ -1106,6 +1139,27 @@
     {% endfor %}
   </div>
   {% endif %}
+
+  {% if captain_regret %}
+  <h3 class="sub-title" style="margin-top:18px;">Captain Regret</h3>
+  <p class="stat-note">"Perfect" = points if you'd always captained your best-scoring starter that week. "Lost" = the gap to perfection (each missed point is one your captain didn't double).</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Team</th><th>Manager</th><th class="num">Actual Cap</th><th class="num">Perfect Cap</th><th class="num">Lost</th></tr></thead>
+    <tbody>
+      {% for r in captain_regret %}
+      <tr>
+        <td class="bold">{{ r.entry_name }}</td>
+        <td>{{ r.player_name }}</td>
+        <td class="num">{{ r.actual }}</td>
+        <td class="num muted">{{ r.perfect }}</td>
+        <td class="num bold neg">&minus;{{ r.regret }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
 </div>
 
 {# ==================== CHIP USAGE ==================== #}
@@ -1237,7 +1291,7 @@
   {# Wildcard Maestro #}
   {% if wc_maestro %}
   <h3 class="sub-title">Wildcard Maestro</h3>
-  <p style="font-size:11px; color:var(--muted); margin-bottom:10px;">Compares post-WC team performance vs the pre-WC squad over the next 5 gameweeks. Positive = WC gained points.</p>
+  <p style="font-size:11px; color:var(--muted); margin-bottom:10px;">Points gained by the new team vs. holding the old squad over the next 5 gameweeks. Both sides are captain-aware (the old team keeps its pre-WC captain &amp; vice for the window) and chip-neutral (Bench Boost / Triple Captain played in the window aren't credited; Free Hit weeks are skipped). Positive = the wildcard gained points.</p>
   <div class="table-wrap">
   <table>
     <thead>
@@ -1504,7 +1558,58 @@
   </table>
   </div>
   {% endif %}
+
+  {% if par_table %}
+  <h3 class="sub-title" style="margin-top:18px;">Points Above Replacement</h3>
+  <p class="stat-note">"Replacement" = the league's template manager: the most-started, formation-legal XI plus the most-captained player, re-picked every week with perfect hindsight-free autopilot. It would have scored <strong>{{ template_total }}</strong>. PAR &gt; 0 means your own ideas beat just copying the league.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="ctr" style="width:28px">#</th><th>Team</th><th>Manager</th>
+      <th class="num">XI + Cap Pts</th><th class="num">PAR</th>
+    </tr></thead>
+    <tbody>
+      {% for r in par_table %}
+      <tr>
+        <td class="rank-cell">{{ loop.index }}</td>
+        <td class="bold">{{ r.entry_name }}</td>
+        <td>{{ r.player_name }}</td>
+        <td class="num">{{ r.score }}</td>
+        <td class="num bold {{ 'pos' if r.par > 0 else ('neg' if r.par < 0 else 'muted') }}">{{ "%+d"|format(r.par) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
 </div>
+
+{% if show_crystal %}
+{# ==================== CRYSTAL BALL ==================== #}
+<div id="crystal" class="section">
+  {{ section_bar("10", "Crystal Ball", "Projected points for GW" ~ next_event) }}
+  <p class="stat-note">Each manager's current squad projected onto the upcoming gameweek using FPL's expected points (captain doubled). A forecast, not a promise.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="ctr" style="width:28px">#</th><th>Team</th><th>Manager</th>
+      <th>Captain</th><th class="num">Proj GW{{ next_event }}</th>
+    </tr></thead>
+    <tbody>
+      {% for r in crystal_ball %}
+      <tr>
+        <td class="rank-cell">{{ loop.index }}</td>
+        <td class="bold">{{ r.entry_name }}</td>
+        <td>{{ r.player_name }}</td>
+        <td>{{ r.captain_name }}</td>
+        <td class="num bold">{{ r.proj }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endif %}
 
 {# ==================== HALL OF RECORDS ==================== #}
 <div id="records" class="section">
@@ -1528,7 +1633,7 @@
     {{ small_card("Set &amp; Forget", "Fewest transfers made", set_and_forget, "value", icon=icon_shield(), accent="green") }}
     {{ small_card("Mr Template", "Most template XI (avg league ownership)", mr_template, "value", value_fmt="pct", icon=icon_cotton(), accent="green") }}
     {{ small_card("The Hipster", "Least template XI", the_hipster, "value", value_fmt="pct", icon=icon_flame(), accent="green") }}
-    {{ small_card("Teacher's Pet", "Most captain points (season)", teachers_pet, "total_captain_pts", icon=icon_captain(), accent="green") }}
+    {{ small_card("Captain Hindsight", "Most points lost to wrong captaincy", captain_hindsight, "value", icon=icon_captain(), accent="red") }}
   </div>
 
   <div class="cards-row cards-4">
@@ -1587,6 +1692,29 @@
       </div>
       {% endif %}
     </div>
+  </div>
+
+  <div class="cards-row cards-4">
+    {{ small_card("The Ghost XI", "Most starts handed to 0-minute players", ghost_xi_top, "value", icon=icon_snowflake(), accent="red") }}
+
+    <div class="card small-card" style="border-left:4px solid var(--red); background:rgba(192,57,43,0.04);">
+      <div class="card-head"><div>
+        <div class="card-title">"The Bottle Job"</div>
+        <div class="card-sub">Biggest fall from a title challenge</div>
+      </div><div class="card-icon sm-icon" style="border-color:var(--red);">{{ icon_arrow_down()|safe }}</div></div>
+      {% if bottle_job %}
+      <div class="sm-winner">
+        <div class="winner-name">{{ bottle_job.entry_name }}</div>
+        <div class="winner-mgr">{{ bottle_job.weeks_first }} week{{ 's' if bottle_job.weeks_first != 1 }} at #1 &middot; peak {{ bottle_job.peak|ordinal }}</div>
+        <div class="sm-winner-val neg">&rarr; {{ bottle_job.final|ordinal }}</div>
+      </div>
+      {% else %}
+      <div class="sm-winner"><div class="winner-mgr">No bottlers this season.</div></div>
+      {% endif %}
+    </div>
+
+    {{ small_card("The Jinx", "Next-week points by players they let go", jinx_top, "value", icon=icon_arrow_down(), accent="red") }}
+    {{ small_card("The FOMO Tax", "Form chased minus form received", fomo_top, "value", icon=icon_minus(), accent="red") }}
   </div>
 </div>
 
@@ -1647,6 +1775,56 @@
     </tbody>
   </table>
   </div>
+
+  <h3 class="sub-title" style="margin-top:18px;">The Title Race</h3>
+  <p class="stat-note">League-rank history: time spent on top, the peak, and how far they fell from it.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Team</th><th>Manager</th>
+      <th class="num">Wks at #1</th><th class="num">Wks Top 3</th>
+      <th class="num">Peak</th><th class="num">Final</th><th class="num">Fall</th>
+    </tr></thead>
+    <tbody>
+      {% for r in title_race %}
+      <tr>
+        <td class="bold">{{ r.entry_name }}</td>
+        <td>{{ r.player_name }}</td>
+        <td class="num bold">{{ r.weeks_first }}</td>
+        <td class="num">{{ r.weeks_top3 }}</td>
+        <td class="num pos">{{ r.peak|ordinal }}</td>
+        <td class="num">{{ r.final|ordinal }}</td>
+        <td class="num bold {{ 'neg' if r.fall > 0 else 'muted' }}">{{ r.fall if r.fall > 0 else '&ndash;'|safe }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub-title" style="margin-top:18px;">Where Your Season Came From</h3>
+  <p class="stat-note">Exact decomposition of every total: starting-XI points + captaincy bonus &minus; hits. Deltas vs the league average (baseline {{ attribution_base.total }} = {{ attribution_base.squad }} squad + {{ attribution_base.cap }} captaincy &minus; {{ attribution_base.hits }} hits).</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="ctr" style="width:28px">#</th><th>Team</th><th>Manager</th>
+      <th class="num">Squad &Delta;</th><th class="num">Captaincy &Delta;</th>
+      <th class="num">Hits &Delta;</th><th class="num">Total</th>
+    </tr></thead>
+    <tbody>
+      {% for r in attribution %}
+      <tr>
+        <td class="rank-cell">{{ loop.index }}</td>
+        <td class="bold">{{ r.entry_name }}</td>
+        <td>{{ r.player_name }}</td>
+        <td class="num bold {{ 'pos' if r.squad_d > 0 else ('neg' if r.squad_d < 0 else 'muted') }}">{{ "%+d"|format(r.squad_d) }}</td>
+        <td class="num {{ 'pos' if r.cap_d > 0 else ('neg' if r.cap_d < 0 else 'muted') }}">{{ "%+d"|format(r.cap_d) }}</td>
+        <td class="num {{ 'pos' if r.hits_d > 0 else ('neg' if r.hits_d < 0 else 'muted') }}">{{ "%+d"|format(r.hits_d) }}</td>
+        <td class="num bold">{{ r.total }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
 </div>
 
 {# ==================== TRANSFER LAB ==================== #}
@@ -1661,13 +1839,14 @@
   </div>
   {% endif %}
 
-  <p class="stat-note">"Net" = points gained by players bought minus players sold, after hit costs. "Deadline%" = share of transfers made in the final 3 hours before the deadline.</p>
+  <p class="stat-note">"Net" = points gained by players bought minus players sold, after hit costs. "Deadline%" = share of transfers made in the final 3 hours before the deadline. "Rage%" = share made within a day of the previous gameweek's final whistle. "Used" = unique players fielded all season{% if churn_corr is not none %} (churn vs final position correlation: r = {{ "%+.2f"|format(churn_corr) }}){% endif %}.</p>
   <div class="table-wrap">
   <table>
     <thead><tr>
       <th>Team</th><th>Manager</th>
       <th class="num">Transfers</th><th class="num">Hits</th><th class="num">Hit Pts</th>
       <th class="num">Net</th><th class="num">Deadline%</th>
+      <th class="num">Rage%</th><th class="num">Used</th>
     </tr></thead>
     <tbody>
       {% for r in transfer_lab %}
@@ -1679,11 +1858,105 @@
         <td class="num neg">{{ '-' ~ r.hit_pts if r.hit_pts else 0 }}</td>
         <td class="num bold {{ 'pos' if r.net > 0 else ('neg' if r.net < 0 else 'muted') }}">{{ "%+d"|format(r.net) }}</td>
         <td class="num">{{ r.last_minute_pct }}%</td>
+        <td class="num {{ 'neg' if r.rage_pct >= 50 else '' }}">{{ r.rage_pct }}%</td>
+        <td class="num">{{ r.players_used }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
   </div>
+
+  {% if should_kept %}
+  <h3 class="sub-title" style="margin-top:18px;">Should've Kept Him</h3>
+  <p class="stat-note">The biggest "what have I done" &mdash; the player each manager let go who went on to score the most afterwards (based on end-of-GW squads, so wildcard churn doesn't count).</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Team</th><th>Manager</th><th>Let go</th><th class="ctr">Last owned</th><th class="num">Pts Since</th></tr></thead>
+    <tbody>
+      {% for r in should_kept[:10] %}
+      <tr>
+        <td class="bold">{{ r.entry_name }}</td>
+        <td>{{ r.player_name }}</td>
+        <td class="neg">{{ r.pick }}</td>
+        <td class="ctr">GW{{ r.sold_gw }}</td>
+        <td class="num bold neg">{{ r.value }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
+
+  {% if sliding_doors %}
+  <h3 class="sub-title" style="margin-top:18px;">Sliding Doors &mdash; GW{{ event }}</h3>
+  <p class="stat-note">What if you'd made no moves this week? Last GW's XI scored on GW{{ event }} vs what you actually got. "Diff" positive = your transfers/captaincy paid off.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Team</th><th>Manager</th><th class="num">Stand-Pat</th><th class="num">Actual</th><th class="num">Diff</th></tr></thead>
+    <tbody>
+      {% for r in sliding_doors %}
+      <tr>
+        <td class="bold">{{ r.entry_name }}</td>
+        <td>{{ r.player_name }}</td>
+        <td class="num muted">{{ r.standpat }}</td>
+        <td class="num bold">{{ r.actual }}</td>
+        <td class="num bold {{ 'pos' if r.diff > 0 else ('neg' if r.diff < 0 else 'muted') }}">{{ "%+d"|format(r.diff) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
+
+  {% if jinx_rows %}
+  <h3 class="sub-title" style="margin-top:18px;">The Jinx</h3>
+  <p class="stat-note">Points scored <em>the very next gameweek</em> by players each manager let go. The instant-karma leaderboard (wildcard/free-hit churn excluded).</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="ctr" style="width:28px">#</th><th>Team</th><th>Manager</th>
+      <th class="num">Jinx Pts</th><th>Worst Moment</th>
+    </tr></thead>
+    <tbody>
+      {% for r in jinx_rows[:10] %}
+      <tr>
+        <td class="rank-cell">{{ loop.index }}</td>
+        <td class="bold">{{ r.entry_name }}</td>
+        <td>{{ r.player_name }}</td>
+        <td class="num bold neg">{{ r.value }}</td>
+        <td>{{ r.worst_pick }} hauled <span class="neg bold">{{ r.worst_pts }}</span> in GW{{ r.worst_gw }} right after being dropped</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
+
+  {% if fomo_rows %}
+  <h3 class="sub-title" style="margin-top:18px;">Buy High, Sell Low</h3>
+  <p class="stat-note">For every player brought in: per-GW form in the 3 weeks <em>before</em> the purchase vs the 3 weeks <em>after</em>, summed across all buys. A big positive FOMO tax = chronically buying the top of the bandwagon.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Team</th><th>Manager</th><th class="num">Buys</th>
+      <th class="num">Form Bought</th><th class="num">Form Received</th>
+      <th class="num">FOMO Tax</th>
+    </tr></thead>
+    <tbody>
+      {% for r in fomo_rows %}
+      <tr>
+        <td class="bold">{{ r.entry_name }}</td>
+        <td>{{ r.player_name }}</td>
+        <td class="num">{{ r.buys }}</td>
+        <td class="num">{{ r.bought_form }}</td>
+        <td class="num">{{ r.delivered }}</td>
+        <td class="num bold {{ 'neg' if r.value > 0 else ('pos' if r.value < 0 else 'muted') }}">{{ "%+.1f"|format(r.value) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
 </div>
 
 {# ==================== DEFENSIVE CONTRIBUTIONS ==================== #}
@@ -1737,9 +2010,57 @@
   {% endif %}
 </div>
 
+{# ==================== ATTACKING RETURNS ==================== #}
+<div id="attacking" class="section">
+  {{ section_bar("15", "Attacking Returns", "Points from goals &amp; assists") }}
+
+  <p class="stat-note">The flip side of DefCon &mdash; points earned purely from goals and assists (goals scored &times; position value + assists &times; 3).</p>
+  <div class="two-col">
+    <div>
+      <h3 class="sub-title">League Attacking Kings</h3>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Player</th><th>Team</th><th class="ctr">Pos</th><th class="num">G</th><th class="num">A</th><th class="num">Attack Pts</th></tr></thead>
+        <tbody>
+          {% for r in attack_leaders %}
+          <tr>
+            <td class="bold">{{ r.web_name }}</td>
+            <td>{{ r.team }}</td>
+            <td class="ctr">{{ r.pos }}</td>
+            <td class="num">{{ r.goals }}</td>
+            <td class="num">{{ r.assists }}</td>
+            <td class="num bold pos">{{ r.attack_pts }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+    <div>
+      <h3 class="sub-title">"The Entertainers" &mdash; manager attack</h3>
+      <p class="stat-note">Attacking points racked up by each manager's starting XI.</p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th class="ctr" style="width:28px">#</th><th>Team</th><th>Manager</th><th class="num">Attack Pts</th></tr></thead>
+        <tbody>
+          {% for r in entertainers %}
+          <tr>
+            <td class="rank-cell">{{ loop.index }}</td>
+            <td class="bold">{{ r.entry_name }}</td>
+            <td>{{ r.player_name }}</td>
+            <td class="num bold">{{ r.value }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 {# ==================== ALTERNATIVE TABLES ==================== #}
 <div id="alt-tables" class="section">
-  {{ section_bar("15", "Alternative Tables", "If only one thing counted&hellip;") }}
+  {{ section_bar("16", "Alternative Tables", "If only one thing counted&hellip;") }}
 
   <div class="two-col">
     <div>
@@ -1784,11 +2105,90 @@
       </div>
     </div>
   </div>
+
+  <h3 class="sub-title" style="margin-top:18px;">What If You'd Done Nothing?</h3>
+  <p class="stat-note">The counterfactual season: your GW1 starting XI (and GW1 captain) held every week, no transfers, no chips. "Diff" = your real total minus the do-nothing total &mdash; positive means your meddling actually helped.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="ctr" style="width:28px">#</th><th>Team</th><th>Manager</th>
+      <th class="num">Do-Nothing</th><th class="num">Actual</th><th class="num">Diff</th>
+    </tr></thead>
+    <tbody>
+      {% for r in donothing %}
+      <tr>
+        <td class="rank-cell">{{ r.dn_pos }}</td>
+        <td class="bold">{{ r.entry_name }}</td>
+        <td>{{ r.player_name }}</td>
+        <td class="num">{{ r.donothing }}</td>
+        <td class="num bold">{{ r.actual }}</td>
+        <td class="num bold {{ 'pos' if r.diff > 0 else ('neg' if r.diff < 0 else 'muted') }}">{{ "%+d"|format(r.diff) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="sub-title" style="margin-top:18px;">The Perfect You</h3>
+  <p class="stat-note">Your ceiling season: same squads, same transfers, but the perfect hindsight XI every week, the perfect captain (of your actual starters), and zero hits. "Wasted" is the gap you personally created.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="ctr" style="width:28px">#</th><th>Team</th><th>Manager</th>
+      <th class="num">Actual</th><th class="num">+ Selection</th>
+      <th class="num">+ Captaincy</th><th class="num">+ Hits</th>
+      <th class="num">Perfect</th><th class="num">Wasted</th><th class="num">Move</th>
+    </tr></thead>
+    <tbody>
+      {% for r in perfect_you %}
+      <tr>
+        <td class="rank-cell">{{ loop.index }}</td>
+        <td class="bold">{{ r.entry_name }}</td>
+        <td>{{ r.player_name }}</td>
+        <td class="num">{{ r.actual }}</td>
+        <td class="num muted">+{{ r.sel }}</td>
+        <td class="num muted">+{{ r.cap }}</td>
+        <td class="num muted">+{{ r.hits }}</td>
+        <td class="num bold">{{ r.perfect }}</td>
+        <td class="num bold neg">{{ r.waste }}</td>
+        <td class="num {{ 'pos' if (r.pos_change or 0) > 0 else ('neg' if (r.pos_change or 0) < 0 else 'muted') }}">{{ ("%+d"|format(r.pos_change)) if r.pos_change else '&ndash;'|safe }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
 </div>
 
 {# ==================== HEAD TO HEAD ==================== #}
 <div id="h2h" class="section">
-  {{ section_bar("16", "Head to Head", "Every manager vs every other, on weekly points") }}
+  {{ section_bar("17", "Head to Head", "Every manager vs every other, on weekly points") }}
+
+  {% if h2h_bullies %}
+  <h3 class="sub-title">Biggest Bullies</h3>
+  <p class="stat-note">The most lopsided rivalries &mdash; who owns who across the season.</p>
+  <div class="pill-grid" style="margin-bottom:16px;">
+    {% for r in h2h_bullies %}
+    <div class="pill">
+      <div class="pill-top">+{{ r.margin }} margin</div>
+      <div class="pill-main">{{ r.bully }}</div>
+      <div class="pill-sub">bullies {{ r.victim }} &middot; {{ r.w }}&ndash;{{ r.l }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if doppelgangers %}
+  <h3 class="sub-title">The Doppelgangers</h3>
+  <p class="stat-note">Who's been copying who &mdash; the most similar squads by average starting-XI overlap.</p>
+  <div class="pill-grid" style="margin-bottom:16px;">
+    {% for r in doppelgangers %}
+    <div class="pill">
+      <div class="pill-top">{{ r.overlap }}% same XI</div>
+      <div class="pill-main">{{ r.a }} &amp; {{ r.b }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
   <h3 class="sub-title">Records</h3>
   <p class="stat-note">Each gameweek, your score is compared against every other manager's. "Nemesis" beats you most; your "Bunny" you beat most.</p>
@@ -1841,7 +2241,7 @@
 
 {# ==================== AROUND THE LEAGUE ==================== #}
 <div id="around" class="section">
-  {{ section_bar("17", "Around the League", "Player-level league color") }}
+  {{ section_bar("18", "Around the League", "Player-level league color") }}
 
   <div class="two-col">
     <div>
@@ -1888,13 +2288,26 @@
       {% else %}
       <p class="stat-note">No card data available.</p>
       {% endif %}
+
+      <h3 class="sub-title" style="margin-top:18px;">The Emperor's New Clothes</h3>
+      <p class="stat-note">The opposite of the ones that got away &mdash; consistently owned across the league, but the returns never came.</p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Player</th><th>Team</th><th class="ctr">Pos</th><th class="num">Avg Own</th><th class="num">Pts</th></tr></thead>
+        <tbody>
+          {% for r in emperors %}
+          <tr><td class="bold">{{ r.web_name }}</td><td>{{ r.team }}</td><td class="ctr">{{ r.pos }}</td><td class="num">{{ r.avg_pct|int }}%</td><td class="num neg">{{ r.pts }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
     </div>
   </div>
 </div>
 
 {# ==================== SEASON PROGRESSION ==================== #}
 <div id="progression" class="section">
-  {{ section_bar("18", "Season Progression", "Per-manager journey through the season") }}
+  {{ section_bar("19", "Season Progression", "Per-manager journey through the season") }}
 
   <div style="margin-bottom:12px;">
     <label for="progression-select" style="font-size:12px; font-weight:600; color:var(--slate);">Select manager:</label>
