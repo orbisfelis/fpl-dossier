@@ -209,6 +209,30 @@ draws from your subscription); the weekly run is a single request.
 > `.gitignore`) or the host environment; Option B needs no key at all. The key
 > is never written into `docs/`, the cache, or any tracked file.
 
+### How the narrative stays coherent
+
+Each week's column is fed more than the current scoreline. The model also gets a
+**season-state** block (standings, the title-race margin, gameweeks remaining,
+form, and running storylines such as the perennially lucky side or a serial
+captaincy howler) and **last week's column** (threaded in from the cache), so it
+can carry jokes forward, reference what it said before, and build momentum into
+the run-in rather than treating every gameweek as a blank slate.
+
+### Comparing to last season
+
+Once you have an archived previous-season DB, pass it with `--prev-db` (or set
+`FPL_PREV_DB`) for same-gameweek, year-on-year comparisons — a "vs Last Season"
+table plus narrative hooks ("this time last year…"):
+
+```bash
+docker compose run --rm fpl publish --prev-db data/25_26_fpl.db
+```
+
+Returning managers are matched on their stable `entry_id`, so the per-manager
+deltas only cover managers present in both seasons. The feature is **dormant
+until a prior season exists** — with no `--prev-db`, the section simply doesn't
+render. (So it activates from 26/27 onward, comparing against 25/26.)
+
 ## End-of-season archive
 
 The FPL API recycles its endpoints for the new season in early August. Once
