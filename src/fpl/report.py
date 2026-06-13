@@ -85,7 +85,8 @@ def current_season(today: date | None = None) -> str:
 def generate_report(db_path: Path, output: Path, league_id: int,
                     event: int | None = None, fmt: str = "md",
                     season: str | None = None, narrative: str = "auto",
-                    refresh_narrative: bool = False) -> Path:
+                    refresh_narrative: bool = False,
+                    prev_db: Path | None = None) -> Path:
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
 
@@ -110,7 +111,7 @@ def generate_report(db_path: Path, output: Path, league_id: int,
 
     log.info("Generating %s report for league %d, GW %d", fmt.upper(), league_id, event)
 
-    data = _collect_data(conn, league_id, event)
+    data = _collect_data(conn, league_id, event, prev_db=prev_db)
     data["season"] = season or current_season()
     conn.close()
 
@@ -150,7 +151,8 @@ def generate_report(db_path: Path, output: Path, league_id: int,
 def publish_reports(db_path: Path, league_id: int, docs_dir: Path,
                     season: str | None = None, event: int | None = None,
                     all_gws: bool = False, narrative: str = "auto",
-                    refresh_narrative: bool = False) -> Path:
+                    refresh_narrative: bool = False,
+                    prev_db: Path | None = None) -> Path:
     """Render HTML report(s) into ``docs/<season>/GW<N>.html``, then rebuild the
     manifest and the root ``index.html`` redirect that drive the GW/season
     dropdown on GitHub Pages."""
@@ -172,7 +174,7 @@ def publish_reports(db_path: Path, league_id: int, docs_dir: Path,
     for ev in targets:
         generate_report(db_path, season_dir / f"GW{ev}.html", league_id,
                         ev, fmt="html", season=season, narrative=narrative,
-                        refresh_narrative=refresh_narrative)
+                        refresh_narrative=refresh_narrative, prev_db=prev_db)
 
     manifest = build_manifest(docs_dir)
     (docs_dir / "manifest.json").write_text(
@@ -181,6 +183,41 @@ def publish_reports(db_path: Path, league_id: int, docs_dir: Path,
 
     log.info("Published %d report(s) to %s", len(targets), season_dir)
     return season_dir
+
+
+def _prev_season_stats(prev_db_path: Path, league_id: int, event: int) -> dict | None:
+    """Read the same-gameweek snapshot from an archived previous-season DB, for
+    year-on-year comparisons. Returns None if the file/data isn't there, so the
+    feature stays dormant until a prior season exists to point at.
+
+    Returning managers are matched on entry_id (stable across seasons), so the
+    per-manager deltas only cover managers present in both seasons.
+    """
+    try:
+        if not prev_db_path or not Path(prev_db_path).exists():
+            return None
+        conn = sqlite3.connect(prev_db_path)
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            """SELECT m.entry_id, m.entry_name, mg.points, mg.total_points
+               FROM manager_gameweeks mg
+               JOIN managers m ON m.entry_id = mg.entry_id
+               WHERE m.league_id = ? AND mg.event = ?
+               ORDER BY mg.total_points DESC""",
+            (league_id, event)).fetchall()
+        conn.close()
+    except sqlite3.Error:
+        return None
+    if not rows:
+        return None
+    totals = {r["entry_id"]: {"team": r["entry_name"], "total": r["total_points"],
+                              "rank": i} for i, r in enumerate(rows, 1)}
+    pts = [r["points"] or 0 for r in rows]
+    return {
+        "league_avg": round(sum(pts) / len(pts), 1) if pts else None,
+        "leader": {"team": rows[0]["entry_name"], "total": rows[0]["total_points"]},
+        "totals": totals,
+    }
 
 
 def _available_events(db_path: Path, league_id: int) -> list[int]:
@@ -247,23 +284,37 @@ def _write_index(docs_dir: Path, manifest: dict) -> None:
 _NARRATIVE_MODEL = "claude-opus-4-8"
 
 _NARRATIVE_SYSTEM = (
-    "You are a sharp, witty sports columnist writing the weekly editorial for a "
-    "Fantasy Premier League mini-league report. Produce exactly three short "
-    "paragraphs, in this order and spirit:\n"
-    "1. disgraces — ruthlessly but playfully mock the week's worst decisions and "
-    "performances: the wooden spoon, captaincy howlers, bench disasters, hits that "
-    "backfired, players who never got off the bench.\n"
-    "2. shockers — celebrate the standout moments: the top score, a new league "
-    "leader, the transfer of the week, chips that paid off, brave differentials.\n"
-    "3. nerd — one or two dry, analytical observations: the league vs the wider "
-    "FPL world, the template-XI benchmark, defensive-contribution points, xPts luck.\n\n"
-    "Hard rules: use ONLY the facts given in the JSON — never invent players, "
-    "managers, clubs, numbers or events, and never imply a fact that isn't there. "
-    "If something is absent, leave it out. Keep each paragraph to 2-4 sentences. Be "
-    "specific and genuinely funny, not generic filler. Wrap key team/manager/player "
-    "names and standout numbers in **double asterisks** for emphasis. Plain prose "
-    "only — no HTML, no markdown headings, no bullet lists. British spelling. Do not "
-    "address the reader as 'you'."
+    "You are the resident columnist for a Fantasy Premier League mini-league, "
+    "writing the weekly editorial in an ongoing season-long column — sharp, "
+    "witty, a little merciless, but always affectionate. You are not summarising "
+    "a spreadsheet; you are telling the continuing story of a title race.\n\n"
+    "Write exactly three flowing paragraphs, in this order:\n"
+    "1. disgraces — ruthlessly but playfully mock the week's worst decisions: the "
+    "wooden spoon, captaincy howlers, bench disasters, hits that backfired, "
+    "players who never got off the bench. Name names.\n"
+    "2. shockers — the week's standouts: the top score, a new league leader, the "
+    "transfer of the week, chips that paid off, brave differentials.\n"
+    "3. nerd — dry, analytical observations: the league vs the wider FPL world, "
+    "the template-XI benchmark, defensive-contribution points, and the xPts luck "
+    "story.\n\n"
+    "CONTINUITY IS THE WHOLE POINT. The JSON includes a `season` block (standings, "
+    "the title-race margin, gameweeks remaining, form, and `running_storylines`) "
+    "and, when available, `story_so_far` — last week's column. Use them:\n"
+    "- Keep the thread going: refer back to what you said last week, pick up "
+    "running jokes (e.g. a manager's serial captaincy howlers, a perennially "
+    "lucky side, someone bottling a lead), and let them evolve rather than "
+    "resetting each week.\n"
+    "- Frame the week against the bigger picture: who leads and by how much, who's "
+    "closing in or fading, and — especially in the run-in — what the result means "
+    "for the title with N gameweeks left. Build momentum and stakes.\n"
+    "- Vary your openings and don't simply relist the facts; weave them into a "
+    "story with a point of view.\n\n"
+    "Hard rules: use ONLY the facts in the JSON — never invent players, managers, "
+    "clubs, numbers or events, and never imply a fact that isn't there; if "
+    "something is absent, leave it out. Each paragraph should run 3-6 sentences. "
+    "Wrap key team/manager/player names and standout numbers in **double "
+    "asterisks**. Plain prose only — no HTML, no markdown headings, no bullet "
+    "lists. British spelling. Do not address the reader as 'you'."
 )
 
 _NARRATIVE_SCHEMA = {
@@ -308,6 +359,17 @@ def _shape_narrative(parsed: dict) -> list[dict] | None:
     return out or None
 
 
+def _narrative_plain_text(shaped: list[dict]) -> str:
+    """Flatten a cached (shaped) narrative back to plain prose, for feeding last
+    week's column to the model as continuity context."""
+    parts = []
+    for sec in shaped:
+        body = re.sub(r"<[^>]+>", "", sec.get("html", "")).strip()
+        if body:
+            parts.append(f"{sec.get('label', '')}: {body}")
+    return "\n".join(parts)
+
+
 def _provider_api(facts: dict) -> dict | None:
     """Generate the narrative JSON via the Anthropic API (needs ANTHROPIC_API_KEY)."""
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -318,10 +380,10 @@ def _provider_api(facts: dict) -> dict | None:
         log.warning("anthropic package not installed — using phrase-bank narrative")
         return None
     try:
-        client = anthropic.Anthropic(timeout=90)
+        client = anthropic.Anthropic(timeout=120)
         resp = client.messages.create(
             model=_NARRATIVE_MODEL,
-            max_tokens=2000,
+            max_tokens=3500,
             thinking={"type": "adaptive"},
             system=_NARRATIVE_SYSTEM,
             output_config={"effort": "medium",
@@ -402,7 +464,19 @@ def write_narrative(facts: dict, league_id: int, event: int, db_path: Path,
                 except (TypeError, ValueError):
                     pass
 
-        parsed = provider(facts)
+        # Thread in last week's column for continuity (callbacks, running jokes,
+        # momentum). Sequential generation means GW N-1 is already cached.
+        ctx = dict(facts)
+        prev = cache.execute(
+            "SELECT content FROM narrative_cache WHERE league_id = ? AND event = ?",
+            (league_id, event - 1)).fetchone()
+        if prev:
+            try:
+                ctx["story_so_far"] = {"last_week": _narrative_plain_text(json.loads(prev[0]))}
+            except (TypeError, ValueError):
+                pass
+
+        parsed = provider(ctx)
         if not parsed:
             return None
         out = _shape_narrative(parsed)
@@ -425,7 +499,8 @@ def write_narrative(facts: dict, league_id: int, event: int, db_path: Path,
 # Data collection
 # ---------------------------------------------------------------------------
 
-def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
+def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
+                  prev_db: Path | None = None) -> dict:
     """Gather every piece of data the report needs into a plain dict."""
 
     # --- Header ---
@@ -2578,7 +2653,88 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int) -> dict:
         facts["luckiest_manager"] = {
             "team": luckiest[0]["entry_name"], "xpts_overperformance": luckiest[0]["diff"]}
 
+    # --- Season state: standings, title race, momentum, running storylines ---
+    # The context that lets a narrator keep a thread going week to week.
+    total_gws = (conn.execute("SELECT MAX(id) AS m FROM gameweeks").fetchone()["m"]
+                 or event)
+    tr_weeks = {r["entry_name"]: r["weeks_first"] for r in title_race}
+    ghost_tally: dict[int, int] = defaultdict(int)
+    for g2_eid, g2_by_ev in squad15.items():
+        for ev2, picks in g2_by_ev.items():
+            for el, m_, _p in picks:
+                if m_ > 0 and pstat.get((el, ev2), (0, 0))[1] == 0:
+                    ghost_tally[g2_eid] += 1
+    if leaderboard:
+        leader = leaderboard[0]
+        lead_total = leader["total_points"] or 0
+        second_total = (leaderboard[1]["total_points"] or 0) if len(leaderboard) > 1 else lead_total
+        form_sorted = sorted(leaderboard, key=lambda r: r["form"] or 0, reverse=True)
+        howlers = sorted(captaincy_standings, key=lambda r: r["blanks"], reverse=True)
+        ghosts_ranked = sorted(ghost_tally.items(), key=lambda kv: kv[1], reverse=True)
+        most_top = max(title_race, key=lambda r: r["weeks_first"]) if title_race else None
+        facts["season"] = {
+            "gameweeks_played": event,
+            "gameweeks_remaining": max(0, total_gws - event),
+            "standings_top": [
+                {"pos": r["pos"], "team": r["entry_name"], "manager": r["player_name"],
+                 "total": r["total_points"], "gap_to_first": lead_total - (r["total_points"] or 0)}
+                for r in leaderboard[:6]],
+            "bottom": [
+                {"pos": r["pos"], "team": r["entry_name"], "total": r["total_points"]}
+                for r in leaderboard[-2:]],
+            "leader": {"team": leader["entry_name"], "manager": leader["player_name"],
+                       "lead_over_second": lead_total - second_total,
+                       "weeks_on_top": tr_weeks.get(leader["entry_name"], 0)},
+            "title_race_chasers": [
+                {"team": r["entry_name"], "gap": lead_total - (r["total_points"] or 0)}
+                for r in leaderboard[1:6] if (lead_total - (r["total_points"] or 0)) <= 25],
+            "form_hottest": [{"team": r["entry_name"], "last5": r["form"]}
+                             for r in form_sorted[:2]],
+            "form_coldest": [{"team": r["entry_name"], "last5": r["form"]}
+                             for r in form_sorted[-2:]],
+            "running_storylines": {
+                "luckiest_all_season": ({"team": luckiest[0]["entry_name"],
+                                         "xpts_over": round(luckiest[0]["diff"])}
+                                        if luckiest else None),
+                "captaincy_howlers": [{"team": r["entry_name"], "blank_weeks": r["blanks"]}
+                                      for r in howlers[:2] if r["blanks"] >= 2],
+                "ghost_offenders": [{"team": _name(eid)[0], "ghost_starts": n}
+                                    for eid, n in ghosts_ranked[:2] if n >= 3],
+                "most_weeks_on_top": ({"team": most_top["entry_name"],
+                                       "weeks": most_top["weeks_first"]}
+                                      if most_top and most_top["weeks_first"] else None),
+            },
+        }
+
+    # --- Same-week-last-season comparison (dormant until a prev DB is given) ---
+    last_season = None
+    prev = _prev_season_stats(prev_db, league_id, event) if prev_db else None
+    if prev:
+        rows = []
+        for r in leaderboard:
+            pe = prev["totals"].get(r["entry_id"])
+            if pe:
+                rows.append({
+                    "team": r["entry_name"], "manager": r["player_name"],
+                    "this_total": r["total_points"], "last_total": pe["total"],
+                    "delta": (r["total_points"] or 0) - (pe["total"] or 0),
+                    "this_rank": r["pos"], "last_rank": pe["rank"]})
+        last_season = {
+            "league_avg_now": round(gw_avg, 1) if gw_avg is not None else None,
+            "league_avg_last": prev["league_avg"],
+            "leader_last": prev["leader"],
+            "managers": rows,
+        }
+        if "season" in facts:
+            facts["season"]["last_year"] = {
+                "league_avg_last": prev["league_avg"],
+                "leader_last": prev["leader"],
+                "biggest_improvers": sorted(rows, key=lambda r: r["delta"], reverse=True)[:3],
+                "biggest_decliners": sorted(rows, key=lambda r: r["delta"])[:3],
+            }
+
     return {
+        "last_season": last_season,
         "event": event,
         "league_id": league_id,
         "league_name": league_name,

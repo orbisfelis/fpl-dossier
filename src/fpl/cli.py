@@ -106,7 +106,8 @@ def main(argv: list[str] | None = None) -> int:
             output = args.db.parent / "reports" / f"dossier_GW{gw_label}.{ext}"
         path = generate_report(args.db, output, args.league, args.gw,
                                fmt=args.fmt, narrative=args.narrative,
-                               refresh_narrative=args.refresh_narrative)
+                               refresh_narrative=args.refresh_narrative,
+                               prev_db=args.prev_db)
         print(f"Report written: {path}")
 
     elif args.command == "publish":
@@ -114,6 +115,7 @@ def main(argv: list[str] | None = None) -> int:
             args.db, args.league, args.docs,
             season=args.season, event=args.gw, all_gws=args.all_gws,
             narrative=args.narrative, refresh_narrative=args.refresh_narrative,
+            prev_db=args.prev_db,
         )
         print(f"Published to: {season_dir} (manifest + index.html updated)")
 
@@ -137,11 +139,19 @@ def _add_narrative_opts(p: argparse.ArgumentParser) -> None:
                         "(default) prefers the API key, then the CLI, else phrases")
     p.add_argument("--refresh-narrative", action="store_true",
                    help="Regenerate the LLM narrative even if a cached one exists")
+    p.add_argument("--prev-db", type=Path, default=_env_path("FPL_PREV_DB"),
+                   help="Archived previous-season DB for same-week comparisons "
+                        "(e.g. data/25_26_fpl.db); dormant until a prior season exists")
 
 
 def _env_int(name: str) -> int | None:
     val = os.environ.get(name)
     return int(val) if val else None
+
+
+def _env_path(name: str) -> Path | None:
+    val = os.environ.get(name)
+    return Path(val) if val else None
 
 
 if __name__ == "__main__":
