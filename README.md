@@ -95,10 +95,11 @@ the dropdown. Override the label with `--season 26-27` if needed.
 Beyond the core leaderboard / captains / transfers / chips / xPts sections, the
 report includes a layer of season-long analysis:
 
-- **The Week in Words** — an editorial at the top of every report:
+- **The Week in Words** — a four-part editorial at the top of every report:
   *The Disgraces* (wooden spoon, captaincy disasters, bench crimes, hits that
   backfired, ghost starters), *The Shockers* (MOTW, new leaders, transfer of
-  the week, chips cashed, differential hauls) and *The Nerd Corner* (league vs
+  the week, chips cashed, differential hauls), *The Title Race* (standings,
+  the gap, momentum and run-in stakes) and *The Nerd Corner* (league vs
   world, template-XI benchmark, DefCon, luck). Written by **Claude**
   (`claude-opus-4-8`) — via an API key or your local `claude` CLI login —
   when one is available (see [AI narrative](#ai-narrative)); otherwise generated

@@ -288,13 +288,17 @@ _NARRATIVE_SYSTEM = (
     "writing the weekly editorial in an ongoing season-long column — sharp, "
     "witty, a little merciless, but always affectionate. You are not summarising "
     "a spreadsheet; you are telling the continuing story of a title race.\n\n"
-    "Write exactly three flowing paragraphs, in this order:\n"
+    "Write exactly four flowing paragraphs, in this order:\n"
     "1. disgraces — ruthlessly but playfully mock the week's worst decisions: the "
     "wooden spoon, captaincy howlers, bench disasters, hits that backfired, "
     "players who never got off the bench. Name names.\n"
     "2. shockers — the week's standouts: the top score, a new league leader, the "
     "transfer of the week, chips that paid off, brave differentials.\n"
-    "3. nerd — dry, analytical observations: the league vs the wider FPL world, "
+    "3. title_race — the state of the championship: who leads and by how much, who "
+    "is charging or fading, the gaps that matter, and — especially in the run-in "
+    "— what this week did to the race with N gameweeks left. This is where the "
+    "season-long arc lives; build momentum, tension and stakes.\n"
+    "4. nerd — dry, analytical observations: the league vs the wider FPL world, "
     "the template-XI benchmark, defensive-contribution points, and the xPts luck "
     "story.\n\n"
     "CONTINUITY IS THE WHOLE POINT. The JSON includes a `season` block (standings, "
@@ -311,10 +315,11 @@ _NARRATIVE_SYSTEM = (
     "story with a point of view.\n\n"
     "Hard rules: use ONLY the facts in the JSON — never invent players, managers, "
     "clubs, numbers or events, and never imply a fact that isn't there; if "
-    "something is absent, leave it out. Each paragraph should run 3-6 sentences. "
-    "Wrap key team/manager/player names and standout numbers in **double "
-    "asterisks**. Plain prose only — no HTML, no markdown headings, no bullet "
-    "lists. British spelling. Do not address the reader as 'you'."
+    "something is absent, leave it out. Each paragraph should run 5-8 sentences — "
+    "give it room to breathe, don't pad. Wrap key team/manager/player names and "
+    "standout numbers in **double asterisks**. Plain prose only — no HTML, no "
+    "markdown headings, no bullet lists. British spelling. Do not address the "
+    "reader as 'you'."
 )
 
 _NARRATIVE_SCHEMA = {
@@ -322,9 +327,10 @@ _NARRATIVE_SCHEMA = {
     "properties": {
         "disgraces": {"type": "string"},
         "shockers": {"type": "string"},
+        "title_race": {"type": "string"},
         "nerd": {"type": "string"},
     },
-    "required": ["disgraces", "shockers", "nerd"],
+    "required": ["disgraces", "shockers", "title_race", "nerd"],
     "additionalProperties": False,
 }
 
@@ -354,6 +360,7 @@ def _shape_narrative(parsed: dict) -> list[dict] | None:
            for lbl, col, key in (
                ("The Disgraces", "var(--red)", "disgraces"),
                ("The Shockers", "var(--slate)", "shockers"),
+               ("The Title Race", "#b8860b", "title_race"),
                ("The Nerd Corner", "var(--green)", "nerd"))
            if (parsed.get(key) or "").strip()]
     return out or None
@@ -380,10 +387,10 @@ def _provider_api(facts: dict) -> dict | None:
         log.warning("anthropic package not installed — using phrase-bank narrative")
         return None
     try:
-        client = anthropic.Anthropic(timeout=120)
+        client = anthropic.Anthropic(timeout=150)
         resp = client.messages.create(
             model=_NARRATIVE_MODEL,
-            max_tokens=3500,
+            max_tokens=4500,
             thinking={"type": "adaptive"},
             system=_NARRATIVE_SYSTEM,
             output_config={"effort": "medium",
@@ -410,7 +417,7 @@ def _provider_cli(facts: dict) -> dict | None:
         _NARRATIVE_SYSTEM
         + "\n\nGameweek facts (JSON):\n```json\n" + json.dumps(facts, indent=2)
         + "\n```\n\nReturn ONLY a JSON object with string keys "
-          '"disgraces", "shockers" and "nerd" — no other text.')
+          '"disgraces", "shockers", "title_race" and "nerd" — no other text.')
     try:
         proc = subprocess.run(
             [claude, "-p", prompt, "--model", _NARRATIVE_MODEL,
