@@ -222,6 +222,7 @@
   <a class="nav-brand" href="#top">THE <span>DOSSIER</span></a>
   <a href="#predictions">Predictions</a>
   <a href="#recap">Last Season</a>
+  <a href="#formbook">Form Book</a>
   <a href="#players">Player Intel</a>
   <a href="#fixtures">Fixtures</a>
   <a href="#market">Market</a>
@@ -328,11 +329,42 @@
 </div>
 {% endif %}
 
+{# ==================== FORM BOOK ==================== #}
+{% if form_book %}
+<div id="formbook" class="section">
+  <div class="section-hdr">
+    <div class="section-left">
+      <div class="section-title">2. The Form Book</div>
+      <div class="section-sub">Every manager's FPL career &mdash; and who's new</div>
+    </div>
+    <div class="section-right">Pre-Season</div>
+  </div>
+
+  {% if new_joiners %}
+  <p class="note">
+    <span class="bold">{{ new_joiners|length }} new joiner{{ "" if new_joiners|length == 1 else "s" }}</span>
+    this season: {{ new_joiners|map(attribute="entry_name")|join(", ") }}.
+    Career records below &mdash; you have been warned.
+  </p>
+  {% endif %}
+
+  {{ player_table(form_book, ["Team|entry_name", "Manager|player_name", "New?|new_label",
+       ">Seasons|seasons", ">Career best|best_points", "In|best_season",
+       ">Top %|best_pct|pct0", ">Average|avg_points", "Last three seasons|recent"],
+       empty="No manager history yet — scrape the league (or use --entry) first.") }}
+  <p class="note">
+    &ldquo;Top %&rdquo; is the best overall finish as a percentile of the whole game,
+    which compares across seasons more fairly than raw rank. Career figures come
+    from each manager's FPL history, so they cover seasons long before this league existed.
+  </p>
+</div>
+{% endif %}
+
 {# ==================== PLAYER INTEL ==================== #}
 <div id="players" class="section">
   <div class="section-hdr">
     <div class="section-left">
-      <div class="section-title">2. Player Intel</div>
+      <div class="section-title">3. Player Intel</div>
       <div class="section-sub">Last season's underlying numbers, priced at this season's cost</div>
     </div>
     <div class="section-right">Pre-Season</div>
@@ -378,7 +410,7 @@
 <div id="fixtures" class="section">
   <div class="section-hdr">
     <div class="section-left">
-      <div class="section-title">3. Fixture Intel</div>
+      <div class="section-title">4. Fixture Intel</div>
       <div class="section-sub">Opening {{ fixtures.span }} gameweeks by average difficulty</div>
     </div>
     <div class="section-right">Pre-Season</div>
@@ -403,7 +435,7 @@
 <div id="market" class="section">
   <div class="section-hdr">
     <div class="section-left">
-      <div class="section-title">4. The Market</div>
+      <div class="section-title">5. The Market</div>
       <div class="section-sub">Where the money and the crowd have gone</div>
     </div>
     <div class="section-right">Pre-Season</div>

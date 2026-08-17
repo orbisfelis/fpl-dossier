@@ -282,6 +282,10 @@ What's on it:
   "Preview text" shows it first.
 * **Where We Left Off** — final table, champion's margin, best/worst single
   gameweek, points left on the bench, longest spell top.
+* **The Form Book** — every manager's FPL career from `/entry/<id>/history/`:
+  seasons played, career best, best percentile finish, average, and the last
+  three seasons. Managers whose `entry_id` is absent from the archived
+  previous season are flagged **NEW**, so joiners are called out by name.
 * **Player Intel** — DefCon kings, regression watch (biggest xG
   overperformers), bounce-back candidates (biggest underperformers), best
   value under £7.0m, and the ever-presents — all last season's underlying
@@ -362,6 +366,24 @@ docker compose run --rm fpl scrape --db data/26_27_fpl.db
 #    In .env:  FPL_DB=data/26_27_fpl.db
 #              FPL_PREV_DB=data/25_26_fpl.db
 ```
+
+### New joiners before the league renews
+
+A mini-league's standings endpoint 404s until it renews, usually around GW1, so
+new members are invisible to a normal scrape until then. If you know their
+entry IDs (the number in `fantasy.premierleague.com/entry/<ID>/history`, or
+from the league page in the app), pull them directly:
+
+```bash
+fpl scrape --entry 332468 --entry 1007640 --skip-player-history
+```
+
+Each is fetched via `/entry/<id>/`, then scraped like any other manager —
+which includes `past`, their full season-by-season FPL history going back as
+far as they have played. Those rows land in `manager_past_seasons` (points,
+overall rank, and the percentile finish) and drive the pre-season Form Book.
+Once the league does renew, a plain `fpl scrape` picks everyone up
+automatically and `--entry` is no longer needed.
 
 Prices drift over the summer as the deadline approaches — re-run the scrape
 the day before the GW1 deadline for final prices. After GW1 finishes, the

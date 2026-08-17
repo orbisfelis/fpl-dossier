@@ -204,6 +204,62 @@ def _player_intel(conn: sqlite3.Connection, prev_db: Path, limit: int = 8) -> di
 
 
 # ---------------------------------------------------------------------------
+# manager form book (multi-season history)
+# ---------------------------------------------------------------------------
+
+def _form_book(conn: sqlite3.Connection, league_id: int,
+               prev_entry_ids: set[int]) -> list[dict]:
+    """Every manager's FPL career, from /entry/<id>/history/ `past`.
+
+    Managers whose entry_id is absent from the archived previous season are
+    flagged as new joiners — that is the whole point of the section.
+    """
+    managers = _rows(conn.execute(
+        """SELECT entry_id, entry_name, player_name FROM managers
+           WHERE league_id = ? ORDER BY entry_name""", (league_id,)))
+    if not managers:
+        return []
+
+    history = _rows(conn.execute(
+        """SELECT entry_id, season_name, total_points, rank, rank_percentage
+           FROM manager_past_seasons ORDER BY entry_id, season_name"""))
+    by_entry: dict[int, list[dict]] = {}
+    for row in history:
+        by_entry.setdefault(row["entry_id"], []).append(row)
+
+    out = []
+    for m in managers:
+        seasons = by_entry.get(m["entry_id"], [])
+        scored = [s for s in seasons if s["total_points"]]
+        pcts = [s["rank_percentage"] for s in seasons
+                if s["rank_percentage"] is not None]
+        best = max(scored, key=lambda s: s["total_points"]) if scored else None
+        # Best finish = lowest percentile (top N%).
+        best_pct = min(pcts) if pcts else None
+        recent = sorted(scored, key=lambda s: s["season_name"])[-3:]
+        out.append({
+            "entry_id": m["entry_id"],
+            "entry_name": m["entry_name"],
+            "player_name": m["player_name"],
+            "is_new": m["entry_id"] not in prev_entry_ids,
+            "new_label": "NEW" if m["entry_id"] not in prev_entry_ids else "",
+            "seasons": len(seasons),
+            "best_points": best["total_points"] if best else None,
+            "best_season": best["season_name"] if best else None,
+            "best_pct": best_pct,
+            "avg_points": round(sum(s["total_points"] for s in scored) / len(scored))
+                          if scored else None,
+            "last_points": recent[-1]["total_points"] if recent else None,
+            "last_season": recent[-1]["season_name"] if recent else None,
+            "recent": " · ".join(f"{s['season_name'][-2:]}: {s['total_points']}"
+                                 for s in recent),
+        })
+    # Strongest career first; managers with no history sink to the bottom.
+    out.sort(key=lambda r: (r["best_points"] is None, -(r["best_points"] or 0)))
+    return out
+
+
+# ---------------------------------------------------------------------------
 # fixtures + market (new season)
 # ---------------------------------------------------------------------------
 
@@ -428,15 +484,21 @@ def collect_preseason(db_path: Path, league_id: int, prev_db: Path | None,
             intel = _player_intel(conn, Path(prev_db))
         n_players = conn.execute(
             "SELECT COUNT(*) FROM players WHERE status='a'").fetchone()[0]
+        managers_present = conn.execute(
+            "SELECT COUNT(*) FROM managers WHERE league_id = ?",
+            (league_id,)).fetchone()[0]
     finally:
         conn.close()
 
     history: dict = {}
+    prev_entry_ids: set[int] = set()
     league_name = league[0] if league else f"League {league_id}"
     if prev_db and Path(prev_db).exists():
         pconn = sqlite3.connect(prev_db)
         try:
             history = _league_history(pconn, league_id)
+            prev_entry_ids = {r[0] for r in pconn.execute(
+                "SELECT entry_id FROM managers WHERE league_id = ?", (league_id,))}
             if not league_name or league_name.startswith("League "):
                 row = pconn.execute("SELECT name FROM leagues WHERE id = ?",
                                     (league_id,)).fetchone()
@@ -452,6 +514,15 @@ def collect_preseason(db_path: Path, league_id: int, prev_db: Path | None,
         deadline_dt = datetime.fromisoformat(deadline.replace("Z", "+00:00"))
         days_left = (deadline_dt - datetime.now(timezone.utc)).days
 
+    # Needs prev_entry_ids, so it runs after the archive has been read.
+    form_book: list[dict] = []
+    if managers_present:
+        fconn = sqlite3.connect(db_path)
+        try:
+            form_book = _form_book(fconn, league_id, prev_entry_ids)
+        finally:
+            fconn.close()
+
     data = {
         "league_name": league_name,
         "league_id": league_id,
@@ -463,6 +534,8 @@ def collect_preseason(db_path: Path, league_id: int, prev_db: Path | None,
         "days_left": days_left,
         "player_count": n_players,
         "history": history,
+        "form_book": form_book,
+        "new_joiners": [m for m in form_book if m["is_new"]],
         "intel": intel,
         "fixtures": fixtures,
         "market": market,

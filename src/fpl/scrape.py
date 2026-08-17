@@ -64,6 +64,33 @@ async def scrape_manager(fpl: FPLClient, store: Store, entry: dict,
     log.info("Scraped %s (entry %d)", entry["entry_name"], entry_id)
 
 
+async def resolve_entries(fpl: FPLClient, entry_ids: list[int]) -> list[dict]:
+    """Look up managers by entry ID via /entry/<id>/.
+
+    Pre-season the league endpoint 404s until the mini-league renews, so this is
+    the only way to pick up new joiners. Returns league-shaped dicts so they can
+    flow through scrape_manager unchanged.
+    """
+    results = await asyncio.gather(*[fpl.entry(e) for e in entry_ids],
+                                   return_exceptions=True)
+    entries = []
+    for entry_id, data in zip(entry_ids, results):
+        if isinstance(data, Exception) or not isinstance(data, dict) or not data:
+            log.warning("Entry %d not found or failed: %s", entry_id,
+                        data if isinstance(data, Exception) else "empty response")
+            continue
+        name = " ".join(filter(None, [data.get("player_first_name"),
+                                      data.get("player_last_name")])).strip()
+        entries.append({
+            "entry": data.get("id", entry_id),
+            "entry_name": data.get("name") or f"Entry {entry_id}",
+            "player_name": name or "Unknown",
+        })
+        log.info("Resolved entry %d: %s (%s)", entry_id,
+                 entries[-1]["entry_name"], entries[-1]["player_name"])
+    return entries
+
+
 async def scrape_player_history(fpl: FPLClient, store: Store, element_ids: list[int]) -> None:
     """Fetch /element-summary/ for each player. ~700 requests at full season."""
     log.info("Fetching per-GW history for %d players…", len(element_ids))
@@ -92,6 +119,7 @@ async def run_scrape(
     concurrency: int,
     skip_player_history: bool = False,
     owned_only: bool = False,
+    extra_entries: list[int] | None = None,
 ) -> None:
     now = datetime.now(timezone.utc).isoformat()
     store = Store(db_path)
@@ -122,6 +150,15 @@ async def run_scrape(
         if league_name:
             store.upsert_league(league_id, league_name)
             store.commit()
+
+        # Managers named explicitly by ID — new joiners before the league
+        # renews, or anyone the standings page misses.
+        if extra_entries:
+            known = {e["entry"] for e in entries}
+            wanted = [e for e in extra_entries if e not in known]
+            if wanted:
+                entries.extend(await resolve_entries(fpl, wanted))
+            log.info("Added %d manager(s) by entry ID", len(wanted))
 
         # Managers in batches so we commit incrementally.
         batch_size = 25

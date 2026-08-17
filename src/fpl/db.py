@@ -181,6 +181,7 @@ CREATE TABLE IF NOT EXISTS manager_past_seasons (
     season_name     TEXT NOT NULL,
     total_points    INTEGER,
     rank            INTEGER,
+    rank_percentage REAL,                       -- top N% that season
     PRIMARY KEY (entry_id, season_name)
 );
 """
@@ -215,6 +216,11 @@ class Store:
             self.conn.execute("ALTER TABLE players ADD COLUMN ep_next REAL")
         if "code" not in players:
             self.conn.execute("ALTER TABLE players ADD COLUMN code INTEGER")
+        past = {r[1] for r in self.conn.execute(
+            "PRAGMA table_info(manager_past_seasons)")}
+        if past and "rank_percentage" not in past:
+            self.conn.execute(
+                "ALTER TABLE manager_past_seasons ADD COLUMN rank_percentage REAL")
 
     # ----- Reference -----
 
@@ -396,14 +402,15 @@ class Store:
         )
 
     def upsert_past_seasons(self, entry_id: int, past: Iterable[dict]) -> None:
-        rows = [(entry_id, p["season_name"], p.get("total_points"), p.get("rank"))
+        rows = [(entry_id, p["season_name"], p.get("total_points"), p.get("rank"),
+                 _to_float(p.get("rank_percentage")))
                 for p in past]
         if not rows:
             return
         self.conn.executemany(
             """INSERT OR REPLACE INTO manager_past_seasons
-                (entry_id, season_name, total_points, rank)
-                VALUES (?,?,?,?)""",
+                (entry_id, season_name, total_points, rank, rank_percentage)
+                VALUES (?,?,?,?,?)""",
             rows,
         )
 

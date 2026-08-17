@@ -66,6 +66,11 @@ def main(argv: list[str] | None = None) -> int:
                     help="Skip /element-summary/ scrape (saves ~1-2 min)")
     sp.add_argument("--owned-only", action="store_true",
                     help="Only fetch player history for players owned by managers in the league")
+    sp.add_argument("--entry", type=int, action="append", dest="extra_entries",
+                    metavar="ID",
+                    help="Also scrape this manager by entry ID, even if the league "
+                         "standings don't list them yet (pre-season new joiners). "
+                         "Repeatable: --entry 123 --entry 456")
 
     # report ---------------------------------------------------------------
     rp = subparsers.add_parser("report", parents=[common],
@@ -156,6 +161,7 @@ def main(argv: list[str] | None = None) -> int:
             concurrency=args.concurrency,
             skip_player_history=args.skip_player_history,
             owned_only=args.owned_only,
+            extra_entries=args.extra_entries,
         ))
 
     elif args.command == "report":
