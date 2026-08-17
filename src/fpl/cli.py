@@ -7,10 +7,32 @@ import asyncio
 import logging
 import os
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 from .scrape import run_scrape
 from .report import generate_report, publish_reports
+
+def _load_dotenv(path: Path = Path(".env")) -> None:
+    """Populate os.environ from .env for local runs (docker compose already
+    does this via env_file). Real environment variables always win, and the
+    file is git-ignored so secrets stay local."""
+    try:
+        text = path.read_text()
+    except OSError:
+        return
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, val = line.partition("=")
+        key = key.strip()
+        val = val.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = val
+
+
+_load_dotenv()
 
 DEFAULT_DB = Path(os.environ.get("FPL_DB", "/data/fpl.db"))
 DEFAULT_DOCS = Path(os.environ.get("FPL_DOCS", "docs"))
@@ -78,6 +100,44 @@ def main(argv: list[str] | None = None) -> int:
                     help=f"GitHub Pages output dir (default: {DEFAULT_DOCS})")
     _add_narrative_opts(pp)
 
+    # preseason ------------------------------------------------------------
+    ps = subparsers.add_parser("preseason", parents=[common],
+                               help="Build the pre-season welcome page (published as GW0)")
+    ps.add_argument("--league", type=int,
+                    default=_env_int("FPL_LEAGUE_ID"),
+                    required="FPL_LEAGUE_ID" not in os.environ,
+                    help="Classic league ID")
+    ps.add_argument("--prev-db", type=Path, default=_env_path("FPL_PREV_DB"),
+                    help="Archived previous-season DB — supplies the league "
+                         "history and player intel (or set FPL_PREV_DB)")
+    ps.add_argument("--season", default=None,
+                    help="Season label for docs/<season>/ (default: derived)")
+    ps.add_argument("--docs", type=Path, default=DEFAULT_DOCS,
+                    help=f"GitHub Pages output dir (default: {DEFAULT_DOCS})")
+    ps.add_argument("--url", default=os.environ.get("FPL_PUBLIC_URL", ""),
+                    help="Public page URL, appended to the WhatsApp text "
+                         "(or set FPL_PUBLIC_URL)")
+    ps.add_argument("--output", "-o", type=Path, default=None,
+                    help="Write a standalone HTML file instead of publishing to docs/")
+
+    # reddit ---------------------------------------------------------------
+    rd = subparsers.add_parser("reddit", parents=[common],
+                               help="Fetch r/FantasyPL discussion as grounding input")
+    rd.add_argument("--sub", default="FantasyPL", help="Subreddit (default: FantasyPL)")
+    rd.add_argument("--sort", default="top", choices=["top", "hot", "new", "rising"])
+    rd.add_argument("--time", dest="period", default="week",
+                    choices=["hour", "day", "week", "month", "year", "all"],
+                    help="Time window for --sort top (default: week)")
+    rd.add_argument("--limit", type=int, default=50,
+                    help="Posts to fetch, max 100 (default: 50)")
+    rd.add_argument("--comments", type=int, default=8, dest="comment_limit",
+                    help="Top comments per post, 0 to skip (default: 8)")
+    rd.add_argument("--backend", choices=["auto", "rss", "oauth"], default="auto",
+                    help="'rss' needs no credentials (default when none are set); "
+                         "'oauth' needs REDDIT_CLIENT_ID/SECRET and adds scores")
+    rd.add_argument("--out", type=Path, default=None,
+                    help="Output JSON path (a .md digest is written alongside)")
+
     # shell ----------------------------------------------------------------
     subparsers.add_parser("shell", parents=[common],
                           help="Open a sqlite3 shell on the DB")
@@ -118,6 +178,36 @@ def main(argv: list[str] | None = None) -> int:
             prev_db=args.prev_db,
         )
         print(f"Published to: {season_dir} (manifest + index.html updated)")
+
+    elif args.command == "preseason":
+        from .preseason import generate_preseason, publish_preseason
+        if args.output:
+            path = generate_preseason(args.db, args.output, args.league,
+                                      prev_db=args.prev_db, season=args.season,
+                                      public_url=args.url)
+            print(f"Pre-season page written: {path}")
+        else:
+            path = publish_preseason(args.db, args.league, args.docs,
+                                     prev_db=args.prev_db, season=args.season,
+                                     public_url=args.url)
+            print(f"Published: {path} (manifest + index.html updated)")
+
+    elif args.command == "reddit":
+        from .reddit import RedditError, scrape_reddit
+        out = args.out
+        if out is None:
+            stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
+            out = args.db.parent / f"reddit_{args.sub}_{stamp}.json"
+        try:
+            path = scrape_reddit(
+                sub=args.sub, sort=args.sort, period=args.period,
+                limit=args.limit, comment_limit=args.comment_limit,
+                out=out, db_path=args.db, backend=args.backend,
+            )
+        except RedditError as e:
+            print(f"Reddit: {e}", file=sys.stderr)
+            return 1
+        print(f"Wrote: {path}\nDigest: {path.with_suffix('.md')}")
 
     elif args.command == "shell":
         import subprocess

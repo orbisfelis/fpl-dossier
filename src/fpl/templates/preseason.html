@@ -1,0 +1,538 @@
+{#
+  cols is a list of "label|key|fmt" strings — Jinja has no lambdas, so the
+  formatting vocabulary lives here instead.
+    fmt: "" plain · money (£x.xm) · pct (x.x%) · pct0 (x%) · dp1 · plus1 · minus1
+  A leading ">" on the label right-aligns the column.
+#}
+{% macro cell(r, key, fmt) %}
+  {%- set v = r[key] -%}
+  {%- if v is none -%}&mdash;
+  {%- elif fmt == "money" -%}£{{ "%.1f"|format(v) }}m
+  {%- elif fmt == "pct" -%}{{ "%.1f"|format(v) }}%
+  {%- elif fmt == "pct0" -%}{{ "%.0f"|format(v) }}%
+  {%- elif fmt == "dp1" -%}{{ "%.1f"|format(v) }}
+  {%- elif fmt == "plus1" -%}+{{ "%.1f"|format(v) }}
+  {%- elif fmt == "minus1" -%}-{{ "%.1f"|format(v) }}
+  {%- else -%}{{ v }}
+  {%- endif -%}
+{% endmacro %}
+
+{% macro player_table(rows, cols, empty="No previous-season data available.") %}
+<div class="table-wrap">
+  {% if rows %}
+  <table>
+    <thead><tr>
+      {% for c in cols %}
+        {% set label = c.split("|")[0] %}
+        <th{% if label.startswith(">") %} class="num"{% endif %}>{{ label.lstrip(">") }}</th>
+      {% endfor %}
+    </tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr{% if loop.index <= 3 %} class="top3"{% endif %}>
+        {% for c in cols %}
+          {% set parts = c.split("|") %}
+          {% set label = parts[0] %}
+          {% set key = parts[1] %}
+          {% set fmt = parts[2] if parts|length > 2 else "" %}
+          <td{% if label.startswith(">") %} class="num"{% endif %}>{{ cell(r, key, fmt) }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">{{ empty }}</div>
+  {% endif %}
+</div>
+{% endmacro %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Dossier &mdash; {{ league_name }} Pre-Season {{ season_label }}</title>
+<style>
+  :root {
+    --slate: #2d3e50;
+    --dark: #1e2a38;
+    --green: #37a76b;
+    --red: #b03a2e;
+    --gold: #b8860b;
+    --accent: #00ff87;
+    --text: #2c3e50;
+    --muted: #888;
+    --border: #e0e0e0;
+    --row-alt: #f8f9fb;
+    --bg: #f4f5f7;
+    --card: #fff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px; line-height: 1.5; color: var(--text); background: var(--bg);
+  }
+
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--slate); padding: 0 24px;
+    display: flex; align-items: center; gap: 20px; height: 44px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .nav-brand { font-weight: 900; font-style: italic; font-size: 15px; color: #fff; text-decoration: none; }
+  .nav-brand span { color: var(--accent); }
+  .nav a { color: rgba(255,255,255,0.65); text-decoration: none; font-size: 12px; font-weight: 500; transition: color .15s; }
+  .nav a:hover { color: var(--accent); }
+  .nav-picker { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  .nav-picker select {
+    background: rgba(255,255,255,0.08); color: #fff;
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;
+    padding: 3px 6px; font-family: inherit; font-size: 12px; cursor: pointer;
+  }
+  .nav-picker select option { color: #000; }
+
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+
+  .cover {
+    background: linear-gradient(145deg, var(--dark) 0%, #0d1117 55%, var(--dark) 100%);
+    color: #fff; padding: 90px 24px 70px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .cover::after {
+    content: ""; position: absolute; bottom: 0; right: 0; width: 45%; height: 35%;
+    background: repeating-linear-gradient(-30deg, transparent, transparent 10px, rgba(0,255,135,0.06) 10px, rgba(0,255,135,0.06) 12px);
+  }
+  .cover h1 { font-size: clamp(40px, 6vw, 72px); font-weight: 900; font-style: italic; letter-spacing: 2px; position: relative; }
+  .cover h1 span { color: var(--accent); }
+  .cover h2 { font-size: clamp(18px, 2.5vw, 28px); font-weight: 400; font-style: italic; color: var(--accent); margin-bottom: 30px; position: relative; }
+  .countdown {
+    display: inline-block; position: relative; margin-bottom: 26px;
+    border: 1px solid rgba(0,255,135,0.35); border-radius: 3px; padding: 14px 28px;
+    background: rgba(0,255,135,0.05);
+  }
+  .countdown .big { font-size: 46px; font-weight: 900; line-height: 1; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .countdown .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.6); margin-top: 6px; }
+  .cover-meta { display: inline-block; text-align: left; position: relative; font-family: "SF Mono", "Consolas", "Menlo", monospace; }
+  .cover-meta td { padding: 5px 18px; font-size: 15px; }
+  .cover-meta td:first-child { color: rgba(255,255,255,0.45); }
+  .cover-meta td:last-child { color: #fff; font-weight: 600; }
+
+  .section-hdr {
+    background: var(--slate); color: #fff;
+    padding: 12px 20px; margin-bottom: 20px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+  }
+  .section-title { font-size: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
+  .section-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .section-right { font-size: 12px; color: rgba(255,255,255,0.5); white-space: nowrap; }
+  .section { padding: 28px 0; }
+
+  .hero-hdr {
+    background: linear-gradient(135deg, #6b4c0d 0%, #a37b26 50%, var(--gold) 100%);
+    text-align: center; padding: 24px; margin-bottom: 20px;
+    border-left: 5px solid #ffd700;
+  }
+  .hero-hdr .hdr-title { font-size: 28px; font-weight: 700; font-style: italic; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .hero-hdr .hdr-sub { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+
+  .pred-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); margin-bottom: 18px; }
+  .pred {
+    background: var(--card); border: 1px solid var(--border);
+    border-left: 4px solid var(--gold); border-radius: 2px; padding: 14px 16px;
+  }
+  .pred-tag {
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--gold); margin-bottom: 6px;
+  }
+  .pred-text { font-size: 13.5px; line-height: 1.55; }
+  .pred-basis {
+    margin-top: 8px; font-size: 11px; color: var(--muted);
+    font-family: "SF Mono", "Consolas", "Menlo", monospace;
+  }
+
+  .share-bar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 2px; padding: 14px 16px; margin-bottom: 8px;
+  }
+  .share-bar p { font-size: 12px; color: var(--muted); margin: 0; }
+  .btn {
+    background: #25d366; color: #fff; border: 0; border-radius: 3px;
+    padding: 9px 16px; font-family: inherit; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: filter .15s;
+  }
+  .btn:hover { filter: brightness(0.92); }
+  .btn.secondary { background: var(--slate); }
+  .btn[data-copied="1"] { background: var(--green); }
+  .share-preview {
+    display: none; margin-top: 12px; width: 100%;
+    background: #0d1117; color: #d6deeb; border: 1px solid var(--border);
+    border-radius: 2px; padding: 14px; font-family: "SF Mono", "Consolas", "Menlo", monospace;
+    font-size: 11.5px; line-height: 1.6; white-space: pre-wrap; word-break: break-word;
+  }
+  .share-preview.open { display: block; }
+
+  .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 2px; overflow-x: auto; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th {
+    background: var(--slate); color: #fff; font-weight: 600;
+    text-align: left; padding: 8px 10px; font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap;
+  }
+  thead th.num { text-align: right; }
+  tbody td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+  tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr:nth-child(even) { background: var(--row-alt); }
+  tbody tr:hover { background: rgba(0,255,135,0.05); }
+  tbody tr.top3 td { background: rgba(0,255,135,0.05); font-weight: 500; }
+  .empty { padding: 18px; color: var(--muted); font-size: 12px; }
+  .muted { color: var(--muted); }
+  .bold { font-weight: 700; }
+
+  .grid-2 { display: grid; gap: 16px; grid-template-columns: repeat(2, 1fr); }
+  .sub-hdr { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; margin: 0 0 8px; color: var(--slate); }
+  .note { font-size: 11.5px; color: var(--muted); margin: -8px 0 14px; }
+
+  .recap-row { display: grid; gap: 12px; grid-template-columns: repeat(4, 1fr); margin-bottom: 16px; }
+  .stat {
+    background: var(--card); border: 1px solid var(--border);
+    border-top: 3px solid var(--slate); border-radius: 2px; padding: 14px;
+  }
+  .stat .k { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); }
+  .stat .v { font-size: 22px; font-weight: 900; margin: 4px 0 2px; }
+  .stat .w { font-size: 12px; color: var(--text); }
+  .stat.gold { border-top-color: var(--gold); }
+  .stat.red { border-top-color: var(--red); }
+  .stat.green { border-top-color: var(--green); }
+
+  .foot { text-align: center; padding: 30px 20px 40px; color: var(--muted); font-size: 11px; }
+
+  @media (max-width: 860px) {
+    .pred-grid, .grid-2 { grid-template-columns: 1fr; }
+    .recap-row { grid-template-columns: repeat(2, 1fr); }
+    .nav a { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="#top">THE <span>DOSSIER</span></a>
+  <a href="#predictions">Predictions</a>
+  <a href="#recap">Last Season</a>
+  <a href="#players">Player Intel</a>
+  <a href="#fixtures">Fixtures</a>
+  <a href="#market">Market</a>
+  <div class="nav-picker" id="nav-picker" hidden>
+    <select id="season-select" aria-label="Season"></select>
+    <select id="gw-select" aria-label="Gameweek"></select>
+  </div>
+</nav>
+<script>
+  window.__DOSSIER = {season: {{ season|tojson }}, gw: 0};
+</script>
+
+<div class="cover" id="top">
+  <h1>THE <span>DOSSIER</span></h1>
+  <h2>{{ league_name }} &mdash; Pre-Season {{ season_label }}</h2>
+  {% if days_left is not none and days_left >= 0 %}
+  <div class="countdown">
+    <div class="big">{{ days_left }}</div>
+    <div class="lbl">{{ "day" if days_left == 1 else "days" }} until the GW1 deadline</div>
+  </div>
+  {% endif %}
+  <table class="cover-meta">
+    <tr><td>League:</td><td>{{ league_name }} ({{ league_id }})</td></tr>
+    {% if deadline_human %}<tr><td>GW1 Deadline:</td><td>{{ deadline_human }}</td></tr>{% endif %}
+    <tr><td>Players priced:</td><td>{{ player_count }}</td></tr>
+    {% if history.table %}<tr><td>Defending champion:</td><td>{{ history.champion.entry_name }}</td></tr>{% endif %}
+    <tr><td>Generated:</td><td>{{ generated }}</td></tr>
+  </table>
+</div>
+
+<div class="wrap">
+
+{# ==================== PREDICTIONS ==================== #}
+<div id="predictions" class="section">
+  <div class="hero-hdr">
+    <div class="hdr-title">{{ predictions|length }} Predictions</div>
+    <div class="hdr-sub">Screenshot these. Hold them against us in May.</div>
+  </div>
+
+  <div class="share-bar">
+    <button class="btn" id="copy-btn" type="button">Copy for WhatsApp</button>
+    <button class="btn secondary" id="preview-btn" type="button">Preview text</button>
+    <p>Copies a plain-text version of this page &mdash; predictions, DefCon kings and opening fixtures &mdash; ready to paste into the group chat.</p>
+    <pre class="share-preview" id="share-preview">{{ whatsapp }}</pre>
+  </div>
+
+  <div class="pred-grid">
+    {% for p in predictions %}
+    <div class="pred">
+      <div class="pred-tag">{{ p.tag }}</div>
+      <div class="pred-text">{{ p.text }}</div>
+      <div class="pred-basis">{{ p.basis }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{# ==================== LAST SEASON ==================== #}
+{% if history.table %}
+<div id="recap" class="section">
+  <div class="section-hdr">
+    <div class="section-left">
+      <div class="section-title">1. Where We Left Off</div>
+      <div class="section-sub">{{ league_name }} &mdash; final {{ prev_season_label }} standings</div>
+    </div>
+    <div class="section-right">Pre-Season</div>
+  </div>
+
+  <div class="recap-row">
+    <div class="stat gold">
+      <div class="k">Champion</div>
+      <div class="v">{{ history.champion.total_points }}</div>
+      <div class="w">{{ history.champion.entry_name }}{% if history.margin %} &mdash; by {{ history.margin }}{% endif %}</div>
+    </div>
+    {% if history.best_gw %}
+    <div class="stat green">
+      <div class="k">Best single week</div>
+      <div class="v">{{ history.best_gw.points }}</div>
+      <div class="w">{{ history.best_gw.entry_name }} &mdash; GW{{ history.best_gw.event }}</div>
+    </div>
+    {% endif %}
+    {% if history.worst_gw %}
+    <div class="stat red">
+      <div class="k">Worst single week</div>
+      <div class="v">{{ history.worst_gw.points }}</div>
+      <div class="w">{{ history.worst_gw.entry_name }} &mdash; GW{{ history.worst_gw.event }}</div>
+    </div>
+    {% endif %}
+    {% if history.bench_king %}
+    <div class="stat red">
+      <div class="k">Points left on the bench</div>
+      <div class="v">{{ history.bench_king.benched }}</div>
+      <div class="w">{{ history.bench_king.entry_name }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  {{ player_table(history.table, ["#|pos", "Team|entry_name", "Manager|player_name", ">Points|total_points"]) }}
+
+  {% if history.bottler %}
+  <p class="note">Longest spell top of the table: <span class="bold">{{ history.bottler.entry_name }}</span>
+     led for {{ history.bottler.weeks_top }} weeks and finished {{ history.bottler.final_pos }}th.</p>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ==================== PLAYER INTEL ==================== #}
+<div id="players" class="section">
+  <div class="section-hdr">
+    <div class="section-left">
+      <div class="section-title">2. Player Intel</div>
+      <div class="section-sub">Last season's underlying numbers, priced at this season's cost</div>
+    </div>
+    <div class="section-right">Pre-Season</div>
+  </div>
+
+  <h3 class="sub-hdr">DefCon Kings</h3>
+  <p class="note">Defensive contribution points scored in {{ prev_season_label }} &mdash; the scoring change the market still underrates.</p>
+  {{ player_table(intel.defcon, ["Player|web_name", "Pos|pos", "Club|club",
+       ">Price|price|money", ">DefCon pts|dc_pts", ">Hit rate|hit_rate|pct0", ">Owned|own|pct"]) }}
+
+  <div class="grid-2">
+    <div>
+      <h3 class="sub-hdr">Regression Watch</h3>
+      <p class="note">Beat their xG by the widest margin. Finishing that hot rarely repeats.</p>
+      {{ player_table(intel.traps, ["Player|web_name", "Club|club", ">Price|price|money",
+           ">Goals|goals", ">xG|xg|dp1", ">Over|over_xg|plus1"]) }}
+    </div>
+    <div>
+      <h3 class="sub-hdr">Bounce-Back Candidates</h3>
+      <p class="note">Big underlying numbers, unlucky returns. Variance, not decline.</p>
+      {{ player_table(intel.bargains, ["Player|web_name", "Club|club", ">Price|price|money",
+           ">G+A|ga", ">xG+xA|xga|dp1", ">Under|under_x|minus1"]) }}
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <h3 class="sub-hdr">Best Value Under £7.0m</h3>
+      <p class="note">Last season's points divided by this season's price.</p>
+      {{ player_table(intel.value, ["Player|web_name", "Pos|pos", "Club|club",
+           ">Price|price|money", ">Pts|pts", ">Pts/£m|ppm|dp1"]) }}
+    </div>
+    <div>
+      <h3 class="sub-hdr">The Ever-Presents</h3>
+      <p class="note">Never injured, never rotated, never dropped.</p>
+      {{ player_table(intel.ever_present, ["Player|web_name", "Pos|pos", "Club|club",
+           ">Price|price|money", ">Mins|mins", ">Pts|pts"]) }}
+    </div>
+  </div>
+</div>
+
+{# ==================== FIXTURES ==================== #}
+<div id="fixtures" class="section">
+  <div class="section-hdr">
+    <div class="section-left">
+      <div class="section-title">3. Fixture Intel</div>
+      <div class="section-sub">Opening {{ fixtures.span }} gameweeks by average difficulty</div>
+    </div>
+    <div class="section-right">Pre-Season</div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <h3 class="sub-hdr">Kindest Openers</h3>
+      {{ player_table(fixtures.easiest, ["Club|club", ">Avg difficulty (GW1-" ~ fixtures.span ~ ")|fdr|dp1"]) }}
+    </div>
+    <div>
+      <h3 class="sub-hdr">Toughest Openers</h3>
+      {{ player_table(fixtures.hardest, ["Club|club", ">Avg difficulty (GW1-" ~ fixtures.span ~ ")|fdr|dp1"]) }}
+    </div>
+  </div>
+
+  <h3 class="sub-hdr">Gameweek 1</h3>
+  {{ player_table(fixtures.gw1, ["Home|home", "Away|away", ">Home diff.|hfdr", ">Away diff.|afdr"]) }}
+</div>
+
+{# ==================== MARKET ==================== #}
+<div id="market" class="section">
+  <div class="section-hdr">
+    <div class="section-left">
+      <div class="section-title">4. The Market</div>
+      <div class="section-sub">Where the money and the crowd have gone</div>
+    </div>
+    <div class="section-right">Pre-Season</div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <h3 class="sub-hdr">Most Expensive</h3>
+      {{ player_table(market.priciest, ["Player|web_name", "Pos|pos", "Club|club",
+           ">Price|price|money", ">Owned|own|pct"]) }}
+    </div>
+    <div>
+      <h3 class="sub-hdr">The Template</h3>
+      <p class="note">Most-owned players across the whole game right now.</p>
+      {{ player_table(market.most_owned, ["Player|web_name", "Pos|pos", "Club|club",
+           ">Price|price|money", ">Owned|own|pct"]) }}
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  The Dossier &mdash; {{ league_name }} &middot; Pre-season {{ season_label }} &middot; generated {{ generated }}<br>
+  Predictions are derived from {{ prev_season_label }} data and are, like all predictions, an invitation to be wrong in public.
+</div>
+</div>
+
+<script>
+(function () {
+  // tojson, not a text/plain <script>: script elements are raw-text, so HTML
+  // entities inside them are never decoded and would paste as "&#39;".
+  var payload = {{ whatsapp|tojson }};
+  var btn = document.getElementById('copy-btn');
+  var prev = document.getElementById('preview-btn');
+  var box = document.getElementById('share-preview');
+
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  function done(ok) {
+    btn.textContent = ok ? 'Copied ✓' : 'Press ⌘C to copy';
+    btn.setAttribute('data-copied', ok ? '1' : '0');
+    if (!ok) box.classList.add('open');
+    setTimeout(function () {
+      btn.textContent = 'Copy for WhatsApp';
+      btn.removeAttribute('data-copied');
+    }, 2500);
+  }
+
+  btn.addEventListener('click', function () {
+    // navigator.clipboard needs a secure context; file:// and plain http fall back.
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(payload)
+        .then(function () { done(true); })
+        .catch(function () { done(fallbackCopy(payload)); });
+    } else {
+      done(fallbackCopy(payload));
+    }
+  });
+
+  prev.addEventListener('click', function () {
+    box.classList.toggle('open');
+    prev.textContent = box.classList.contains('open') ? 'Hide text' : 'Preview text';
+  });
+})();
+</script>
+
+<script>
+(function () {
+  // Same picker as the gameweek dossiers; GW0 renders as "Pre-Season".
+  var ctx = window.__DOSSIER || {};
+  var picker = document.getElementById('nav-picker');
+  var seasonSel = document.getElementById('season-select');
+  var gwSel = document.getElementById('gw-select');
+  if (!picker || !seasonSel || !gwSel) return;
+
+  function seasonLabel(s) { return '20' + s.replace('-', '/20'); }
+  function gwLabel(gw) { return Number(gw) === 0 ? 'Pre-Season' : 'GW' + gw; }
+
+  fetch('../manifest.json', { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (m) {
+      if (!m || !m.seasons) return;
+      var seasons = Object.keys(m.seasons).sort().reverse();
+      if (!seasons.length) return;
+      var curSeason = ctx.season && m.seasons[ctx.season] ? ctx.season : seasons[0];
+
+      seasons.forEach(function (s) {
+        var o = document.createElement('option');
+        o.value = s; o.textContent = seasonLabel(s);
+        if (s === curSeason) o.selected = true;
+        seasonSel.appendChild(o);
+      });
+
+      function fillGws(season, selectedGw) {
+        gwSel.innerHTML = '';
+        (m.seasons[season] || []).slice().sort(function (a, b) { return b - a; })
+          .forEach(function (gw) {
+            var o = document.createElement('option');
+            o.value = gw; o.textContent = gwLabel(gw);
+            if (Number(gw) === Number(selectedGw)) o.selected = true;
+            gwSel.appendChild(o);
+          });
+      }
+      fillGws(curSeason, ctx.gw);
+
+      function go(season, gw) { window.location.href = '../' + season + '/GW' + gw + '.html'; }
+      seasonSel.addEventListener('change', function () {
+        var gws = (m.seasons[seasonSel.value] || []).slice().sort(function (a, b) { return b - a; });
+        if (gws.length) go(seasonSel.value, gws[0]);
+      });
+      gwSel.addEventListener('change', function () {
+        if (gwSel.value !== '') go(seasonSel.value, gwSel.value);
+      });
+
+      var total = seasons.reduce(function (n, s) { return n + m.seasons[s].length; }, 0);
+      if (total > 1) picker.hidden = false;
+    })
+    .catch(function () {});
+})();
+</script>
+</body>
+</html>

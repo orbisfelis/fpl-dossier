@@ -2738,6 +2738,7 @@
   if (!picker || !seasonSel || !gwSel) return;
 
   function seasonLabel(s) { return '20' + s.replace('-', '/20'); }  // "25-26" -> "2025/2026"
+  function gwLabel(gw) { return Number(gw) === 0 ? 'Pre-Season' : 'GW' + gw; }  // GW0 is the pre-season page
 
   fetch('../manifest.json', { cache: 'no-store' })
     .then(function (r) { return r.ok ? r.json() : null; })
@@ -2760,7 +2761,7 @@
         var gws = (m.seasons[season] || []).slice().sort(function (a, b) { return b - a; });
         gws.forEach(function (gw) {
           var o = document.createElement('option');
-          o.value = gw; o.textContent = 'GW' + gw;
+          o.value = gw; o.textContent = gwLabel(gw);
           if (gw === selectedGw) o.selected = true;
           gwSel.appendChild(o);
         });
