@@ -185,12 +185,22 @@ def publish_reports(db_path: Path, league_id: int, docs_dir: Path,
     return season_dir
 
 
+def manager_key(player_name: str | None) -> str:
+    """Identity that survives a season rollover.
+
+    entry_id is NOT stable year to year, and team names get renamed constantly,
+    so the human's own name is the only durable join key between an archived
+    season and the current one.
+    """
+    return " ".join((player_name or "").split()).casefold()
+
+
 def _prev_season_stats(prev_db_path: Path, league_id: int, event: int) -> dict | None:
     """Read the same-gameweek snapshot from an archived previous-season DB, for
     year-on-year comparisons. Returns None if the file/data isn't there, so the
     feature stays dormant until a prior season exists to point at.
 
-    Returning managers are matched on entry_id (stable across seasons), so the
+    Returning managers are matched on manager name (see manager_key), so the
     per-manager deltas only cover managers present in both seasons.
     """
     try:
@@ -199,7 +209,8 @@ def _prev_season_stats(prev_db_path: Path, league_id: int, event: int) -> dict |
         conn = sqlite3.connect(prev_db_path)
         conn.row_factory = sqlite3.Row
         rows = conn.execute(
-            """SELECT m.entry_id, m.entry_name, mg.points, mg.total_points
+            """SELECT m.entry_id, m.entry_name, m.player_name,
+                      mg.points, mg.total_points
                FROM manager_gameweeks mg
                JOIN managers m ON m.entry_id = mg.entry_id
                WHERE m.league_id = ? AND mg.event = ?
@@ -210,8 +221,9 @@ def _prev_season_stats(prev_db_path: Path, league_id: int, event: int) -> dict |
         return None
     if not rows:
         return None
-    totals = {r["entry_id"]: {"team": r["entry_name"], "total": r["total_points"],
-                              "rank": i} for i, r in enumerate(rows, 1)}
+    totals = {manager_key(r["player_name"]):
+              {"team": r["entry_name"], "total": r["total_points"], "rank": i}
+              for i, r in enumerate(rows, 1)}
     pts = [r["points"] or 0 for r in rows]
     return {
         "league_avg": round(sum(pts) / len(pts), 1) if pts else None,
@@ -2719,7 +2731,7 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
     if prev:
         rows = []
         for r in leaderboard:
-            pe = prev["totals"].get(r["entry_id"])
+            pe = prev["totals"].get(manager_key(r["player_name"]))
             if pe:
                 rows.append({
                     "team": r["entry_name"], "manager": r["player_name"],

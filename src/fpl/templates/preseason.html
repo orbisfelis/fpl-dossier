@@ -345,6 +345,7 @@
     <span class="bold">{{ new_joiners|length }} new joiner{{ "" if new_joiners|length == 1 else "s" }}</span>
     this season: {{ new_joiners|map(attribute="entry_name")|join(", ") }}.
     Career records below &mdash; you have been warned.
+    (Joiners are identified by manager name; entry IDs change every season.)
   </p>
   {% endif %}
 

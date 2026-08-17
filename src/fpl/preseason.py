@@ -208,12 +208,14 @@ def _player_intel(conn: sqlite3.Connection, prev_db: Path, limit: int = 8) -> di
 # ---------------------------------------------------------------------------
 
 def _form_book(conn: sqlite3.Connection, league_id: int,
-               prev_entry_ids: set[int]) -> list[dict]:
+               prev_names: set[str]) -> list[dict]:
     """Every manager's FPL career, from /entry/<id>/history/ `past`.
 
-    Managers whose entry_id is absent from the archived previous season are
-    flagged as new joiners — that is the whole point of the section.
+    New joiners are those whose *name* is absent from the archived previous
+    season. entry_id cannot be used: it changes at the season rollover, so an
+    id-based diff would flag the entire league as new every year.
     """
+    from .report import manager_key
     managers = _rows(conn.execute(
         """SELECT entry_id, entry_name, player_name FROM managers
            WHERE league_id = ? ORDER BY entry_name""", (league_id,)))
@@ -229,6 +231,8 @@ def _form_book(conn: sqlite3.Connection, league_id: int,
 
     out = []
     for m in managers:
+        # prev_names empty (no archive) => nobody can be judged new
+        is_new = bool(prev_names) and manager_key(m["player_name"]) not in prev_names
         seasons = by_entry.get(m["entry_id"], [])
         scored = [s for s in seasons if s["total_points"]]
         pcts = [s["rank_percentage"] for s in seasons
@@ -241,8 +245,8 @@ def _form_book(conn: sqlite3.Connection, league_id: int,
             "entry_id": m["entry_id"],
             "entry_name": m["entry_name"],
             "player_name": m["player_name"],
-            "is_new": m["entry_id"] not in prev_entry_ids,
-            "new_label": "NEW" if m["entry_id"] not in prev_entry_ids else "",
+            "is_new": is_new,
+            "new_label": "NEW" if is_new else "",
             "seasons": len(seasons),
             "best_points": best["total_points"] if best else None,
             "best_season": best["season_name"] if best else None,
@@ -491,14 +495,16 @@ def collect_preseason(db_path: Path, league_id: int, prev_db: Path | None,
         conn.close()
 
     history: dict = {}
-    prev_entry_ids: set[int] = set()
+    prev_names: set[str] = set()
     league_name = league[0] if league else f"League {league_id}"
     if prev_db and Path(prev_db).exists():
         pconn = sqlite3.connect(prev_db)
         try:
             history = _league_history(pconn, league_id)
-            prev_entry_ids = {r[0] for r in pconn.execute(
-                "SELECT entry_id FROM managers WHERE league_id = ?", (league_id,))}
+            from .report import manager_key
+            prev_names = {manager_key(r[0]) for r in pconn.execute(
+                "SELECT player_name FROM managers WHERE league_id = ?",
+                (league_id,))}
             if not league_name or league_name.startswith("League "):
                 row = pconn.execute("SELECT name FROM leagues WHERE id = ?",
                                     (league_id,)).fetchone()
@@ -514,12 +520,12 @@ def collect_preseason(db_path: Path, league_id: int, prev_db: Path | None,
         deadline_dt = datetime.fromisoformat(deadline.replace("Z", "+00:00"))
         days_left = (deadline_dt - datetime.now(timezone.utc)).days
 
-    # Needs prev_entry_ids, so it runs after the archive has been read.
+    # Needs prev_names, so it runs after the archive has been read.
     form_book: list[dict] = []
     if managers_present:
         fconn = sqlite3.connect(db_path)
         try:
-            form_book = _form_book(fconn, league_id, prev_entry_ids)
+            form_book = _form_book(fconn, league_id, prev_names)
         finally:
             fconn.close()
 
