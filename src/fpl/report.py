@@ -198,11 +198,32 @@ def manager_key(player_name: str | None) -> str:
 def resolve_prev_league(conn: sqlite3.Connection, league_id: int) -> int | None:
     """Map the current league_id onto the archived season's own league_id.
 
-    Mini-leagues are re-created each year and get a NEW id, so last season's
-    archive is keyed under a different number. An archived season DB holds one
-    league, so when the current id isn't there, fall back to the league with
-    the most managers rather than silently finding nothing.
+    Mini-leagues are re-created each year under a new id, so last season's
+    archive is keyed under a different number. Order of preference:
+
+      1. the identity registry, if it knows this lineage (authoritative)
+      2. the id itself, if the archive happens to contain it
+      3. the archive's largest league — these files hold one league, but this
+         is a guess, so it is the last resort
     """
+    try:
+        from .registry import DEFAULT_REGISTRY, open_registry, previous_league_id
+        if Path(os.environ.get("FPL_REGISTRY", DEFAULT_REGISTRY)).exists():
+            reg = open_registry(Path(os.environ.get("FPL_REGISTRY",
+                                                    DEFAULT_REGISTRY)))
+            try:
+                prev = previous_league_id(reg, league_id)
+            finally:
+                reg.close()
+            if prev:
+                row = conn.execute(
+                    "SELECT COUNT(*) FROM managers WHERE league_id = ?",
+                    (prev,)).fetchone()
+                if row and row[0]:
+                    return prev
+    except (sqlite3.Error, ImportError, OSError):
+        pass
+
     try:
         row = conn.execute(
             "SELECT COUNT(*) FROM managers WHERE league_id = ?",
@@ -247,9 +268,30 @@ def _prev_season_stats(prev_db_path: Path, league_id: int, event: int) -> dict |
         return None
     if not rows:
         return None
-    totals = {manager_key(r["player_name"]):
-              {"team": r["entry_name"], "total": r["total_points"], "rank": i}
-              for i, r in enumerate(rows, 1)}
+    # Prefer the registry: it translates last season's entry ids into this
+    # season's, which survives both id churn and managers renaming themselves.
+    # Name matching stays as the fallback when no registry exists.
+    translate: dict[int, int] = {}
+    try:
+        from .registry import (DEFAULT_REGISTRY, open_registry,
+                               prev_entry_translation)
+        reg_path = Path(os.environ.get("FPL_REGISTRY", DEFAULT_REGISTRY))
+        if reg_path.exists():
+            reg = open_registry(reg_path)
+            try:
+                translate = prev_entry_translation(reg, league_id)
+            finally:
+                reg.close()
+    except (sqlite3.Error, ImportError, OSError):
+        translate = {}
+
+    totals = {}
+    for i, r in enumerate(rows, 1):
+        rec = {"team": r["entry_name"], "total": r["total_points"], "rank": i}
+        totals[manager_key(r["player_name"])] = rec
+        mapped = translate.get(r["entry_id"])
+        if mapped:
+            totals[f"id:{mapped}"] = rec
     pts = [r["points"] or 0 for r in rows]
     return {
         "league_avg": round(sum(pts) / len(pts), 1) if pts else None,
@@ -2757,7 +2799,8 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
     if prev:
         rows = []
         for r in leaderboard:
-            pe = prev["totals"].get(manager_key(r["player_name"]))
+            pe = (prev["totals"].get(f"id:{r['entry_id']}")
+                  or prev["totals"].get(manager_key(r["player_name"])))
             if pe:
                 rows.append({
                     "team": r["entry_name"], "manager": r["player_name"],
