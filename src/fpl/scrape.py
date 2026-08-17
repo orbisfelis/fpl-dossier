@@ -16,21 +16,47 @@ log = logging.getLogger(__name__)
 
 
 async def collect_league_entries(fpl: FPLClient, league_id: int) -> tuple[list[dict], str]:
-    """Return (entries, league_name)."""
+    """Return (entries, league_name).
+
+    Before a ball is kicked the standings list is empty and every member sits
+    under ``new_entries`` instead, with the manager's name split across two
+    fields. Both shapes are normalised to ``entry`` / ``entry_name`` /
+    ``player_name`` so the rest of the pipeline doesn't care which it came from.
+    """
     entries: list[dict] = []
     league_name = ""
+    seen: set[int] = set()
     page = 1
     while True:
         data = await fpl.league_page(league_id, page)
         if not data or "standings" not in data:
-            # Pre-season the league may not exist yet (renews near GW1).
+            # League may not exist yet — mini-leagues renew close to GW1.
             log.warning("League %d has no standings yet (pre-season?) — "
                         "scraping bootstrap/fixtures only", league_id)
             return entries, league_name
         if not league_name:
             league_name = data.get("league", {}).get("name", "")
+
         standings = data["standings"]
-        entries.extend(standings["results"])
+        for row in standings.get("results", []):
+            if row.get("entry") and row["entry"] not in seen:
+                seen.add(row["entry"])
+                entries.append(row)
+
+        # Pre-season members, only present on the first page.
+        for row in data.get("new_entries", {}).get("results", []):
+            entry_id = row.get("entry")
+            if not entry_id or entry_id in seen:
+                continue
+            seen.add(entry_id)
+            name = " ".join(filter(None, [row.get("player_first_name"),
+                                          row.get("player_last_name")])).strip()
+            entries.append({
+                "entry": entry_id,
+                "entry_name": row.get("entry_name") or f"Entry {entry_id}",
+                "player_name": name or row.get("player_name") or "Unknown",
+            })
+
         if not standings.get("has_next"):
             break
         page += 1

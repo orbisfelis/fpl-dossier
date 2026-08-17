@@ -195,6 +195,28 @@ def manager_key(player_name: str | None) -> str:
     return " ".join((player_name or "").split()).casefold()
 
 
+def resolve_prev_league(conn: sqlite3.Connection, league_id: int) -> int | None:
+    """Map the current league_id onto the archived season's own league_id.
+
+    Mini-leagues are re-created each year and get a NEW id, so last season's
+    archive is keyed under a different number. An archived season DB holds one
+    league, so when the current id isn't there, fall back to the league with
+    the most managers rather than silently finding nothing.
+    """
+    try:
+        row = conn.execute(
+            "SELECT COUNT(*) FROM managers WHERE league_id = ?",
+            (league_id,)).fetchone()
+        if row and row[0]:
+            return league_id
+        row = conn.execute(
+            """SELECT league_id FROM managers
+               GROUP BY league_id ORDER BY COUNT(*) DESC LIMIT 1""").fetchone()
+        return row[0] if row else None
+    except sqlite3.Error:
+        return None
+
+
 def _prev_season_stats(prev_db_path: Path, league_id: int, event: int) -> dict | None:
     """Read the same-gameweek snapshot from an archived previous-season DB, for
     year-on-year comparisons. Returns None if the file/data isn't there, so the
@@ -208,6 +230,10 @@ def _prev_season_stats(prev_db_path: Path, league_id: int, event: int) -> dict |
             return None
         conn = sqlite3.connect(prev_db_path)
         conn.row_factory = sqlite3.Row
+        prev_league = resolve_prev_league(conn, league_id)
+        if prev_league is None:
+            conn.close()
+            return None
         rows = conn.execute(
             """SELECT m.entry_id, m.entry_name, m.player_name,
                       mg.points, mg.total_points
@@ -215,7 +241,7 @@ def _prev_season_stats(prev_db_path: Path, league_id: int, event: int) -> dict |
                JOIN managers m ON m.entry_id = mg.entry_id
                WHERE m.league_id = ? AND mg.event = ?
                ORDER BY mg.total_points DESC""",
-            (league_id, event)).fetchall()
+            (prev_league, event)).fetchall()
         conn.close()
     except sqlite3.Error:
         return None
