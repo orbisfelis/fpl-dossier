@@ -207,10 +207,39 @@
   .stat.red { border-top-color: var(--red); }
   .stat.green { border-top-color: var(--green); }
 
+  .narrative-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-left: 4px solid var(--slate); border-radius: 2px;
+    padding: 18px 20px; margin-bottom: 12px;
+  }
+  .nar-label {
+    font-size: 11px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1.2px; margin-bottom: 8px;
+  }
+  .nar-text { font-size: 14px; line-height: 1.7; }
+  .nar-text strong { font-weight: 700; color: var(--slate); }
+
+  .watch-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); margin-bottom: 16px; }
+  .watch {
+    background: var(--card); border: 1px solid var(--border);
+    border-left: 4px solid var(--green); border-radius: 2px; padding: 13px 15px;
+  }
+  .watch.caution { border-left-color: var(--red); }
+  .watch.rival { border-left-color: var(--slate); }
+  .watch-tag {
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--green); margin-bottom: 5px;
+  }
+  .watch.caution .watch-tag { color: var(--red); }
+  .watch.rival .watch-tag { color: var(--slate); }
+  .watch-name { font-size: 15px; font-weight: 700; }
+  .watch-meta { font-size: 11px; font-weight: 400; color: var(--muted); display: block; margin-top: 2px; }
+  .watch-why { font-size: 12.5px; line-height: 1.5; margin-top: 7px; }
+
   .foot { text-align: center; padding: 30px 20px 40px; color: var(--muted); font-size: 11px; }
 
   @media (max-width: 860px) {
-    .pred-grid, .grid-2 { grid-template-columns: 1fr; }
+    .pred-grid, .grid-2, .watch-grid { grid-template-columns: 1fr; }
     .recap-row { grid-template-columns: repeat(2, 1fr); }
     .nav a { display: none; }
   }
@@ -220,6 +249,8 @@
 
 <nav class="nav">
   <a class="nav-brand" href="#top">THE <span>DOSSIER</span></a>
+  <a href="#story">The Column</a>
+  <a href="#watch">Ones to Watch</a>
   <a href="#predictions">Predictions</a>
   <a href="#recap">Last Season</a>
   <a href="#formbook">Form Book</a>
@@ -255,6 +286,65 @@
 
 <div class="wrap">
 
+{# ==================== NARRATIVE ==================== #}
+{% if narrative %}
+<div id="story" class="section">
+  <div class="hero-hdr" style="background: linear-gradient(135deg, #1a2b3c 0%, #2d3e50 50%, #3a4f63 100%); border-left-color: var(--accent);">
+    <div class="hdr-title">The Season in Words</div>
+    <div class="hdr-sub">Pre-season {{ season_label }} &mdash; an editorial nobody asked for</div>
+  </div>
+  {% for p in narrative %}
+  <div class="narrative-card">
+    <div class="nar-label" style="color: {{ p.color }};">{{ p.label }}</div>
+    <div class="nar-text">{{ p.html|safe }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{# ==================== ONES TO WATCH ==================== #}
+{% if watch.players or watch.rivals %}
+<div id="watch" class="section">
+  <div class="section-hdr">
+    <div class="section-left">
+      <div class="section-title">1. Ones to Watch</div>
+      <div class="section-sub">Players worth owning &mdash; and the managers to actually fear</div>
+    </div>
+    <div class="section-right">Pre-Season</div>
+  </div>
+
+  {% if watch.players %}
+  <div class="watch-grid">
+    {% for p in watch.players %}
+    <div class="watch{% if p.caution %} caution{% endif %}">
+      <div class="watch-tag">{{ p.tag }}</div>
+      <div class="watch-name">{{ p.name }}
+        <span class="watch-meta">{{ p.pos }} &middot; {{ p.club }} &middot; £{{ "%.1f"|format(p.price) }}m &middot; {{ "%.1f"|format(p.own) }}% owned</span>
+      </div>
+      <div class="watch-why">{{ p.reason }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if watch.rivals %}
+  <h3 class="sub-hdr">The Managers to Fear</h3>
+  <p class="note">Best career finish as a percentile of the entire game &mdash; not this league, the whole thing.</p>
+  <div class="watch-grid">
+    {% for r in watch.rivals %}
+    <div class="watch rival">
+      <div class="watch-tag">{% if r.is_new %}New arrival{% else %}Established threat{% endif %}</div>
+      <div class="watch-name">{{ r.team }}
+        <span class="watch-meta">{{ r.manager }}</span>
+      </div>
+      <div class="watch-why">{{ r.reason }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
 {# ==================== PREDICTIONS ==================== #}
 <div id="predictions" class="section">
   <div class="hero-hdr">
@@ -285,7 +375,7 @@
 <div id="recap" class="section">
   <div class="section-hdr">
     <div class="section-left">
-      <div class="section-title">1. Where We Left Off</div>
+      <div class="section-title">2. Where We Left Off</div>
       <div class="section-sub">{{ league_name }} &mdash; final {{ prev_season_label }} standings</div>
     </div>
     <div class="section-right">Pre-Season</div>
@@ -334,7 +424,7 @@
 <div id="formbook" class="section">
   <div class="section-hdr">
     <div class="section-left">
-      <div class="section-title">2. The Form Book</div>
+      <div class="section-title">3. The Form Book</div>
       <div class="section-sub">Every manager's FPL career &mdash; and who's new</div>
     </div>
     <div class="section-right">Pre-Season</div>
@@ -365,7 +455,7 @@
 <div id="players" class="section">
   <div class="section-hdr">
     <div class="section-left">
-      <div class="section-title">3. Player Intel</div>
+      <div class="section-title">4. Player Intel</div>
       <div class="section-sub">Last season's underlying numbers, priced at this season's cost</div>
     </div>
     <div class="section-right">Pre-Season</div>
@@ -411,7 +501,7 @@
 <div id="fixtures" class="section">
   <div class="section-hdr">
     <div class="section-left">
-      <div class="section-title">4. Fixture Intel</div>
+      <div class="section-title">5. Fixture Intel</div>
       <div class="section-sub">Opening {{ fixtures.span }} gameweeks by average difficulty</div>
     </div>
     <div class="section-right">Pre-Season</div>
@@ -436,7 +526,7 @@
 <div id="market" class="section">
   <div class="section-hdr">
     <div class="section-left">
-      <div class="section-title">5. The Market</div>
+      <div class="section-title">6. The Market</div>
       <div class="section-sub">Where the money and the crowd have gone</div>
     </div>
     <div class="section-right">Pre-Season</div>

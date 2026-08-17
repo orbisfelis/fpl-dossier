@@ -61,11 +61,11 @@ def _league_history(conn: sqlite3.Connection, league_id: int) -> dict:
 
     # Best and worst single gameweeks of the whole season.
     best_gw = _rows(conn.execute(
-        """SELECT m.entry_name, mg.event, mg.points
+        """SELECT m.entry_id, m.entry_name, mg.event, mg.points
            FROM manager_gameweeks mg JOIN managers m ON m.entry_id = mg.entry_id
            WHERE m.league_id = ? ORDER BY mg.points DESC LIMIT 1""", (league_id,)))
     worst_gw = _rows(conn.execute(
-        """SELECT m.entry_name, mg.event, mg.points
+        """SELECT m.entry_id, m.entry_name, mg.event, mg.points
            FROM manager_gameweeks mg JOIN managers m ON m.entry_id = mg.entry_id
            WHERE m.league_id = ? AND mg.points > 0
            ORDER BY mg.points ASC LIMIT 1""", (league_id,)))
@@ -87,12 +87,12 @@ def _league_history(conn: sqlite3.Connection, league_id: int) -> dict:
 
     # Bench regret and hits taken across the season — pure banter fuel.
     bench = _rows(conn.execute(
-        """SELECT m.entry_name, SUM(mg.points_on_bench) benched
+        """SELECT m.entry_id, m.entry_name, SUM(mg.points_on_bench) benched
            FROM manager_gameweeks mg JOIN managers m ON m.entry_id = mg.entry_id
            WHERE m.league_id = ? GROUP BY m.entry_id
            ORDER BY benched DESC LIMIT 1""", (league_id,)))
     hits = _rows(conn.execute(
-        """SELECT m.entry_name, SUM(mg.event_transfers_cost) cost,
+        """SELECT m.entry_id, m.entry_name, SUM(mg.event_transfers_cost) cost,
                   SUM(mg.event_transfers) moves
            FROM manager_gameweeks mg JOIN managers m ON m.entry_id = mg.entry_id
            WHERE m.league_id = ? GROUP BY m.entry_id
@@ -204,6 +204,71 @@ def _player_intel(conn: sqlite3.Connection, prev_db: Path, limit: int = 8) -> di
 
 
 # ---------------------------------------------------------------------------
+# identity — last season's records, this season's names
+# ---------------------------------------------------------------------------
+
+def _identity_map(db_path: Path, league_id: int) -> dict[int, dict]:
+    """{previous season entry_id -> this season's team/manager}.
+
+    Predictions are built from last season's records but read by people looking
+    at this season's league, where 11 of 17 returning managers have renamed
+    their team. Anyone absent from this map has left and should not be
+    referenced at all.
+    """
+    import os
+    try:
+        from .registry import (DEFAULT_REGISTRY, open_registry,
+                               prev_entry_translation)
+        reg_path = Path(os.environ.get("FPL_REGISTRY", DEFAULT_REGISTRY))
+        if not reg_path.exists():
+            return {}
+        reg = open_registry(reg_path)
+        try:
+            translation = prev_entry_translation(reg, league_id)
+        finally:
+            reg.close()
+    except (sqlite3.Error, ImportError, OSError):
+        return {}
+    if not translation:
+        return {}
+
+    conn = sqlite3.connect(db_path)
+    try:
+        current = {r[0]: {"team": r[1], "manager": r[2]} for r in conn.execute(
+            "SELECT entry_id, entry_name, player_name FROM managers "
+            "WHERE league_id = ?", (league_id,))}
+    finally:
+        conn.close()
+    return {prev: current[cur] for prev, cur in translation.items()
+            if cur in current}
+
+
+def _apply_identity(history: dict, id_map: dict[int, dict]) -> None:
+    """Rewrite last season's records to this season's names, and mark anyone
+    who is no longer in the league so predictions can skip them."""
+    if not id_map:
+        return
+
+    def tag(rec: dict | None) -> None:
+        if not rec or "entry_id" not in rec:
+            return
+        now = id_map.get(rec["entry_id"])
+        rec["playing"] = now is not None
+        if now:
+            rec["then_name"] = rec.get("entry_name")
+            rec["entry_name"] = now["team"]
+            rec["player_name"] = now["manager"]
+
+    for rec in history.get("table") or []:
+        tag(rec)
+    for key in ("champion", "runner_up", "best_gw", "worst_gw",
+                "bench_king", "hit_merchant", "bottler"):
+        tag(history.get(key))
+    for lead in history.get("leaders") or []:
+        tag(lead)
+
+
+# ---------------------------------------------------------------------------
 # manager form book (multi-season history)
 # ---------------------------------------------------------------------------
 
@@ -309,6 +374,79 @@ def _market(conn: sqlite3.Connection) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# ones to watch — players, and the rivals across the table
+# ---------------------------------------------------------------------------
+
+def _watchlist(intel: dict, market: dict, fixtures: dict,
+               form_book: list[dict]) -> dict:
+    """Named individuals with a one-line reason, drawn from the same data as
+    everything else. Players first, then the managers to actually fear."""
+    best_fdr = {r["club"]: r["fdr"] for r in fixtures.get("easiest", [])}
+    players: list[dict] = []
+
+    def add(rows, tag, reason, limit=2, **kw):
+        for r in rows[:limit]:
+            players.append({"name": r["web_name"], "club": r["club"],
+                            "price": r["price"], "own": r["own"],
+                            "pos": r.get("pos", ""), "tag": tag,
+                            "reason": reason(r), **kw})
+
+    add(intel.get("defcon") or [], "DefCon engine",
+        lambda r: (f"{int(r['dc_pts'])} defensive-contribution points last season "
+                   f"at a {int(r['hit_rate'])}% hit rate. The floor nobody prices in."))
+    add(intel.get("bargains") or [], "Due a correction",
+        lambda r: (f"Underperformed his expected numbers by {r['under_x']} — "
+                   f"{r['ga']} returns from {r['xga']} expected. The chances are "
+                   f"already being created."))
+    add(intel.get("value") or [], "Budget enabler",
+        lambda r: (f"{r['ppm']} points per £m at this price. The kind of pick "
+                   f"that funds a premium elsewhere."))
+    # Cheap starters at a club with a kind opening run.
+    fast = [r for r in (intel.get("value") or [])
+            if r["club"] in best_fdr and r["price"] <= 6.0]
+    add(fast, "Fast starter",
+        lambda r: (f"{r['club']} have one of the kindest opening runs "
+                   f"(difficulty {best_fdr[r['club']]} over the first "
+                   f"{fixtures['span']}), and he is only £{r['price']}m."), limit=2)
+    add(intel.get("traps") or [], "Handle with care",
+        lambda r: (f"Beat his xG by {r['over_xg']} last season — "
+                   f"{r['goals']} goals from {r['xg']} expected. Owned by "
+                   f"{r['own']}% who are counting on it happening twice."),
+        limit=2, caution=True)
+
+    # De-duplicate: a player earns one billing, the first one he qualified for.
+    seen: set[str] = set()
+    unique = []
+    for p in players:
+        key = f"{p['name']}|{p['club']}"
+        if key not in seen:
+            seen.add(key)
+            unique.append(p)
+
+    # Rivals: best career percentile among managers actually in the league.
+    rivals = []
+    for m in sorted((x for x in form_book if x.get("best_pct") is not None),
+                    key=lambda x: (x["best_pct"], -(x["best_points"] or 0)))[:4]:
+        pct = m["best_pct"]
+        pct_label = "under 1" if pct < 1 else f"{pct:.0f}"
+        rivals.append({
+            "team": m["entry_name"], "manager": m["player_name"],
+            "seasons": m["seasons"], "best_points": m["best_points"],
+            "best_season": m["best_season"], "best_pct": m["best_pct"],
+            "is_new": m["is_new"],
+            "pct_label": pct_label,
+            "reason": (f"Career best {m['best_points']} in {m['best_season']}, "
+                       f"top {pct_label}% of the world"
+                       + (f", across {m['seasons']} seasons" if m["seasons"] > 4 else "")
+                       + (". And nobody here has seen him play." if m["is_new"] else ".")),
+        })
+    # Cautions are the point of a watchlist, so never let them fall off.
+    keep = [p for p in unique if not p.get("caution")][:6]
+    keep += [p for p in unique if p.get("caution")][:2]
+    return {"players": keep, "rivals": rivals}
+
+
+# ---------------------------------------------------------------------------
 # predictions — the bit built to be argued about
 # ---------------------------------------------------------------------------
 
@@ -318,8 +456,12 @@ def _predictions(history: dict, intel: dict, fixtures: dict,
     can hold it against the dossier come May."""
     out: list[dict] = []
 
-    champ = history.get("champion")
-    table = history.get("table") or []
+    # Only reference managers who are actually in the league this season.
+    def here(rec: dict | None) -> bool:
+        return bool(rec) and rec.get("playing", True)
+
+    table = [r for r in (history.get("table") or []) if here(r)]
+    champ = history.get("champion") if here(history.get("champion")) else None
     if champ:
         out.append({
             "tag": "The Title",
@@ -339,7 +481,7 @@ def _predictions(history: dict, intel: dict, fixtures: dict,
             "subject": dark["entry_name"],
             "basis": f"3rd in 25/26 on {dark['total_points']} pts"})
 
-    bottler = history.get("bottler")
+    bottler = history.get("bottler") if here(history.get("bottler")) else None
     if bottler:
         out.append({
             "tag": "The Bottle Watch",
@@ -400,7 +542,7 @@ def _predictions(history: dict, intel: dict, fixtures: dict,
 
     # Don't pile two predictions onto the same manager — spread the abuse.
     named = {p.get("subject") for p in out}
-    bench = history.get("bench_king")
+    bench = history.get("bench_king") if here(history.get("bench_king")) else None
     if bench and bench.get("benched") and bench["entry_name"] not in named:
         out.append({
             "tag": "The Bench Curse",
@@ -410,7 +552,7 @@ def _predictions(history: dict, intel: dict, fixtures: dict,
             "subject": bench["entry_name"],
             "basis": f"{int(bench['benched'])} points benched in 25/26"})
 
-    hits = history.get("hit_merchant")
+    hits = history.get("hit_merchant") if here(history.get("hit_merchant")) else None
     if hits and hits.get("cost") and hits["entry_name"] not in named:
         out.append({
             "tag": "The Hit Merchant",
@@ -422,7 +564,7 @@ def _predictions(history: dict, intel: dict, fixtures: dict,
             "basis": f"-{int(hits['cost'])} pts on hits across "
                      f"{int(hits['moves'])} transfers"})
 
-    worst = history.get("worst_gw")
+    worst = history.get("worst_gw") if here(history.get("worst_gw")) else None
     if worst:
         out.append({
             "tag": "The Floor",
@@ -433,6 +575,157 @@ def _predictions(history: dict, intel: dict, fixtures: dict,
             "basis": f"{worst['points']} pts in GW{worst['event']}, 25/26"})
 
     return out
+
+
+# ---------------------------------------------------------------------------
+# pre-season narrative
+# ---------------------------------------------------------------------------
+
+_PRESEASON_SECTIONS = [
+    ("The State of Play", "var(--slate)", "state"),
+    ("The Market", "var(--gold)", "market"),
+    ("Ones to Watch", "var(--green)", "watch"),
+    ("The Warnings", "var(--red)", "warnings"),
+]
+
+_PRESEASON_SYSTEM = (
+    "You are the columnist for a private Fantasy Premier League mini-league's "
+    "pre-season dossier. Write exactly four flowing paragraphs, 5-8 sentences "
+    "each, about the season that is ABOUT to start — nothing has been played "
+    "yet, so never invent results, scorelines or gameweek events.\n\n"
+    "  state    — the league itself: last season's champion and margin, who "
+    "has left, who has joined, the arc everyone remembers, what is at stake.\n"
+    "  market   — this season's prices and the shape of the game: what is "
+    "expensive, what the crowd has piled into, where the value is.\n"
+    "  watch    — specific players worth owning, with the numbers behind them "
+    "(defensive contribution, expected goals, points per million).\n"
+    "  warnings — the traps: finishing that will regress, template picks "
+    "carrying risk, and the managers in this league to actually fear.\n\n"
+    "Use the real names and numbers you are given and nothing else. Be "
+    "confident, dry and a little disrespectful about the managers — they all "
+    "know each other. Use **bold** sparingly for names and numbers. Return "
+    "JSON with keys: state, market, watch, warnings."
+)
+
+_PRESEASON_SCHEMA = {
+    "type": "object",
+    "properties": {k: {"type": "string"} for _, _, k in _PRESEASON_SECTIONS},
+    "required": [k for _, _, k in _PRESEASON_SECTIONS],
+    "additionalProperties": False,
+}
+
+
+def narrative_facts(data: dict) -> dict:
+    """The subset of the page a columnist actually needs."""
+    h = data.get("history") or {}
+    intel = data.get("intel") or {}
+    watch = data.get("watch") or {}
+
+    def slim(rows, keys, n=5):
+        return [{k: r.get(k) for k in keys} for r in (rows or [])[:n]]
+
+    return {
+        "league": data.get("league_name"),
+        "season": data.get("season_label"),
+        "deadline": data.get("deadline_human"),
+        "days_left": data.get("days_left"),
+        "managers": len(data.get("form_book") or []),
+        "last_season": {
+            "champion": (h.get("champion") or {}).get("entry_name"),
+            "champion_points": (h.get("champion") or {}).get("total_points"),
+            "margin": h.get("margin"),
+            "runner_up": (h.get("runner_up") or {}).get("entry_name"),
+            "bottler": h.get("bottler"),
+            "best_gw": h.get("best_gw"),
+            "worst_gw": h.get("worst_gw"),
+            "bench_king": h.get("bench_king"),
+            "hit_merchant": h.get("hit_merchant"),
+        },
+        "new_joiners": [{"team": m["entry_name"], "manager": m["player_name"],
+                         "seasons": m["seasons"], "best": m["best_points"]}
+                        for m in (data.get("new_joiners") or [])],
+        "rivals": watch.get("rivals"),
+        "players_to_watch": watch.get("players"),
+        "defcon": slim(intel.get("defcon"),
+                       ["web_name", "club", "price", "dc_pts", "hit_rate", "own"]),
+        "traps": slim(intel.get("traps"),
+                      ["web_name", "club", "price", "goals", "xg", "over_xg", "own"]),
+        "value": slim(intel.get("value"), ["web_name", "club", "price", "ppm"]),
+        "most_owned": slim((data.get("market") or {}).get("most_owned"),
+                           ["web_name", "club", "price", "own"], 6),
+        "priciest": slim((data.get("market") or {}).get("priciest"),
+                         ["web_name", "club", "price", "own"], 4),
+        "easiest_fixtures": (data.get("fixtures") or {}).get("easiest"),
+        "predictions": [{"tag": p["tag"], "text": p["text"]}
+                        for p in (data.get("predictions") or [])],
+    }
+
+
+def write_preseason_narrative(data: dict, db_path: Path, league_id: int,
+                              mode: str = "auto",
+                              refresh: bool = False) -> list[dict] | None:
+    """Four-part pre-season column, cached alongside the weekly ones under
+    event 0. Returns None when no provider is available, so the page simply
+    renders without it."""
+    import os
+    import shutil
+    from .report import (_NARRATIVE_MODEL, _NARRATIVE_PROVIDERS, _narrative_html,
+                         _parse_narrative_json)
+
+    if mode == "auto":
+        if os.environ.get("ANTHROPIC_API_KEY"):
+            mode = "llm"
+        elif shutil.which("claude"):
+            mode = "cli"
+        else:
+            mode = "none"
+
+    cache = sqlite3.connect(db_path)
+    try:
+        cache.execute(
+            "CREATE TABLE IF NOT EXISTS narrative_cache ("
+            "league_id INTEGER NOT NULL, event INTEGER NOT NULL, model TEXT, "
+            "content TEXT, created_at TEXT, PRIMARY KEY (league_id, event))")
+        if not refresh:
+            row = cache.execute(
+                "SELECT content FROM narrative_cache "
+                "WHERE league_id = ? AND event = 0", (league_id,)).fetchone()
+            if row:
+                try:
+                    return json.loads(row[0])
+                except (TypeError, ValueError):
+                    pass
+
+        provider = _NARRATIVE_PROVIDERS.get(mode)
+        if provider is None:
+            return None
+
+        facts = dict(narrative_facts(data))
+        facts["_system"] = _PRESEASON_SYSTEM
+        facts["_schema"] = _PRESEASON_SCHEMA
+        parsed = provider(facts)
+        if not parsed:
+            return None
+        if isinstance(parsed, str):
+            parsed = _parse_narrative_json(parsed) or {}
+
+        shaped = [{"label": label, "color": color,
+                   "html": _narrative_html(parsed[key])}
+                  for label, color, key in _PRESEASON_SECTIONS if parsed.get(key)]
+        if not shaped:
+            return None
+
+        cache.execute(
+            "INSERT OR REPLACE INTO narrative_cache "
+            "(league_id, event, model, content, created_at) VALUES (?,?,?,?,?)",
+            (league_id, 0, _NARRATIVE_MODEL, json.dumps(shaped),
+             datetime.now(timezone.utc).isoformat()))
+        cache.commit()
+        return shaped
+    except sqlite3.Error:
+        return None
+    finally:
+        cache.close()
 
 
 def whatsapp_text(data: dict) -> str:
@@ -465,6 +758,25 @@ def whatsapp_text(data: dict) -> str:
                          f"{int(r['dc_pts'])} pts, {int(r['hit_rate'])}% of games")
         lines.append("")
 
+    watch = data.get("watch") or {}
+    picks = [p for p in watch.get("players", []) if not p.get("caution")][:4]
+    if picks:
+        lines.append("*ONES TO WATCH*")
+        for p in picks:
+            lines.append(f"• {p['name']} ({p['club']}, £{p['price']}m) — {p['tag']}")
+        lines.append("")
+    cautions = [p for p in watch.get("players", []) if p.get("caution")][:2]
+    if cautions:
+        names = ", ".join(f"{p['name']} (£{p['price']}m)" for p in cautions)
+        lines.append(f"⚠️ *HANDLE WITH CARE:* {names}")
+        lines.append("")
+    if watch.get("rivals"):
+        lines.append("*MANAGERS TO FEAR*")
+        for r in watch["rivals"][:3]:
+            lines.append(f"• {r['team']} ({r['manager']}) — career best "
+                         f"{r['best_points']}, top {r['pct_label']}%")
+        lines.append("")
+
     if data["fixtures"]["easiest"]:
         best = ", ".join(f"{r['club']} ({r['fdr']})"
                          for r in data["fixtures"]["easiest"][:3])
@@ -479,7 +791,9 @@ def whatsapp_text(data: dict) -> str:
 # ---------------------------------------------------------------------------
 
 def collect_preseason(db_path: Path, league_id: int, prev_db: Path | None,
-                      season: str, public_url: str = "") -> dict:
+                      season: str, public_url: str = "",
+                      narrative: str = "auto",
+                      refresh_narrative: bool = False) -> dict:
     conn = sqlite3.connect(db_path)
     try:
         gw1 = conn.execute(
@@ -573,7 +887,11 @@ def collect_preseason(db_path: Path, league_id: int, prev_db: Path | None,
         "public_url": public_url,
         "generated": datetime.now(timezone.utc).strftime("%d %b %Y, %H:%M UTC"),
     }
+    _apply_identity(history, _identity_map(db_path, league_id))
     data["predictions"] = _predictions(history, intel, fixtures, market)
+    data["watch"] = _watchlist(intel, market, fixtures, form_book)
+    data["narrative"] = write_preseason_narrative(
+        data, db_path, league_id, mode=narrative, refresh=refresh_narrative)
     data["whatsapp"] = whatsapp_text(data)
     return data
 
@@ -592,11 +910,14 @@ def render_preseason(data: dict, output: Path) -> Path:
 
 def generate_preseason(db_path: Path, output: Path, league_id: int,
                        prev_db: Path | None = None, season: str | None = None,
-                       public_url: str = "") -> Path:
+                       public_url: str = "", narrative: str = "auto",
+                       refresh_narrative: bool = False) -> Path:
     from .report import current_season
 
     season = season or current_season()
-    data = collect_preseason(db_path, league_id, prev_db, season, public_url)
+    data = collect_preseason(db_path, league_id, prev_db, season, public_url,
+                             narrative=narrative,
+                             refresh_narrative=refresh_narrative)
     data["prev_season_label"] = _prev_label(season)
     return render_preseason(data, output)
 
@@ -612,7 +933,8 @@ def _prev_label(season: str) -> str:
 
 def publish_preseason(db_path: Path, league_id: int, docs_dir: Path,
                       prev_db: Path | None = None, season: str | None = None,
-                      public_url: str = "") -> Path:
+                      public_url: str = "", narrative: str = "auto",
+                      refresh_narrative: bool = False) -> Path:
     """Render the pre-season page as ``docs/<season>/GW0.html`` so it slots into
     the existing manifest and season/gameweek picker."""
     from .report import build_manifest, current_season, _write_index
@@ -620,7 +942,8 @@ def publish_preseason(db_path: Path, league_id: int, docs_dir: Path,
     season = season or current_season()
     season_dir = docs_dir / season
     out = season_dir / "GW0.html"
-    generate_preseason(db_path, out, league_id, prev_db, season, public_url)
+    generate_preseason(db_path, out, league_id, prev_db, season, public_url,
+                       narrative=narrative, refresh_narrative=refresh_narrative)
 
     manifest = build_manifest(docs_dir)
     (docs_dir / "manifest.json").write_text(
