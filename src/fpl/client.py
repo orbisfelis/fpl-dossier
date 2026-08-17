@@ -58,6 +58,10 @@ class FPLClient:
     async def manager_history(self, entry_id: int) -> dict:
         return await self._get(f"/entry/{entry_id}/history/")
 
+    async def entry(self, entry_id: int) -> dict:
+        """Manager profile — works pre-season, before a league renews."""
+        return await self._get(f"/entry/{entry_id}/")
+
     async def manager_picks(self, entry_id: int, event: int) -> dict:
         return await self._get(f"/entry/{entry_id}/event/{event}/picks/")
 
