@@ -582,7 +582,7 @@ def _predictions(history: dict, intel: dict, fixtures: dict,
 # ---------------------------------------------------------------------------
 
 _PRESEASON_SECTIONS = [
-    ("The State of Play", "var(--slate)", "state"),
+    ("Unfinished Business", "var(--slate)", "state"),
     ("The Market", "var(--gold)", "market"),
     ("Ones to Watch", "var(--green)", "watch"),
     ("The Warnings", "var(--red)", "warnings"),
@@ -593,8 +593,11 @@ _PRESEASON_SYSTEM = (
     "pre-season dossier. Write exactly four flowing paragraphs, 5-8 sentences "
     "each, about the season that is ABOUT to start — nothing has been played "
     "yet, so never invent results, scorelines or gameweek events.\n\n"
-    "  state    — the league itself: last season's champion and margin, who "
-    "has left, who has joined, the arc everyone remembers, what is at stake.\n"
+    "  state    — what last season left unresolved and how the league stands "
+    "now: the champion and margin, the arc everyone remembers, who has left, "
+    "who has joined, and what that sets up for the season about to start. "
+    "Open in the past, but finish in the present — the reader is four days "
+    "from a deadline, not reminiscing.\n"
     "  market   — this season's prices and the shape of the game: what is "
     "expensive, what the crowd has piled into, where the value is.\n"
     "  watch    — specific players worth owning, with the numbers behind them "
