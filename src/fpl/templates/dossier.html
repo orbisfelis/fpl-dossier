@@ -263,6 +263,45 @@
 
   .section { padding: 28px 0; }
 
+  /* ============ BENCHMARK (league-specific running joke) ============ */
+  .bench-hdr {
+    background: linear-gradient(135deg, #4a1d5e 0%, #6b2d84 50%, #8e44ad 100%);
+    text-align: center; padding: 24px; margin-bottom: 20px;
+    border-left: 5px solid #d980fa;
+  }
+  .bench-hdr .hdr-title { font-size: 28px; font-weight: 700; font-style: italic; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .bench-hdr .hdr-sub { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+  .bench-hdr .hdr-sub strong { color: #fff; }
+  .bench-wrap { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; align-items: stretch; }
+  .bench-pick {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 2px; padding: 18px 20px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .bench-pick label {
+    display: block; font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--muted); margin-bottom: 8px;
+  }
+  .bench-pick select {
+    width: 100%; padding: 10px 12px; font-family: inherit; font-size: 14px;
+    border: 1px solid var(--border); border-radius: 3px; background: #fff;
+    color: var(--text); cursor: pointer;
+  }
+  .bench-pick select:focus { outline: 2px solid #8e44ad; outline-offset: 1px; }
+  .bench-note { font-size: 12px; color: var(--muted); margin-top: 12px; line-height: 1.5; }
+  .bench-card {
+    border: 1px solid var(--border); border-radius: 2px; padding: 22px;
+    text-align: center; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; background: var(--card);
+  }
+  .bench-card.yes { background: rgba(55,167,107,0.08); border-color: var(--green); }
+  .bench-card.no { background: rgba(176,58,46,0.08); border-color: var(--red); }
+  .bench-verdict { font-size: 64px; font-weight: 900; font-style: italic; line-height: 1; letter-spacing: 2px; }
+  .bench-card.yes .bench-verdict { color: var(--green); }
+  .bench-card.no .bench-verdict { color: var(--red); }
+  .bench-detail { font-size: 13px; margin-top: 10px; max-width: 340px; line-height: 1.5; }
+  @media (max-width: 720px) { .bench-wrap { grid-template-columns: 1fr; } }
+
   /* ==================== AWARD CARDS ==================== */
   .cards-row { display: grid; gap: 14px; margin-bottom: 14px; }
   .cards-3 { grid-template-columns: repeat(3, 1fr); }
@@ -583,6 +622,7 @@
     <a href="#story">Story</a>
     <a href="#fame">Fame</a>
     <a href="#shame">Shame</a>
+    <a href="#benchmark">Jay's GF</a>
     <a href="#leaderboard">Table</a>
     <a href="#review">Review</a>
     <a href="#transfers">Transfers</a>
@@ -811,6 +851,74 @@
     {% endif %}
   </ul>
 </div>
+
+{# ============ THE BENCHMARK (league-specific running joke) ============ #}
+{% if benchmark %}
+<div id="benchmark" class="section">
+  <div class="bench-hdr">
+    <div class="hdr-title">{{ benchmark.title }}</div>
+    <div class="hdr-sub">{{ benchmark.subtitle }} &mdash; she had
+      <strong>{{ benchmark.target }}</strong> after GW{{ benchmark.event }}</div>
+  </div>
+
+  <div class="bench-wrap">
+    <div class="bench-pick">
+      <label for="bench-select">Pick your team</label>
+      <select id="bench-select" aria-label="Manager">
+        {% for m in benchmark.managers %}
+        <option value="{{ loop.index0 }}">{{ m.team }} &mdash; {{ m.manager }}</option>
+        {% endfor %}
+      </select>
+      <p class="bench-note">
+        {{ benchmark.beating }} of {{ benchmark.total_managers }}
+        {{ "manager is" if benchmark.beating == 1 else "managers are" }}
+        currently ahead of her.
+        {% if benchmark.season_total %}
+        She finished last season on {{ benchmark.season_total }}.
+        {% endif %}
+      </p>
+    </div>
+
+    <div class="bench-card" id="bench-card">
+      <div class="bench-verdict" id="bench-verdict">&mdash;</div>
+      <div class="bench-detail" id="bench-detail"></div>
+    </div>
+  </div>
+</div>
+<script id="bench-data" type="application/json">{{ benchmark.managers|tojson }}</script>
+<script>
+(function () {
+  var data = JSON.parse(document.getElementById('bench-data').textContent);
+  var sel = document.getElementById('bench-select');
+  var card = document.getElementById('bench-card');
+  var verdict = document.getElementById('bench-verdict');
+  var detail = document.getElementById('bench-detail');
+  var target = {{ benchmark.target|tojson }};
+  var label = {{ benchmark.label|tojson }};
+
+  function render() {
+    var m = data[sel.value];
+    if (!m) return;
+    var ahead = m.beats;
+    card.className = 'bench-card ' + (ahead ? 'yes' : 'no');
+    verdict.textContent = ahead ? 'YES' : 'NO';
+    var gap = Math.abs(m.diff);
+    if (m.diff === 0) {
+      detail.textContent = m.total + ' points — dead level with ' + label +
+        '. Somehow the worst possible outcome.';
+    } else if (ahead) {
+      detail.textContent = m.total + ' points, ' + gap + ' clear of ' + label +
+        ' (' + target + '). Enjoy it while it lasts.';
+    } else {
+      detail.textContent = m.total + ' points, ' + gap + ' behind ' + label +
+        ' (' + target + '). She is not even playing this season.';
+    }
+  }
+  sel.addEventListener('change', render);
+  render();
+})();
+</script>
+{% endif %}
 
 {# ==================== LEADERBOARD ==================== #}
 <div id="leaderboard" class="section">

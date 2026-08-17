@@ -111,8 +111,9 @@ def generate_report(db_path: Path, output: Path, league_id: int,
 
     log.info("Generating %s report for league %d, GW %d", fmt.upper(), league_id, event)
 
-    data = _collect_data(conn, league_id, event, prev_db=prev_db)
-    data["season"] = season or current_season()
+    season = season or current_season()
+    data = _collect_data(conn, league_id, event, season=season, prev_db=prev_db)
+    data["season"] = season
     conn.close()
 
     # Optionally let Claude write the top narrative (HTML only). "auto" prefers
@@ -297,6 +298,64 @@ def _prev_season_stats(prev_db_path: Path, league_id: int, event: int) -> dict |
         "league_avg": round(sum(pts) / len(pts), 1) if pts else None,
         "leader": {"team": rows[0]["entry_name"], "total": rows[0]["total_points"]},
         "totals": totals,
+    }
+
+
+# A running joke, scoped to exactly one league and one season on purpose.
+# Keyed by (league_id, season); delete the entry and the section disappears.
+_BENCHMARK_SECTIONS = {
+    (126735, "26-27"): {
+        "title": "Am I doing better than Jay's girlfriend?",
+        "subtitle": "Measured against her pace from last season, gameweek by gameweek",
+        "benchmark_manager": "Jay Curtis",
+        "benchmark_label": "Jay's girlfriend",
+    },
+}
+
+
+def _benchmark_block(prev_db_path: Path | None, league_id: int, season: str,
+                     event: int, leaderboard: list[dict]) -> dict | None:
+    """Every manager measured against one nominated manager's pace from the
+    archived season, at the same gameweek. Returns None unless this league and
+    season have a joke configured and the archive can answer it."""
+    cfg = _BENCHMARK_SECTIONS.get((league_id, season))
+    if not cfg or not prev_db_path or not Path(prev_db_path).exists():
+        return None
+    try:
+        conn = sqlite3.connect(prev_db_path)
+        conn.row_factory = sqlite3.Row
+        prev_league = resolve_prev_league(conn, league_id)
+        row = conn.execute(
+            """SELECT mg.total_points, m.entry_name
+               FROM manager_gameweeks mg JOIN managers m ON m.entry_id = mg.entry_id
+               WHERE m.league_id = ? AND m.player_name = ? AND mg.event = ?""",
+            (prev_league, cfg["benchmark_manager"], event)).fetchone()
+        final = conn.execute(
+            """SELECT MAX(mg.total_points)
+               FROM manager_gameweeks mg JOIN managers m ON m.entry_id = mg.entry_id
+               WHERE m.league_id = ? AND m.player_name = ?""",
+            (prev_league, cfg["benchmark_manager"])).fetchone()
+        conn.close()
+    except sqlite3.Error:
+        return None
+    if not row or row["total_points"] is None:
+        return None
+
+    target = row["total_points"]
+    managers = []
+    for r in leaderboard:
+        total = r["total_points"] or 0
+        managers.append({
+            "entry_id": r["entry_id"], "team": r["entry_name"],
+            "manager": r["player_name"], "total": total,
+            "beats": total > target, "diff": total - target,
+        })
+    beating = sum(1 for m in managers if m["beats"])
+    return {
+        "title": cfg["title"], "subtitle": cfg["subtitle"],
+        "label": cfg["benchmark_label"], "event": event, "target": target,
+        "season_total": final[0] if final else None,
+        "managers": managers, "beating": beating, "total_managers": len(managers),
     }
 
 
@@ -587,6 +646,7 @@ def write_narrative(facts: dict, league_id: int, event: int, db_path: Path,
 # ---------------------------------------------------------------------------
 
 def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
+                  season: str | None = None,
                   prev_db: Path | None = None) -> dict:
     """Gather every piece of data the report needs into a plain dict."""
 
@@ -2823,6 +2883,8 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
 
     return {
         "last_season": last_season,
+        "benchmark": _benchmark_block(prev_db, league_id, season or "",
+                                      event, leaderboard),
         "event": event,
         "league_id": league_id,
         "league_name": league_name,
