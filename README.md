@@ -367,23 +367,29 @@ docker compose run --rm fpl scrape --db data/26_27_fpl.db
 #              FPL_PREV_DB=data/25_26_fpl.db
 ```
 
-### New joiners before the league renews
+### New joiners and manager identity
 
-A mini-league's standings endpoint 404s until it renews, usually around GW1, so
-new members are invisible to a normal scrape until then. If you know their
-entry IDs (the number in `fantasy.premierleague.com/entry/<ID>/history`, or
-from the league page in the app), pull them directly:
+**Manager entry IDs change at the season rollover.** Anything comparing
+managers across seasons must therefore join on `player_name` (the person),
+never `entry_id`, and never `entry_name` — teams get renamed constantly. See
+`manager_key()` in `report.py`; both the Form Book's new-joiner detection and
+the report's "vs Last Season" table use it.
+
+New joiners need no special handling: once the mini-league renews (usually
+around GW1) a plain `fpl scrape` picks up everyone in the standings, and each
+manager's scrape already pulls `past` — their full season-by-season FPL
+history, going back as far as they have played. Those rows land in
+`manager_past_seasons` (points, overall rank, percentile finish) and drive the
+pre-season Form Book, where anyone whose name is absent from the archived
+previous season is flagged NEW.
+
+Before the league renews its standings 404, so nobody is discoverable. If you
+need a specific manager early and know their entry ID (from
+`fantasy.premierleague.com/entry/<ID>/history`), `--entry` is an escape hatch:
 
 ```bash
-fpl scrape --entry 332468 --entry 1007640 --skip-player-history
+fpl scrape --entry 1234567 --skip-player-history
 ```
-
-Each is fetched via `/entry/<id>/`, then scraped like any other manager —
-which includes `past`, their full season-by-season FPL history going back as
-far as they have played. Those rows land in `manager_past_seasons` (points,
-overall rank, and the percentile finish) and drive the pre-season Form Book.
-Once the league does renew, a plain `fpl scrape` picks everyone up
-automatically and `--entry` is no longer needed.
 
 Prices drift over the summer as the deadline approaches — re-run the scrape
 the day before the GW1 deadline for final prices. After GW1 finishes, the
