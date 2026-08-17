@@ -163,10 +163,39 @@
   .stat.red { border-top-color: var(--red); }
   .stat.green { border-top-color: var(--green); }
 
+  .narrative-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-left: 4px solid var(--slate); border-radius: 2px;
+    padding: 18px 20px; margin-bottom: 12px;
+  }
+  .nar-label {
+    font-size: 11px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1.2px; margin-bottom: 8px;
+  }
+  .nar-text { font-size: 14px; line-height: 1.7; }
+  .nar-text strong { font-weight: 700; color: var(--slate); }
+
+  .watch-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); margin-bottom: 16px; }
+  .watch {
+    background: var(--card); border: 1px solid var(--border);
+    border-left: 4px solid var(--green); border-radius: 2px; padding: 13px 15px;
+  }
+  .watch.caution { border-left-color: var(--red); }
+  .watch.rival { border-left-color: var(--slate); }
+  .watch-tag {
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--green); margin-bottom: 5px;
+  }
+  .watch.caution .watch-tag { color: var(--red); }
+  .watch.rival .watch-tag { color: var(--slate); }
+  .watch-name { font-size: 15px; font-weight: 700; }
+  .watch-meta { font-size: 11px; font-weight: 400; color: var(--muted); display: block; margin-top: 2px; }
+  .watch-why { font-size: 12.5px; line-height: 1.5; margin-top: 7px; }
+
   .foot { text-align: center; padding: 30px 20px 40px; color: var(--muted); font-size: 11px; }
 
   @media (max-width: 860px) {
-    .pred-grid, .grid-2 { grid-template-columns: 1fr; }
+    .pred-grid, .grid-2, .watch-grid { grid-template-columns: 1fr; }
     .recap-row { grid-template-columns: repeat(2, 1fr); }
     .nav a { display: none; }
   }
@@ -176,6 +205,8 @@
 
 <nav class="nav">
   <a class="nav-brand" href="#top">THE <span>DOSSIER</span></a>
+  <a href="#story">The Column</a>
+  <a href="#watch">Ones to Watch</a>
   <a href="#predictions">Predictions</a>
   <a href="#recap">Last Season</a>
   <a href="#formbook">Form Book</a>
@@ -204,12 +235,166 @@
     <tr><td>League:</td><td>TML (126735)</td></tr>
     <tr><td>GW1 Deadline:</td><td>Fri 21 Aug 2026, 17:30 UTC</td></tr>
     <tr><td>Players priced:</td><td>494</td></tr>
-    <tr><td>Defending champion:</td><td>Caesar ⭐</td></tr>
-    <tr><td>Generated:</td><td>17 Aug 2026, 11:49 UTC</td></tr>
+    <tr><td>Defending champion:</td><td>RLN ⭐️</td></tr>
+    <tr><td>Generated:</td><td>17 Aug 2026, 11:56 UTC</td></tr>
   </table>
 </div>
 
 <div class="wrap">
+
+
+
+<div id="story" class="section">
+  <div class="hero-hdr" style="background: linear-gradient(135deg, #1a2b3c 0%, #2d3e50 50%, #3a4f63 100%); border-left-color: var(--accent);">
+    <div class="hdr-title">The Season in Words</div>
+    <div class="hdr-sub">Pre-season 2026/2027 &mdash; an editorial nobody asked for</div>
+  </div>
+  
+  <div class="narrative-card">
+    <div class="nar-label" style="color: var(--slate);">The State of Play</div>
+    <div class="nar-text">Nine months of it and <strong>RLN ⭐️</strong> came out the other side by <strong>64 points</strong>, which reads comfortable and absolutely was not. The team that led this league for <strong>eighteen weeks</strong> was <strong>Son of a Doge</strong>, and he finished <strong>fourth</strong> — a collapse so complete it now has its own section in this document every year. <strong>Pamparam ⭐️⭐️⭐️</strong> took second on <strong>2309</strong>, close enough to taste it and far enough to have to sit through the trophy photo. Four managers have not come back: <strong>Darius Goodarzi</strong>, <strong>Aarif Kassam</strong>, <strong>Jay Curtis</strong> and <strong>Martin Borizanov</strong> are all absent from the new league, and Goodarzi's <strong>2238</strong> was eighth, so this is not a case of the stragglers quietly wandering off. Two have arrived to replace them, and neither is a makeweight — <strong>Evros Stephanou</strong> brings <strong>eight seasons</strong> and a career best of <strong>2420</strong>, while <strong>Panagiotis Pyrgas</strong> turns up with a single season on record and nothing to lose. That leaves <strong>19</strong> of you, four days from a deadline nobody is ready for, all pretending the draft is finished.</div>
+  </div>
+  
+  <div class="narrative-card">
+    <div class="nar-label" style="color: var(--gold);">The Market</div>
+    <div class="nar-text">The game has decided that <strong>Erling Haaland</strong> is worth <strong>£15.5m</strong> and <strong>73.3%</strong> of the world has agreed without argument, which makes him less a pick than a tax. <strong>Bruno Fernandes</strong> at <strong>£12.0m</strong> is the only other player north of ten, and behind them the market has quietly reorganised itself around defenders: every serious defensive-contribution scorer now starts at <strong>£5.0m</strong> or more, because the pricing team finally read the same spreadsheets you did. <strong>João Pedro</strong> has been bid up to <strong>57.2%</strong> ownership on the back of eight pre-season goals, and <strong>Szoboszlai</strong> sits at <strong>41.9%</strong> on the promise of a floor rather than a ceiling. The value has drained out of the middle and collected at the bottom, where <strong>Truffert</strong> at <strong>£5.5m</strong> and <strong>Tyrick Mitchell</strong> at <strong>£4.5m</strong> both returned <strong>30 points per million</strong> of this season's price. Fixtures point the same way early: <strong>Liverpool</strong> have the kindest opening five at an average difficulty of <strong>2.6</strong>, with <strong>Leeds</strong>, <strong>Man City</strong>, <strong>Man United</strong> and <strong>Spurs</strong> all level behind on <strong>2.8</strong>. Build the spine cheap, spend what is left on the two names everyone owns anyway, and accept that August rewards the boring.</div>
+  </div>
+  
+  <div class="narrative-card">
+    <div class="nar-label" style="color: var(--green);">Ones to Watch</div>
+    <div class="nar-text"><strong>Marcos Senesi</strong> at <strong>£6.0m</strong> is the most underpriced asset in the game and it is not especially close — <strong>52 defensive-contribution points</strong> last season at a <strong>70% hit rate</strong>, and only <strong>9.8%</strong> of managers have noticed. <strong>Elliot Anderson</strong> matched him on <strong>52</strong> from midfield at a <strong>68%</strong> clip for <strong>£6.5m</strong>, which is a midfielder with a defender's floor and none of the anxiety. <strong>James Tarkowski</strong> (<strong>£6.0m</strong>, 44 points, 59%) is the third name in that tier and the cheapest way to stop thinking about your back line until October. For the ones the market has mispriced downward, <strong>Yeremy</strong> at <strong>£5.5m</strong> underperformed his expected numbers by <strong>6.7</strong> — four returns from <strong>10.7</strong> expected, which is not decline, it is a coin that has landed badly eleven times. <strong>Mateta</strong> tells the same story more expensively at <strong>£6.5m</strong>, <strong>3.7</strong> short of his underlying figures. And if you want the fixture angle, <strong>Marc Guéhi</strong> at <strong>£6.0m</strong> and <strong>Van Hecke</strong> at <strong>£5.0m</strong> both play for sides in that <strong>2.8</strong> opening bracket, which is a lot of cheap defence pointed at a soft August.</div>
+  </div>
+  
+  <div class="narrative-card">
+    <div class="nar-label" style="color: var(--red);">The Warnings</div>
+    <div class="nar-text"><strong>Antoine Semenyo</strong> scored <strong>17 goals from 11.1 expected</strong> last season, beat his xG by <strong>5.9</strong>, and <strong>28.4%</strong> of the game has decided that was skill rather than a hot streak — at <strong>£8.5m</strong> he is the single most likely disappointment in your squad. <strong>Gibbs-White</strong> carries the same problem in a cheaper shirt. The template is its own trap: owning <strong>Haaland</strong> means you tread water with three-quarters of the field, and fading him means you either win this league or explain yourself in April, with no third outcome available. As for the people across the table, the numbers are not reassuring. <strong>Pamparam ⭐️⭐️⭐️</strong> has a career best of <strong>2647</strong> and sixteen seasons of evidence, <strong>2UCL &gt; Arsenal ☆☆</strong> has <strong>2552</strong> across eighteen, and both <strong>RLN ⭐️</strong> and <strong>Son of a Doge</strong> have cleared <strong>2516</strong> — all four have finished inside the top <strong>1%</strong> of the world at least once. Your genuine unknown is <strong>Evros Stephanou</strong>, who nobody here has played against and who has already gone <strong>2420</strong> in a season. Four days. Pick a captain and stop opening the app.</div>
+  </div>
+  
+</div>
+
+
+
+
+<div id="watch" class="section">
+  <div class="section-hdr">
+    <div class="section-left">
+      <div class="section-title">1. Ones to Watch</div>
+      <div class="section-sub">Players worth owning &mdash; and the managers to actually fear</div>
+    </div>
+    <div class="section-right">Pre-Season</div>
+  </div>
+
+  
+  <div class="watch-grid">
+    
+    <div class="watch">
+      <div class="watch-tag">DefCon engine</div>
+      <div class="watch-name">Senesi
+        <span class="watch-meta">DEF &middot; TOT &middot; £6.0m &middot; 9.8% owned</span>
+      </div>
+      <div class="watch-why">52 defensive-contribution points last season at a 70% hit rate. The floor nobody prices in.</div>
+    </div>
+    
+    <div class="watch">
+      <div class="watch-tag">DefCon engine</div>
+      <div class="watch-name">Anderson
+        <span class="watch-meta">MID &middot; MCI &middot; £6.5m &middot; 10.0% owned</span>
+      </div>
+      <div class="watch-why">52 defensive-contribution points last season at a 68% hit rate. The floor nobody prices in.</div>
+    </div>
+    
+    <div class="watch">
+      <div class="watch-tag">Due a correction</div>
+      <div class="watch-name">Yeremy
+        <span class="watch-meta">MID &middot; CRY &middot; £5.5m &middot; 0.2% owned</span>
+      </div>
+      <div class="watch-why">Underperformed his expected numbers by 6.7 — 4 returns from 10.7 expected. The chances are already being created.</div>
+    </div>
+    
+    <div class="watch">
+      <div class="watch-tag">Due a correction</div>
+      <div class="watch-name">Mateta
+        <span class="watch-meta">FWD &middot; CRY &middot; £6.5m &middot; 6.2% owned</span>
+      </div>
+      <div class="watch-why">Underperformed his expected numbers by 3.7 — 12 returns from 15.7 expected. The chances are already being created.</div>
+    </div>
+    
+    <div class="watch">
+      <div class="watch-tag">Budget enabler</div>
+      <div class="watch-name">Truffert
+        <span class="watch-meta">DEF &middot; BOU &middot; £5.5m &middot; 4.9% owned</span>
+      </div>
+      <div class="watch-why">30.0 points per £m at this price. The kind of pick that funds a premium elsewhere.</div>
+    </div>
+    
+    <div class="watch">
+      <div class="watch-tag">Budget enabler</div>
+      <div class="watch-name">Mitchell
+        <span class="watch-meta">DEF &middot; CRY &middot; £4.5m &middot; 6.8% owned</span>
+      </div>
+      <div class="watch-why">30.0 points per £m at this price. The kind of pick that funds a premium elsewhere.</div>
+    </div>
+    
+    <div class="watch caution">
+      <div class="watch-tag">Handle with care</div>
+      <div class="watch-name">Semenyo
+        <span class="watch-meta">MID &middot; MCI &middot; £8.5m &middot; 27.0% owned</span>
+      </div>
+      <div class="watch-why">Beat his xG by 5.9 last season — 17 goals from 11.1 expected. Owned by 27.0% who are counting on it happening twice.</div>
+    </div>
+    
+    <div class="watch caution">
+      <div class="watch-tag">Handle with care</div>
+      <div class="watch-name">Gibbs-White
+        <span class="watch-meta">MID &middot; NFO &middot; £8.0m &middot; 11.8% owned</span>
+      </div>
+      <div class="watch-why">Beat his xG by 4.2 last season — 15 goals from 10.8 expected. Owned by 11.8% who are counting on it happening twice.</div>
+    </div>
+    
+  </div>
+  
+
+  
+  <h3 class="sub-hdr">The Managers to Fear</h3>
+  <p class="note">Best career finish as a percentile of the entire game &mdash; not this league, the whole thing.</p>
+  <div class="watch-grid">
+    
+    <div class="watch rival">
+      <div class="watch-tag">Established threat</div>
+      <div class="watch-name">Pamparam ⭐️⭐️⭐️
+        <span class="watch-meta">Milen Kindekov</span>
+      </div>
+      <div class="watch-why">Career best 2647 in 2021/22, top under 1% of the world, across 16 seasons.</div>
+    </div>
+    
+    <div class="watch rival">
+      <div class="watch-tag">Established threat</div>
+      <div class="watch-name">RLN ⭐️
+        <span class="watch-meta">Sunny Sharma</span>
+      </div>
+      <div class="watch-why">Career best 2516 in 2022/23, top under 1% of the world, across 18 seasons.</div>
+    </div>
+    
+    <div class="watch rival">
+      <div class="watch-tag">Established threat</div>
+      <div class="watch-name">2UCL &gt; Arsenal ☆☆
+        <span class="watch-meta">Aman Sharma</span>
+      </div>
+      <div class="watch-why">Career best 2552 in 2021/22, top under 1% of the world, across 18 seasons.</div>
+    </div>
+    
+    <div class="watch rival">
+      <div class="watch-tag">Established threat</div>
+      <div class="watch-name">Son of a Doge
+        <span class="watch-meta">M B</span>
+      </div>
+      <div class="watch-why">Career best 2516 in 2023/24, top under 1% of the world, across 15 seasons.</div>
+    </div>
+    
+  </div>
+  
+</div>
+
 
 
 <div id="predictions" class="section">
@@ -227,20 +412,20 @@ _TML_
 
 ⏰ GW1 deadline: Fri 21 Aug 2026, 17:30 UTC
 
-🏆 Defending champion: Caesar ⭐ (2373 pts)
-🪣 Last season&#39;s bottle job: son of a doge ⭐️⭐️ — 18 weeks top, finished 4th
+🏆 Defending champion: RLN ⭐️ (2373 pts)
+🪣 Last season&#39;s bottle job: Son of a Doge — 18 weeks top, finished 4th
 
 *PREDICTIONS — screenshot these and hold me to them*
-1. [The Title] Caesar ⭐ does NOT retain it. Reigning champions have the biggest target and the worst luck — Sunny Sharma finishes outside the top two.
-2. [The Dark Horse] TML ⭐️⭐️ wins the whole thing. Third last season, 67 points off the title — one good captaincy run is worth more than that.
-3. [The Bottle Watch] son of a doge ⭐️⭐️ leads the league again at some point — and blows it again. Led for 18 weeks last season and still finished 4th.
+1. [The Title] RLN ⭐️ does NOT retain it. Reigning champions have the biggest target and the worst luck — Sunny Sharma finishes outside the top two.
+2. [The Dark Horse] 2UCL &gt; Arsenal ☆☆ wins the whole thing. Third last season, 67 points off the title — one good captaincy run is worth more than that.
+3. [The Bottle Watch] Son of a Doge leads the league again at some point — and blows it again. Led for 18 weeks last season and still finished 4th.
 4. [The DefCon King] Senesi (TOT, £6.0m) is the most underpriced asset in the game. 52 DefCon points last season at a 70% hit rate, and only 9.8% of the game owns him.
 5. [The Trap] Semenyo (MCI, £8.5m) is this season&#39;s great disappointment. Beat his xG by 5.9 goals last season — finishing that hot does not repeat, and 27.0% of you are about to find out.
 6. [The Bounce-Back] Yeremy (CRY, £5.5m) outscores his price bracket. Underperformed his expected numbers by 6.7 last season — that is variance, not decline.
 7. [The Fast Start] Whoever loads up on LIV assets wins August. Easiest opening 5 fixtures in the league (avg difficulty 2.6).
 8. [The Template] Haaland at 71.6% ownership is the single biggest rank swing of the season. Own him and you tread water; fade him and you either win the league or lose it.
-9. [The Hit Merchant] Saka FC takes at least 52 points of hits again and still finishes below the manager who took none. 36 transfers last season says the itch is incurable.
-10. [The Floor] Someone in this league scores under 20 in a gameweek before Christmas. Arteta Ballers managed 13 in GW34 last season and the bar has never been lower.
+9. [The Hit Merchant] Chris&#39;s Team takes at least 52 points of hits again and still finishes below the manager who took none. 36 transfers last season says the itch is incurable.
+10. [The Floor] Someone in this league scores under 20 in a gameweek before Christmas. Artetecture managed 13 in GW34 last season and the bar has never been lower.
 
 *DEFCON KINGS (25/26)*
 • Senesi (TOT, £6.0m) — 52 pts, 70% of games
@@ -248,6 +433,19 @@ _TML_
 • Tarkowski (EVE, £6.0m) — 44 pts, 59% of games
 • Lacroix (CHE, £6.0m) — 40 pts, 57% of games
 • Ampadu (LEE, £5.5m) — 38 pts, 54% of games
+
+*ONES TO WATCH*
+• Senesi (TOT, £6.0m) — DefCon engine
+• Anderson (MCI, £6.5m) — DefCon engine
+• Yeremy (CRY, £5.5m) — Due a correction
+• Mateta (CRY, £6.5m) — Due a correction
+
+⚠️ *HANDLE WITH CARE:* Semenyo (£8.5m), Gibbs-White (£8.0m)
+
+*MANAGERS TO FEAR*
+• Pamparam ⭐️⭐️⭐️ (Milen Kindekov) — career best 2647, top under 1%
+• RLN ⭐️ (Sunny Sharma) — career best 2516, top under 1%
+• 2UCL &gt; Arsenal ☆☆ (Aman Sharma) — career best 2552, top under 1%
 
 *EASIEST GW1-5:* LIV (2.6), LEE (2.8), MCI (2.8)
 
@@ -258,19 +456,19 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
     
     <div class="pred">
       <div class="pred-tag">The Title</div>
-      <div class="pred-text">Caesar ⭐ does NOT retain it. Reigning champions have the biggest target and the worst luck — Sunny Sharma finishes outside the top two.</div>
+      <div class="pred-text">RLN ⭐️ does NOT retain it. Reigning champions have the biggest target and the worst luck — Sunny Sharma finishes outside the top two.</div>
       <div class="pred-basis">won 25/26 on 2373 pts</div>
     </div>
     
     <div class="pred">
       <div class="pred-tag">The Dark Horse</div>
-      <div class="pred-text">TML ⭐️⭐️ wins the whole thing. Third last season, 67 points off the title — one good captaincy run is worth more than that.</div>
+      <div class="pred-text">2UCL &gt; Arsenal ☆☆ wins the whole thing. Third last season, 67 points off the title — one good captaincy run is worth more than that.</div>
       <div class="pred-basis">3rd in 25/26 on 2306 pts</div>
     </div>
     
     <div class="pred">
       <div class="pred-tag">The Bottle Watch</div>
-      <div class="pred-text">son of a doge ⭐️⭐️ leads the league again at some point — and blows it again. Led for 18 weeks last season and still finished 4th.</div>
+      <div class="pred-text">Son of a Doge leads the league again at some point — and blows it again. Led for 18 weeks last season and still finished 4th.</div>
       <div class="pred-basis">18 weeks top, finished 4th</div>
     </div>
     
@@ -306,13 +504,13 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
     
     <div class="pred">
       <div class="pred-tag">The Hit Merchant</div>
-      <div class="pred-text">Saka FC takes at least 52 points of hits again and still finishes below the manager who took none. 36 transfers last season says the itch is incurable.</div>
+      <div class="pred-text">Chris&#39;s Team takes at least 52 points of hits again and still finishes below the manager who took none. 36 transfers last season says the itch is incurable.</div>
       <div class="pred-basis">-52 pts on hits across 36 transfers</div>
     </div>
     
     <div class="pred">
       <div class="pred-tag">The Floor</div>
-      <div class="pred-text">Someone in this league scores under 20 in a gameweek before Christmas. Arteta Ballers managed 13 in GW34 last season and the bar has never been lower.</div>
+      <div class="pred-text">Someone in this league scores under 20 in a gameweek before Christmas. Artetecture managed 13 in GW34 last season and the bar has never been lower.</div>
       <div class="pred-basis">13 pts in GW34, 25/26</div>
     </div>
     
@@ -324,7 +522,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
 <div id="recap" class="section">
   <div class="section-hdr">
     <div class="section-left">
-      <div class="section-title">1. Where We Left Off</div>
+      <div class="section-title">2. Where We Left Off</div>
       <div class="section-sub">TML &mdash; final 2025/26 standings</div>
     </div>
     <div class="section-right">Pre-Season</div>
@@ -334,27 +532,27 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
     <div class="stat gold">
       <div class="k">Champion</div>
       <div class="v">2373</div>
-      <div class="w">Caesar ⭐ &mdash; by 64</div>
+      <div class="w">RLN ⭐️ &mdash; by 64</div>
     </div>
     
     <div class="stat green">
       <div class="k">Best single week</div>
       <div class="v">142</div>
-      <div class="w">AntiAlgoFPL &mdash; GW33</div>
+      <div class="w">Anti Algo FPL &mdash; GW33</div>
     </div>
     
     
     <div class="stat red">
       <div class="k">Worst single week</div>
       <div class="v">13</div>
-      <div class="w">Arteta Ballers &mdash; GW34</div>
+      <div class="w">Artetecture &mdash; GW34</div>
     </div>
     
     
     <div class="stat red">
       <div class="k">Points left on the bench</div>
       <div class="v">442</div>
-      <div class="w">son of a doge ⭐️⭐️</div>
+      <div class="w">Son of a Doge</div>
     </div>
     
   </div>
@@ -392,7 +590,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
           
           
           
-          <td>Caesar ⭐</td>
+          <td>RLN ⭐️</td>
         
           
           
@@ -420,7 +618,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
           
           
           
-          <td>Pamparam ⭐️ ⭐️ ⭐️</td>
+          <td>Pamparam ⭐️⭐️⭐️</td>
         
           
           
@@ -448,7 +646,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
           
           
           
-          <td>TML ⭐️⭐️</td>
+          <td>2UCL &gt; Arsenal ☆☆</td>
         
           
           
@@ -476,7 +674,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
           
           
           
-          <td>son of a doge ⭐️⭐️</td>
+          <td>Son of a Doge</td>
         
           
           
@@ -532,7 +730,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
           
           
           
-          <td>Luceros</td>
+          <td>LUCEROS</td>
         
           
           
@@ -560,7 +758,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
           
           
           
-          <td>AntiAlgoFPL</td>
+          <td>Anti Algo FPL</td>
         
           
           
@@ -616,7 +814,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
           
           
           
-          <td>No Name</td>
+          <td>Quantum of Tzolis</td>
         
           
           
@@ -672,7 +870,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
           
           
           
-          <td>Vault 101 XI</td>
+          <td>North London Forever</td>
         
           
           
@@ -868,7 +1066,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
           
           
           
-          <td>FC MarRow</td>
+          <td>Sporting Club MarRow</td>
         
           
           
@@ -896,7 +1094,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
           
           
           
-          <td>Arteta Ballers</td>
+          <td>Artetecture</td>
         
           
           
@@ -952,7 +1150,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
           
           
           
-          <td>Saka FC</td>
+          <td>Chris&#39;s Team</td>
         
           
           
@@ -975,7 +1173,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
 
 
   
-  <p class="note">Longest spell top of the table: <span class="bold">son of a doge ⭐️⭐️</span>
+  <p class="note">Longest spell top of the table: <span class="bold">Son of a Doge</span>
      led for 18 weeks and finished 4th.</p>
   
 </div>
@@ -986,7 +1184,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
 <div id="formbook" class="section">
   <div class="section-hdr">
     <div class="section-left">
-      <div class="section-title">2. The Form Book</div>
+      <div class="section-title">3. The Form Book</div>
       <div class="section-sub">Every manager's FPL career &mdash; and who's new</div>
     </div>
     <div class="section-right">Pre-Season</div>
@@ -2156,7 +2354,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
 <div id="players" class="section">
   <div class="section-hdr">
     <div class="section-left">
-      <div class="section-title">3. Player Intel</div>
+      <div class="section-title">4. Player Intel</div>
       <div class="section-sub">Last season's underlying numbers, priced at this season's cost</div>
     </div>
     <div class="section-right">Pre-Season</div>
@@ -4003,7 +4201,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
 <div id="fixtures" class="section">
   <div class="section-hdr">
     <div class="section-left">
-      <div class="section-title">4. Fixture Intel</div>
+      <div class="section-title">5. Fixture Intel</div>
       <div class="section-sub">Opening 5 gameweeks by average difficulty</div>
     </div>
     <div class="section-right">Pre-Season</div>
@@ -4531,7 +4729,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
 <div id="market" class="section">
   <div class="section-hdr">
     <div class="section-left">
-      <div class="section-title">5. The Market</div>
+      <div class="section-title">6. The Market</div>
       <div class="section-sub">Where the money and the crowd have gone</div>
     </div>
     <div class="section-right">Pre-Season</div>
@@ -5151,7 +5349,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
 </div>
 
 <div class="foot">
-  The Dossier &mdash; TML &middot; Pre-season 2026/2027 &middot; generated 17 Aug 2026, 11:49 UTC<br>
+  The Dossier &mdash; TML &middot; Pre-season 2026/2027 &middot; generated 17 Aug 2026, 11:56 UTC<br>
   Predictions are derived from 2025/26 data and are, like all predictions, an invitation to be wrong in public.
 </div>
 </div>
@@ -5160,7 +5358,7 @@ Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
 (function () {
   // tojson, not a text/plain <script>: script elements are raw-text, so HTML
   // entities inside them are never decoded and would paste as "&#39;".
-  var payload = "*THE DOSSIER \u2014 2026/2027 PRE-SEASON*\n_TML_\n\n\u23f0 GW1 deadline: Fri 21 Aug 2026, 17:30 UTC\n\n\ud83c\udfc6 Defending champion: Caesar \u2b50 (2373 pts)\n\ud83e\udea3 Last season\u0027s bottle job: son of a doge \u2b50\ufe0f\u2b50\ufe0f \u2014 18 weeks top, finished 4th\n\n*PREDICTIONS \u2014 screenshot these and hold me to them*\n1. [The Title] Caesar \u2b50 does NOT retain it. Reigning champions have the biggest target and the worst luck \u2014 Sunny Sharma finishes outside the top two.\n2. [The Dark Horse] TML \u2b50\ufe0f\u2b50\ufe0f wins the whole thing. Third last season, 67 points off the title \u2014 one good captaincy run is worth more than that.\n3. [The Bottle Watch] son of a doge \u2b50\ufe0f\u2b50\ufe0f leads the league again at some point \u2014 and blows it again. Led for 18 weeks last season and still finished 4th.\n4. [The DefCon King] Senesi (TOT, \u00a36.0m) is the most underpriced asset in the game. 52 DefCon points last season at a 70% hit rate, and only 9.8% of the game owns him.\n5. [The Trap] Semenyo (MCI, \u00a38.5m) is this season\u0027s great disappointment. Beat his xG by 5.9 goals last season \u2014 finishing that hot does not repeat, and 27.0% of you are about to find out.\n6. [The Bounce-Back] Yeremy (CRY, \u00a35.5m) outscores his price bracket. Underperformed his expected numbers by 6.7 last season \u2014 that is variance, not decline.\n7. [The Fast Start] Whoever loads up on LIV assets wins August. Easiest opening 5 fixtures in the league (avg difficulty 2.6).\n8. [The Template] Haaland at 71.6% ownership is the single biggest rank swing of the season. Own him and you tread water; fade him and you either win the league or lose it.\n9. [The Hit Merchant] Saka FC takes at least 52 points of hits again and still finishes below the manager who took none. 36 transfers last season says the itch is incurable.\n10. [The Floor] Someone in this league scores under 20 in a gameweek before Christmas. Arteta Ballers managed 13 in GW34 last season and the bar has never been lower.\n\n*DEFCON KINGS (25/26)*\n\u2022 Senesi (TOT, \u00a36.0m) \u2014 52 pts, 70% of games\n\u2022 Anderson (MCI, \u00a36.5m) \u2014 52 pts, 68% of games\n\u2022 Tarkowski (EVE, \u00a36.0m) \u2014 44 pts, 59% of games\n\u2022 Lacroix (CHE, \u00a36.0m) \u2014 40 pts, 57% of games\n\u2022 Ampadu (LEE, \u00a35.5m) \u2014 38 pts, 54% of games\n\n*EASIEST GW1-5:* LIV (2.6), LEE (2.8), MCI (2.8)\n\nFull dossier: https://orbisfelis.github.io/fpl-dossier/";
+  var payload = "*THE DOSSIER \u2014 2026/2027 PRE-SEASON*\n_TML_\n\n\u23f0 GW1 deadline: Fri 21 Aug 2026, 17:30 UTC\n\n\ud83c\udfc6 Defending champion: RLN \u2b50\ufe0f (2373 pts)\n\ud83e\udea3 Last season\u0027s bottle job: Son of a Doge \u2014 18 weeks top, finished 4th\n\n*PREDICTIONS \u2014 screenshot these and hold me to them*\n1. [The Title] RLN \u2b50\ufe0f does NOT retain it. Reigning champions have the biggest target and the worst luck \u2014 Sunny Sharma finishes outside the top two.\n2. [The Dark Horse] 2UCL \u003e Arsenal \u2606\u2606 wins the whole thing. Third last season, 67 points off the title \u2014 one good captaincy run is worth more than that.\n3. [The Bottle Watch] Son of a Doge leads the league again at some point \u2014 and blows it again. Led for 18 weeks last season and still finished 4th.\n4. [The DefCon King] Senesi (TOT, \u00a36.0m) is the most underpriced asset in the game. 52 DefCon points last season at a 70% hit rate, and only 9.8% of the game owns him.\n5. [The Trap] Semenyo (MCI, \u00a38.5m) is this season\u0027s great disappointment. Beat his xG by 5.9 goals last season \u2014 finishing that hot does not repeat, and 27.0% of you are about to find out.\n6. [The Bounce-Back] Yeremy (CRY, \u00a35.5m) outscores his price bracket. Underperformed his expected numbers by 6.7 last season \u2014 that is variance, not decline.\n7. [The Fast Start] Whoever loads up on LIV assets wins August. Easiest opening 5 fixtures in the league (avg difficulty 2.6).\n8. [The Template] Haaland at 71.6% ownership is the single biggest rank swing of the season. Own him and you tread water; fade him and you either win the league or lose it.\n9. [The Hit Merchant] Chris\u0027s Team takes at least 52 points of hits again and still finishes below the manager who took none. 36 transfers last season says the itch is incurable.\n10. [The Floor] Someone in this league scores under 20 in a gameweek before Christmas. Artetecture managed 13 in GW34 last season and the bar has never been lower.\n\n*DEFCON KINGS (25/26)*\n\u2022 Senesi (TOT, \u00a36.0m) \u2014 52 pts, 70% of games\n\u2022 Anderson (MCI, \u00a36.5m) \u2014 52 pts, 68% of games\n\u2022 Tarkowski (EVE, \u00a36.0m) \u2014 44 pts, 59% of games\n\u2022 Lacroix (CHE, \u00a36.0m) \u2014 40 pts, 57% of games\n\u2022 Ampadu (LEE, \u00a35.5m) \u2014 38 pts, 54% of games\n\n*ONES TO WATCH*\n\u2022 Senesi (TOT, \u00a36.0m) \u2014 DefCon engine\n\u2022 Anderson (MCI, \u00a36.5m) \u2014 DefCon engine\n\u2022 Yeremy (CRY, \u00a35.5m) \u2014 Due a correction\n\u2022 Mateta (CRY, \u00a36.5m) \u2014 Due a correction\n\n\u26a0\ufe0f *HANDLE WITH CARE:* Semenyo (\u00a38.5m), Gibbs-White (\u00a38.0m)\n\n*MANAGERS TO FEAR*\n\u2022 Pamparam \u2b50\ufe0f\u2b50\ufe0f\u2b50\ufe0f (Milen Kindekov) \u2014 career best 2647, top under 1%\n\u2022 RLN \u2b50\ufe0f (Sunny Sharma) \u2014 career best 2516, top under 1%\n\u2022 2UCL \u003e Arsenal \u2606\u2606 (Aman Sharma) \u2014 career best 2552, top under 1%\n\n*EASIEST GW1-5:* LIV (2.6), LEE (2.8), MCI (2.8)\n\nFull dossier: https://orbisfelis.github.io/fpl-dossier/";
   var btn = document.getElementById('copy-btn');
   var prev = document.getElementById('preview-btn');
   var box = document.getElementById('share-preview');

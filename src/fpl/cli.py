@@ -157,6 +157,14 @@ def main(argv: list[str] | None = None) -> int:
                          "(or set FPL_PUBLIC_URL)")
     ps.add_argument("--output", "-o", type=Path, default=None,
                     help="Write a standalone HTML file instead of publishing to docs/")
+    # Narrative flags only — preseason already defines its own --prev-db.
+    ps.add_argument("--narrative", choices=["auto", "llm", "cli", "none"],
+                    default="auto",
+                    help="Pre-season column source: 'llm' = Claude API, "
+                         "'cli' = local `claude` login, 'none' = omit it; "
+                         "'auto' (default) prefers the key, then the CLI")
+    ps.add_argument("--refresh-narrative", action="store_true",
+                    help="Regenerate the column even if a cached one exists")
 
     # reddit ---------------------------------------------------------------
     rd = subparsers.add_parser("reddit", parents=[common],
@@ -258,12 +266,16 @@ def main(argv: list[str] | None = None) -> int:
         if args.output:
             path = generate_preseason(args.db, args.output, args.league,
                                       prev_db=args.prev_db, season=args.season,
-                                      public_url=args.url)
+                                      public_url=args.url,
+                                      narrative=args.narrative,
+                                      refresh_narrative=args.refresh_narrative)
             print(f"Pre-season page written: {path}")
         else:
             path = publish_preseason(args.db, args.league, args.docs,
                                      prev_db=args.prev_db, season=args.season,
-                                     public_url=args.url)
+                                     public_url=args.url,
+                                     narrative=args.narrative,
+                                     refresh_narrative=args.refresh_narrative)
             print(f"Published: {path} (manifest + index.html updated)")
 
     elif args.command == "reddit":

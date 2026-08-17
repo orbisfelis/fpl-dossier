@@ -274,6 +274,14 @@ fpl preseason --prev-db data/25_26_fpl.db -o /tmp/preseason.html
 
 What's on it:
 
+* **The Season in Words** — a four-part pre-season column (state of play,
+  market, ones to watch, warnings) written by Claude from the same facts the
+  page is built on, cached under event 0 like the weekly narratives. Uses
+  `ANTHROPIC_API_KEY` or a logged-in `claude` CLI; omitted when neither exists.
+  `--refresh-narrative` regenerates it.
+* **Ones to Watch** — named players with the number behind each billing
+  (DefCon engines, due-a-correction, budget enablers, fast starters, and
+  cautions), plus the managers to fear, ranked by best career percentile.
 * **Predictions** — falsifiable, data-derived calls (title, dark horse, bottle
   watch, DefCon king, the trap, the bounce-back, fast start, template, hit
   merchant, the floor). Each one cites the number it came from.
