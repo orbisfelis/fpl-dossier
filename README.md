@@ -306,6 +306,27 @@ intel are omitted and the page falls back to fixtures and market only, so a
 brand-new league still gets a usable page. Everything is deterministic — no
 API key or LLM needed.
 
+## League-specific sections
+
+`_BENCHMARK_SECTIONS` in `report.py` holds one-off running jokes, keyed by
+`(league_id, season)` so they can never leak into another league or a later
+year. The 2026/27 entry renders **"Am I doing better than Jay's girlfriend?"**
+— a dropdown of every manager and a YES/NO card comparing their running total
+against the pace Jay Curtis set through 2025/26, at the same gameweek.
+
+It needs `--prev-db` (that is where the benchmark pace lives) and disappears
+entirely when the key is absent or the archive cannot answer, so deleting the
+dict entry removes the section. Add another by copying the shape:
+
+```python
+(126735, "26-27"): {
+    "title": "Am I doing better than Jay's girlfriend?",
+    "subtitle": "Measured against her pace from last season, gameweek by gameweek",
+    "benchmark_manager": "Jay Curtis",   # player_name in the archived season
+    "benchmark_label": "Jay's girlfriend",
+},
+```
+
 ## Reddit grounding input
 
 r/FantasyPL is a useful sanity check on the model (template picks, injury
