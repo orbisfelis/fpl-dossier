@@ -500,11 +500,14 @@ def collect_preseason(db_path: Path, league_id: int, prev_db: Path | None,
     if prev_db and Path(prev_db).exists():
         pconn = sqlite3.connect(prev_db)
         try:
-            history = _league_history(pconn, league_id)
-            from .report import manager_key
+            from .report import manager_key, resolve_prev_league
+            # The mini-league is re-created each year under a new id, so the
+            # archive is keyed under last season's number, not this one's.
+            prev_league = resolve_prev_league(pconn, league_id) or league_id
+            history = _league_history(pconn, prev_league)
             prev_names = {manager_key(r[0]) for r in pconn.execute(
                 "SELECT player_name FROM managers WHERE league_id = ?",
-                (league_id,))}
+                (prev_league,))}
             if not league_name or league_name.startswith("League "):
                 row = pconn.execute("SELECT name FROM leagues WHERE id = ?",
                                     (league_id,)).fetchone()

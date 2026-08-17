@@ -369,7 +369,11 @@ docker compose run --rm fpl scrape --db data/26_27_fpl.db
 
 ### New joiners and manager identity
 
-**Manager entry IDs change at the season rollover.** Anything comparing
+**Both the league ID and manager entry IDs change at the season rollover.**
+Mini-leagues are re-created each year under a new ID, so point `--league` at
+the new one and keep the old season's DB as `--prev-db`; the archive is found
+via `resolve_prev_league()`, which falls back to the league actually present
+in the archived file. Anything comparing
 managers across seasons must therefore join on `player_name` (the person),
 never `entry_id`, and never `entry_name` — teams get renamed constantly. See
 `manager_key()` in `report.py`; both the Form Book's new-joiner detection and
