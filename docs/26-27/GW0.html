@@ -1,0 +1,4092 @@
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Dossier &mdash; TML Pre-Season 2026/2027</title>
+<style>
+  :root {
+    --slate: #2d3e50;
+    --dark: #1e2a38;
+    --green: #37a76b;
+    --red: #b03a2e;
+    --gold: #b8860b;
+    --accent: #00ff87;
+    --text: #2c3e50;
+    --muted: #888;
+    --border: #e0e0e0;
+    --row-alt: #f8f9fb;
+    --bg: #f4f5f7;
+    --card: #fff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px; line-height: 1.5; color: var(--text); background: var(--bg);
+  }
+
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--slate); padding: 0 24px;
+    display: flex; align-items: center; gap: 20px; height: 44px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .nav-brand { font-weight: 900; font-style: italic; font-size: 15px; color: #fff; text-decoration: none; }
+  .nav-brand span { color: var(--accent); }
+  .nav a { color: rgba(255,255,255,0.65); text-decoration: none; font-size: 12px; font-weight: 500; transition: color .15s; }
+  .nav a:hover { color: var(--accent); }
+  .nav-picker { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  .nav-picker select {
+    background: rgba(255,255,255,0.08); color: #fff;
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;
+    padding: 3px 6px; font-family: inherit; font-size: 12px; cursor: pointer;
+  }
+  .nav-picker select option { color: #000; }
+
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+
+  .cover {
+    background: linear-gradient(145deg, var(--dark) 0%, #0d1117 55%, var(--dark) 100%);
+    color: #fff; padding: 90px 24px 70px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .cover::after {
+    content: ""; position: absolute; bottom: 0; right: 0; width: 45%; height: 35%;
+    background: repeating-linear-gradient(-30deg, transparent, transparent 10px, rgba(0,255,135,0.06) 10px, rgba(0,255,135,0.06) 12px);
+  }
+  .cover h1 { font-size: clamp(40px, 6vw, 72px); font-weight: 900; font-style: italic; letter-spacing: 2px; position: relative; }
+  .cover h1 span { color: var(--accent); }
+  .cover h2 { font-size: clamp(18px, 2.5vw, 28px); font-weight: 400; font-style: italic; color: var(--accent); margin-bottom: 30px; position: relative; }
+  .countdown {
+    display: inline-block; position: relative; margin-bottom: 26px;
+    border: 1px solid rgba(0,255,135,0.35); border-radius: 3px; padding: 14px 28px;
+    background: rgba(0,255,135,0.05);
+  }
+  .countdown .big { font-size: 46px; font-weight: 900; line-height: 1; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .countdown .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.6); margin-top: 6px; }
+  .cover-meta { display: inline-block; text-align: left; position: relative; font-family: "SF Mono", "Consolas", "Menlo", monospace; }
+  .cover-meta td { padding: 5px 18px; font-size: 15px; }
+  .cover-meta td:first-child { color: rgba(255,255,255,0.45); }
+  .cover-meta td:last-child { color: #fff; font-weight: 600; }
+
+  .section-hdr {
+    background: var(--slate); color: #fff;
+    padding: 12px 20px; margin-bottom: 20px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+  }
+  .section-title { font-size: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
+  .section-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .section-right { font-size: 12px; color: rgba(255,255,255,0.5); white-space: nowrap; }
+  .section { padding: 28px 0; }
+
+  .hero-hdr {
+    background: linear-gradient(135deg, #6b4c0d 0%, #a37b26 50%, var(--gold) 100%);
+    text-align: center; padding: 24px; margin-bottom: 20px;
+    border-left: 5px solid #ffd700;
+  }
+  .hero-hdr .hdr-title { font-size: 28px; font-weight: 700; font-style: italic; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .hero-hdr .hdr-sub { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+
+  .pred-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); margin-bottom: 18px; }
+  .pred {
+    background: var(--card); border: 1px solid var(--border);
+    border-left: 4px solid var(--gold); border-radius: 2px; padding: 14px 16px;
+  }
+  .pred-tag {
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--gold); margin-bottom: 6px;
+  }
+  .pred-text { font-size: 13.5px; line-height: 1.55; }
+  .pred-basis {
+    margin-top: 8px; font-size: 11px; color: var(--muted);
+    font-family: "SF Mono", "Consolas", "Menlo", monospace;
+  }
+
+  .share-bar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 2px; padding: 14px 16px; margin-bottom: 8px;
+  }
+  .share-bar p { font-size: 12px; color: var(--muted); margin: 0; }
+  .btn {
+    background: #25d366; color: #fff; border: 0; border-radius: 3px;
+    padding: 9px 16px; font-family: inherit; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: filter .15s;
+  }
+  .btn:hover { filter: brightness(0.92); }
+  .btn.secondary { background: var(--slate); }
+  .btn[data-copied="1"] { background: var(--green); }
+  .share-preview {
+    display: none; margin-top: 12px; width: 100%;
+    background: #0d1117; color: #d6deeb; border: 1px solid var(--border);
+    border-radius: 2px; padding: 14px; font-family: "SF Mono", "Consolas", "Menlo", monospace;
+    font-size: 11.5px; line-height: 1.6; white-space: pre-wrap; word-break: break-word;
+  }
+  .share-preview.open { display: block; }
+
+  .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 2px; overflow-x: auto; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th {
+    background: var(--slate); color: #fff; font-weight: 600;
+    text-align: left; padding: 8px 10px; font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap;
+  }
+  thead th.num { text-align: right; }
+  tbody td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+  tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr:nth-child(even) { background: var(--row-alt); }
+  tbody tr:hover { background: rgba(0,255,135,0.05); }
+  tbody tr.top3 td { background: rgba(0,255,135,0.05); font-weight: 500; }
+  .empty { padding: 18px; color: var(--muted); font-size: 12px; }
+  .muted { color: var(--muted); }
+  .bold { font-weight: 700; }
+
+  .grid-2 { display: grid; gap: 16px; grid-template-columns: repeat(2, 1fr); }
+  .sub-hdr { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; margin: 0 0 8px; color: var(--slate); }
+  .note { font-size: 11.5px; color: var(--muted); margin: -8px 0 14px; }
+
+  .recap-row { display: grid; gap: 12px; grid-template-columns: repeat(4, 1fr); margin-bottom: 16px; }
+  .stat {
+    background: var(--card); border: 1px solid var(--border);
+    border-top: 3px solid var(--slate); border-radius: 2px; padding: 14px;
+  }
+  .stat .k { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); }
+  .stat .v { font-size: 22px; font-weight: 900; margin: 4px 0 2px; }
+  .stat .w { font-size: 12px; color: var(--text); }
+  .stat.gold { border-top-color: var(--gold); }
+  .stat.red { border-top-color: var(--red); }
+  .stat.green { border-top-color: var(--green); }
+
+  .foot { text-align: center; padding: 30px 20px 40px; color: var(--muted); font-size: 11px; }
+
+  @media (max-width: 860px) {
+    .pred-grid, .grid-2 { grid-template-columns: 1fr; }
+    .recap-row { grid-template-columns: repeat(2, 1fr); }
+    .nav a { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="#top">THE <span>DOSSIER</span></a>
+  <a href="#predictions">Predictions</a>
+  <a href="#recap">Last Season</a>
+  <a href="#players">Player Intel</a>
+  <a href="#fixtures">Fixtures</a>
+  <a href="#market">Market</a>
+  <div class="nav-picker" id="nav-picker" hidden>
+    <select id="season-select" aria-label="Season"></select>
+    <select id="gw-select" aria-label="Gameweek"></select>
+  </div>
+</nav>
+<script>
+  window.__DOSSIER = {season: "26-27", gw: 0};
+</script>
+
+<div class="cover" id="top">
+  <h1>THE <span>DOSSIER</span></h1>
+  <h2>TML &mdash; Pre-Season 2026/2027</h2>
+  
+  <div class="countdown">
+    <div class="big">4</div>
+    <div class="lbl">days until the GW1 deadline</div>
+  </div>
+  
+  <table class="cover-meta">
+    <tr><td>League:</td><td>TML (59720)</td></tr>
+    <tr><td>GW1 Deadline:</td><td>Fri 21 Aug 2026, 17:30 UTC</td></tr>
+    <tr><td>Players priced:</td><td>494</td></tr>
+    <tr><td>Defending champion:</td><td>Caesar ⭐</td></tr>
+    <tr><td>Generated:</td><td>17 Aug 2026, 11:13 UTC</td></tr>
+  </table>
+</div>
+
+<div class="wrap">
+
+
+<div id="predictions" class="section">
+  <div class="hero-hdr">
+    <div class="hdr-title">10 Predictions</div>
+    <div class="hdr-sub">Screenshot these. Hold them against us in May.</div>
+  </div>
+
+  <div class="share-bar">
+    <button class="btn" id="copy-btn" type="button">Copy for WhatsApp</button>
+    <button class="btn secondary" id="preview-btn" type="button">Preview text</button>
+    <p>Copies a plain-text version of this page &mdash; predictions, DefCon kings and opening fixtures &mdash; ready to paste into the group chat.</p>
+    <pre class="share-preview" id="share-preview">*THE DOSSIER — 2026/2027 PRE-SEASON*
+_TML_
+
+⏰ GW1 deadline: Fri 21 Aug 2026, 17:30 UTC
+
+🏆 Defending champion: Caesar ⭐ (2373 pts)
+🪣 Last season&#39;s bottle job: son of a doge ⭐️⭐️ — 18 weeks top, finished 4th
+
+*PREDICTIONS — screenshot these and hold me to them*
+1. [The Title] Caesar ⭐ does NOT retain it. Reigning champions have the biggest target and the worst luck — Sunny Sharma finishes outside the top two.
+2. [The Dark Horse] TML ⭐️⭐️ wins the whole thing. Third last season, 67 points off the title — one good captaincy run is worth more than that.
+3. [The Bottle Watch] son of a doge ⭐️⭐️ leads the league again at some point — and blows it again. Led for 18 weeks last season and still finished 4th.
+4. [The DefCon King] Senesi (TOT, £6.0m) is the most underpriced asset in the game. 52 DefCon points last season at a 70% hit rate, and only 10.0% of the game owns him.
+5. [The Trap] Semenyo (MCI, £8.5m) is this season&#39;s great disappointment. Beat his xG by 5.9 goals last season — finishing that hot does not repeat, and 28.4% of you are about to find out.
+6. [The Bounce-Back] Yeremy (CRY, £5.5m) outscores his price bracket. Underperformed his expected numbers by 6.7 last season — that is variance, not decline.
+7. [The Fast Start] Whoever loads up on LIV assets wins August. Easiest opening 5 fixtures in the league (avg difficulty 2.6).
+8. [The Template] Haaland at 73.3% ownership is the single biggest rank swing of the season. Own him and you tread water; fade him and you either win the league or lose it.
+9. [The Hit Merchant] Saka FC takes at least 52 points of hits again and still finishes below the manager who took none. 36 transfers last season says the itch is incurable.
+10. [The Floor] Someone in this league scores under 20 in a gameweek before Christmas. Arteta Ballers managed 13 in GW34 last season and the bar has never been lower.
+
+*DEFCON KINGS (25/26)*
+• Senesi (TOT, £6.0m) — 52 pts, 70% of games
+• Anderson (MCI, £6.5m) — 52 pts, 68% of games
+• Tarkowski (EVE, £6.0m) — 44 pts, 59% of games
+• Lacroix (CHE, £6.0m) — 40 pts, 57% of games
+• Ampadu (LEE, £5.5m) — 38 pts, 54% of games
+
+*EASIEST GW1-5:* LIV (2.6), LEE (2.8), MCI (2.8)
+
+Full dossier: https://orbisfelis.github.io/fpl-dossier/</pre>
+  </div>
+
+  <div class="pred-grid">
+    
+    <div class="pred">
+      <div class="pred-tag">The Title</div>
+      <div class="pred-text">Caesar ⭐ does NOT retain it. Reigning champions have the biggest target and the worst luck — Sunny Sharma finishes outside the top two.</div>
+      <div class="pred-basis">won 25/26 on 2373 pts</div>
+    </div>
+    
+    <div class="pred">
+      <div class="pred-tag">The Dark Horse</div>
+      <div class="pred-text">TML ⭐️⭐️ wins the whole thing. Third last season, 67 points off the title — one good captaincy run is worth more than that.</div>
+      <div class="pred-basis">3rd in 25/26 on 2306 pts</div>
+    </div>
+    
+    <div class="pred">
+      <div class="pred-tag">The Bottle Watch</div>
+      <div class="pred-text">son of a doge ⭐️⭐️ leads the league again at some point — and blows it again. Led for 18 weeks last season and still finished 4th.</div>
+      <div class="pred-basis">18 weeks top, finished 4th</div>
+    </div>
+    
+    <div class="pred">
+      <div class="pred-tag">The DefCon King</div>
+      <div class="pred-text">Senesi (TOT, £6.0m) is the most underpriced asset in the game. 52 DefCon points last season at a 70% hit rate, and only 10.0% of the game owns him.</div>
+      <div class="pred-basis">26/37 DefCon games</div>
+    </div>
+    
+    <div class="pred">
+      <div class="pred-tag">The Trap</div>
+      <div class="pred-text">Semenyo (MCI, £8.5m) is this season&#39;s great disappointment. Beat his xG by 5.9 goals last season — finishing that hot does not repeat, and 28.4% of you are about to find out.</div>
+      <div class="pred-basis">17 goals from 11.1 xG</div>
+    </div>
+    
+    <div class="pred">
+      <div class="pred-tag">The Bounce-Back</div>
+      <div class="pred-text">Yeremy (CRY, £5.5m) outscores his price bracket. Underperformed his expected numbers by 6.7 last season — that is variance, not decline.</div>
+      <div class="pred-basis">2G+2A from 10.7 expected</div>
+    </div>
+    
+    <div class="pred">
+      <div class="pred-tag">The Fast Start</div>
+      <div class="pred-text">Whoever loads up on LIV assets wins August. Easiest opening 5 fixtures in the league (avg difficulty 2.6).</div>
+      <div class="pred-basis">LIV FDR 2.6 over GW1-5</div>
+    </div>
+    
+    <div class="pred">
+      <div class="pred-tag">The Template</div>
+      <div class="pred-text">Haaland at 73.3% ownership is the single biggest rank swing of the season. Own him and you tread water; fade him and you either win the league or lose it.</div>
+      <div class="pred-basis">73.3% owned at £15.5m</div>
+    </div>
+    
+    <div class="pred">
+      <div class="pred-tag">The Hit Merchant</div>
+      <div class="pred-text">Saka FC takes at least 52 points of hits again and still finishes below the manager who took none. 36 transfers last season says the itch is incurable.</div>
+      <div class="pred-basis">-52 pts on hits across 36 transfers</div>
+    </div>
+    
+    <div class="pred">
+      <div class="pred-tag">The Floor</div>
+      <div class="pred-text">Someone in this league scores under 20 in a gameweek before Christmas. Arteta Ballers managed 13 in GW34 last season and the bar has never been lower.</div>
+      <div class="pred-basis">13 pts in GW34, 25/26</div>
+    </div>
+    
+  </div>
+</div>
+
+
+
+<div id="recap" class="section">
+  <div class="section-hdr">
+    <div class="section-left">
+      <div class="section-title">1. Where We Left Off</div>
+      <div class="section-sub">TML &mdash; final 2025/26 standings</div>
+    </div>
+    <div class="section-right">Pre-Season</div>
+  </div>
+
+  <div class="recap-row">
+    <div class="stat gold">
+      <div class="k">Champion</div>
+      <div class="v">2373</div>
+      <div class="w">Caesar ⭐ &mdash; by 64</div>
+    </div>
+    
+    <div class="stat green">
+      <div class="k">Best single week</div>
+      <div class="v">142</div>
+      <div class="w">AntiAlgoFPL &mdash; GW33</div>
+    </div>
+    
+    
+    <div class="stat red">
+      <div class="k">Worst single week</div>
+      <div class="v">13</div>
+      <div class="w">Arteta Ballers &mdash; GW34</div>
+    </div>
+    
+    
+    <div class="stat red">
+      <div class="k">Points left on the bench</div>
+      <div class="v">442</div>
+      <div class="w">son of a doge ⭐️⭐️</div>
+    </div>
+    
+  </div>
+
+  
+<div class="table-wrap">
+  
+  <table>
+    <thead><tr>
+      
+        
+        <th>#</th>
+      
+        
+        <th>Team</th>
+      
+        
+        <th>Manager</th>
+      
+        
+        <th class="num">Points</th>
+      
+    </tr></thead>
+    <tbody>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>1</td>
+        
+          
+          
+          
+          
+          <td>Caesar ⭐</td>
+        
+          
+          
+          
+          
+          <td>Sunny Sharma</td>
+        
+          
+          
+          
+          
+          <td class="num">2373</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>2</td>
+        
+          
+          
+          
+          
+          <td>Pamparam ⭐️ ⭐️ ⭐️</td>
+        
+          
+          
+          
+          
+          <td>Milen Kindekov</td>
+        
+          
+          
+          
+          
+          <td class="num">2309</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>3</td>
+        
+          
+          
+          
+          
+          <td>TML ⭐️⭐️</td>
+        
+          
+          
+          
+          
+          <td>Aman Sharma</td>
+        
+          
+          
+          
+          
+          <td class="num">2306</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>4</td>
+        
+          
+          
+          
+          
+          <td>son of a doge ⭐️⭐️</td>
+        
+          
+          
+          
+          
+          <td>M B</td>
+        
+          
+          
+          
+          
+          <td class="num">2298</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>5</td>
+        
+          
+          
+          
+          
+          <td>Bluehomie (YouTube)</td>
+        
+          
+          
+          
+          
+          <td>Bluehomie -YouTube-</td>
+        
+          
+          
+          
+          
+          <td class="num">2259</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>6</td>
+        
+          
+          
+          
+          
+          <td>Luceros</td>
+        
+          
+          
+          
+          
+          <td>Claude-Noel Tamakloe</td>
+        
+          
+          
+          
+          
+          <td class="num">2252</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>7</td>
+        
+          
+          
+          
+          
+          <td>AntiAlgoFPL</td>
+        
+          
+          
+          
+          
+          <td>Amit Putty</td>
+        
+          
+          
+          
+          
+          <td class="num">2251</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>8</td>
+        
+          
+          
+          
+          
+          <td>Livin&#39; Saliba Loca</td>
+        
+          
+          
+          
+          
+          <td>Darius Goodarzi</td>
+        
+          
+          
+          
+          
+          <td class="num">2238</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>9</td>
+        
+          
+          
+          
+          
+          <td>No Name</td>
+        
+          
+          
+          
+          
+          <td>Akash Patel</td>
+        
+          
+          
+          
+          
+          <td class="num">2210</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>10</td>
+        
+          
+          
+          
+          
+          <td>Papua New Quinney</td>
+        
+          
+          
+          
+          
+          <td>Adam Quinney</td>
+        
+          
+          
+          
+          
+          <td class="num">2207</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>11</td>
+        
+          
+          
+          
+          
+          <td>Vault 101 XI</td>
+        
+          
+          
+          
+          
+          <td>ALEXIS DRITSAS</td>
+        
+          
+          
+          
+          
+          <td class="num">2202</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>12</td>
+        
+          
+          
+          
+          
+          <td>TODHFODH FC</td>
+        
+          
+          
+          
+          
+          <td>Sahil Vora</td>
+        
+          
+          
+          
+          
+          <td class="num">2179</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>13</td>
+        
+          
+          
+          
+          
+          <td>The Refugees</td>
+        
+          
+          
+          
+          
+          <td>Aarif Kassam</td>
+        
+          
+          
+          
+          
+          <td class="num">2141</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>14</td>
+        
+          
+          
+          
+          
+          <td>Project X</td>
+        
+          
+          
+          
+          
+          <td>Nnaemeka Ezugwu</td>
+        
+          
+          
+          
+          
+          <td class="num">2124</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>15</td>
+        
+          
+          
+          
+          
+          <td>Skill McGill</td>
+        
+          
+          
+          
+          
+          <td>Kartar Gill</td>
+        
+          
+          
+          
+          
+          <td class="num">2092</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>16</td>
+        
+          
+          
+          
+          
+          <td>Releven Tigers FC</td>
+        
+          
+          
+          
+          
+          <td>Stephen Rudd</td>
+        
+          
+          
+          
+          
+          <td class="num">2050</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>17</td>
+        
+          
+          
+          
+          
+          <td>Change Name</td>
+        
+          
+          
+          
+          
+          <td>Jay Curtis</td>
+        
+          
+          
+          
+          
+          <td class="num">1997</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>18</td>
+        
+          
+          
+          
+          
+          <td>FC MarRow</td>
+        
+          
+          
+          
+          
+          <td>Kris McCarthy</td>
+        
+          
+          
+          
+          
+          <td class="num">1974</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>19</td>
+        
+          
+          
+          
+          
+          <td>Arteta Ballers</td>
+        
+          
+          
+          
+          
+          <td>Kelvin Ampene</td>
+        
+          
+          
+          
+          
+          <td class="num">1888</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>20</td>
+        
+          
+          
+          
+          
+          <td>Twickers United</td>
+        
+          
+          
+          
+          
+          <td>Martin Borizanov</td>
+        
+          
+          
+          
+          
+          <td class="num">1873</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>21</td>
+        
+          
+          
+          
+          
+          <td>Saka FC</td>
+        
+          
+          
+          
+          
+          <td>Chris B</td>
+        
+          
+          
+          
+          
+          <td class="num">1872</td>
+        
+      </tr>
+      
+    </tbody>
+  </table>
+  
+</div>
+
+
+  
+  <p class="note">Longest spell top of the table: <span class="bold">son of a doge ⭐️⭐️</span>
+     led for 18 weeks and finished 4th.</p>
+  
+</div>
+
+
+
+<div id="players" class="section">
+  <div class="section-hdr">
+    <div class="section-left">
+      <div class="section-title">2. Player Intel</div>
+      <div class="section-sub">Last season's underlying numbers, priced at this season's cost</div>
+    </div>
+    <div class="section-right">Pre-Season</div>
+  </div>
+
+  <h3 class="sub-hdr">DefCon Kings</h3>
+  <p class="note">Defensive contribution points scored in 2025/26 &mdash; the scoring change the market still underrates.</p>
+  
+<div class="table-wrap">
+  
+  <table>
+    <thead><tr>
+      
+        
+        <th>Player</th>
+      
+        
+        <th>Pos</th>
+      
+        
+        <th>Club</th>
+      
+        
+        <th class="num">Price</th>
+      
+        
+        <th class="num">DefCon pts</th>
+      
+        
+        <th class="num">Hit rate</th>
+      
+        
+        <th class="num">Owned</th>
+      
+    </tr></thead>
+    <tbody>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Senesi</td>
+        
+          
+          
+          
+          
+          <td>DEF</td>
+        
+          
+          
+          
+          
+          <td>TOT</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">52</td>
+        
+          
+          
+          
+          
+          <td class="num">70%</td>
+        
+          
+          
+          
+          
+          <td class="num">10.0%</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Anderson</td>
+        
+          
+          
+          
+          
+          <td>MID</td>
+        
+          
+          
+          
+          
+          <td>MCI</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">52</td>
+        
+          
+          
+          
+          
+          <td class="num">68%</td>
+        
+          
+          
+          
+          
+          <td class="num">10.7%</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Tarkowski</td>
+        
+          
+          
+          
+          
+          <td>DEF</td>
+        
+          
+          
+          
+          
+          <td>EVE</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">44</td>
+        
+          
+          
+          
+          
+          <td class="num">59%</td>
+        
+          
+          
+          
+          
+          <td class="num">9.6%</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Lacroix</td>
+        
+          
+          
+          
+          
+          <td>DEF</td>
+        
+          
+          
+          
+          
+          <td>CHE</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">40</td>
+        
+          
+          
+          
+          
+          <td class="num">57%</td>
+        
+          
+          
+          
+          
+          <td class="num">10.9%</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Ampadu</td>
+        
+          
+          
+          
+          
+          <td>MID</td>
+        
+          
+          
+          
+          
+          <td>LEE</td>
+        
+          
+          
+          
+          
+          <td class="num">£5.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">38</td>
+        
+          
+          
+          
+          
+          <td class="num">54%</td>
+        
+          
+          
+          
+          
+          <td class="num">1.6%</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Collins</td>
+        
+          
+          
+          
+          
+          <td>DEF</td>
+        
+          
+          
+          
+          
+          <td>BRE</td>
+        
+          
+          
+          
+          
+          <td class="num">£5.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">32</td>
+        
+          
+          
+          
+          
+          <td class="num">46%</td>
+        
+          
+          
+          
+          
+          <td class="num">2.0%</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Virgil</td>
+        
+          
+          
+          
+          
+          <td>DEF</td>
+        
+          
+          
+          
+          
+          <td>LIV</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">32</td>
+        
+          
+          
+          
+          
+          <td class="num">42%</td>
+        
+          
+          
+          
+          
+          <td class="num">17.1%</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Ballard</td>
+        
+          
+          
+          
+          
+          <td>DEF</td>
+        
+          
+          
+          
+          
+          <td>SUN</td>
+        
+          
+          
+          
+          
+          <td class="num">£5.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">30</td>
+        
+          
+          
+          
+          
+          <td class="num">52%</td>
+        
+          
+          
+          
+          
+          <td class="num">4.6%</td>
+        
+      </tr>
+      
+    </tbody>
+  </table>
+  
+</div>
+
+
+  <div class="grid-2">
+    <div>
+      <h3 class="sub-hdr">Regression Watch</h3>
+      <p class="note">Beat their xG by the widest margin. Finishing that hot rarely repeats.</p>
+      
+<div class="table-wrap">
+  
+  <table>
+    <thead><tr>
+      
+        
+        <th>Player</th>
+      
+        
+        <th>Club</th>
+      
+        
+        <th class="num">Price</th>
+      
+        
+        <th class="num">Goals</th>
+      
+        
+        <th class="num">xG</th>
+      
+        
+        <th class="num">Over</th>
+      
+    </tr></thead>
+    <tbody>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Semenyo</td>
+        
+          
+          
+          
+          
+          <td>MCI</td>
+        
+          
+          
+          
+          
+          <td class="num">£8.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">17</td>
+        
+          
+          
+          
+          
+          <td class="num">11.1</td>
+        
+          
+          
+          
+          
+          <td class="num">+5.9</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Gibbs-White</td>
+        
+          
+          
+          
+          
+          <td>NFO</td>
+        
+          
+          
+          
+          
+          <td class="num">£8.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">15</td>
+        
+          
+          
+          
+          
+          <td class="num">10.8</td>
+        
+          
+          
+          
+          
+          <td class="num">+4.2</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Wilson</td>
+        
+          
+          
+          
+          
+          <td>LEE</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">10</td>
+        
+          
+          
+          
+          
+          <td class="num">5.9</td>
+        
+          
+          
+          
+          
+          <td class="num">+4.1</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Dewsbury-Hall</td>
+        
+          
+          
+          
+          
+          <td>EVE</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">8</td>
+        
+          
+          
+          
+          
+          <td class="num">4.3</td>
+        
+          
+          
+          
+          
+          <td class="num">+3.7</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Bruno G.</td>
+        
+          
+          
+          
+          
+          <td>ARS</td>
+        
+          
+          
+          
+          
+          <td class="num">£7.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">9</td>
+        
+          
+          
+          
+          
+          <td class="num">5.6</td>
+        
+          
+          
+          
+          
+          <td class="num">+3.4</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Rogers</td>
+        
+          
+          
+          
+          
+          <td>CHE</td>
+        
+          
+          
+          
+          
+          <td class="num">£7.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">10</td>
+        
+          
+          
+          
+          
+          <td class="num">6.8</td>
+        
+          
+          
+          
+          
+          <td class="num">+3.2</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Cunha</td>
+        
+          
+          
+          
+          
+          <td>MUN</td>
+        
+          
+          
+          
+          
+          <td class="num">£8.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">10</td>
+        
+          
+          
+          
+          
+          <td class="num">6.9</td>
+        
+          
+          
+          
+          
+          <td class="num">+3.1</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Anthony</td>
+        
+          
+          
+          
+          
+          <td>BRE</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">8</td>
+        
+          
+          
+          
+          
+          <td class="num">5.1</td>
+        
+          
+          
+          
+          
+          <td class="num">+2.9</td>
+        
+      </tr>
+      
+    </tbody>
+  </table>
+  
+</div>
+
+    </div>
+    <div>
+      <h3 class="sub-hdr">Bounce-Back Candidates</h3>
+      <p class="note">Big underlying numbers, unlucky returns. Variance, not decline.</p>
+      
+<div class="table-wrap">
+  
+  <table>
+    <thead><tr>
+      
+        
+        <th>Player</th>
+      
+        
+        <th>Club</th>
+      
+        
+        <th class="num">Price</th>
+      
+        
+        <th class="num">G+A</th>
+      
+        
+        <th class="num">xG+xA</th>
+      
+        
+        <th class="num">Under</th>
+      
+    </tr></thead>
+    <tbody>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Yeremy</td>
+        
+          
+          
+          
+          
+          <td>CRY</td>
+        
+          
+          
+          
+          
+          <td class="num">£5.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">4</td>
+        
+          
+          
+          
+          
+          <td class="num">10.7</td>
+        
+          
+          
+          
+          
+          <td class="num">-6.7</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Mateta</td>
+        
+          
+          
+          
+          
+          <td>CRY</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">12</td>
+        
+          
+          
+          
+          
+          <td class="num">15.7</td>
+        
+          
+          
+          
+          
+          <td class="num">-3.7</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Enzo</td>
+        
+          
+          
+          
+          
+          <td>CHE</td>
+        
+          
+          
+          
+          
+          <td class="num">£7.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">15</td>
+        
+          
+          
+          
+          
+          <td class="num">18.5</td>
+        
+          
+          
+          
+          
+          <td class="num">-3.5</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Jensen</td>
+        
+          
+          
+          
+          
+          <td>BRE</td>
+        
+          
+          
+          
+          
+          <td class="num">£5.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">5</td>
+        
+          
+          
+          
+          
+          <td class="num">8.3</td>
+        
+          
+          
+          
+          
+          <td class="num">-3.3</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Amad</td>
+        
+          
+          
+          
+          
+          <td>MUN</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">7</td>
+        
+          
+          
+          
+          
+          <td class="num">10.2</td>
+        
+          
+          
+          
+          
+          <td class="num">-3.2</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Richards</td>
+        
+          
+          
+          
+          
+          <td>CRY</td>
+        
+          
+          
+          
+          
+          <td class="num">£5.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">1</td>
+        
+          
+          
+          
+          
+          <td class="num">4.0</td>
+        
+          
+          
+          
+          
+          <td class="num">-3.0</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Wirtz</td>
+        
+          
+          
+          
+          
+          <td>LIV</td>
+        
+          
+          
+          
+          
+          <td class="num">£7.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">9</td>
+        
+          
+          
+          
+          
+          <td class="num">12.0</td>
+        
+          
+          
+          
+          
+          <td class="num">-3.0</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Mbeumo</td>
+        
+          
+          
+          
+          
+          <td>MUN</td>
+        
+          
+          
+          
+          
+          <td class="num">£8.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">14</td>
+        
+          
+          
+          
+          
+          <td class="num">17.0</td>
+        
+          
+          
+          
+          
+          <td class="num">-3.0</td>
+        
+      </tr>
+      
+    </tbody>
+  </table>
+  
+</div>
+
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <h3 class="sub-hdr">Best Value Under £7.0m</h3>
+      <p class="note">Last season's points divided by this season's price.</p>
+      
+<div class="table-wrap">
+  
+  <table>
+    <thead><tr>
+      
+        
+        <th>Player</th>
+      
+        
+        <th>Pos</th>
+      
+        
+        <th>Club</th>
+      
+        
+        <th class="num">Price</th>
+      
+        
+        <th class="num">Pts</th>
+      
+        
+        <th class="num">Pts/£m</th>
+      
+    </tr></thead>
+    <tbody>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Truffert</td>
+        
+          
+          
+          
+          
+          <td>DEF</td>
+        
+          
+          
+          
+          
+          <td>BOU</td>
+        
+          
+          
+          
+          
+          <td class="num">£5.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">165</td>
+        
+          
+          
+          
+          
+          <td class="num">30.0</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Mitchell</td>
+        
+          
+          
+          
+          
+          <td>DEF</td>
+        
+          
+          
+          
+          
+          <td>CRY</td>
+        
+          
+          
+          
+          
+          <td class="num">£4.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">135</td>
+        
+          
+          
+          
+          
+          <td class="num">30.0</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Guéhi</td>
+        
+          
+          
+          
+          
+          <td>DEF</td>
+        
+          
+          
+          
+          
+          <td>MCI</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">179</td>
+        
+          
+          
+          
+          
+          <td class="num">29.8</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Van Hecke</td>
+        
+          
+          
+          
+          
+          <td>DEF</td>
+        
+          
+          
+          
+          
+          <td>TOT</td>
+        
+          
+          
+          
+          
+          <td class="num">£5.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">148</td>
+        
+          
+          
+          
+          
+          <td class="num">29.6</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Senesi</td>
+        
+          
+          
+          
+          
+          <td>DEF</td>
+        
+          
+          
+          
+          
+          <td>TOT</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">175</td>
+        
+          
+          
+          
+          
+          <td class="num">29.2</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Verbruggen</td>
+        
+          
+          
+          
+          
+          <td>GK</td>
+        
+          
+          
+          
+          
+          <td>BHA</td>
+        
+          
+          
+          
+          
+          <td class="num">£4.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">130</td>
+        
+          
+          
+          
+          
+          <td class="num">28.9</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Kelleher</td>
+        
+          
+          
+          
+          
+          <td>GK</td>
+        
+          
+          
+          
+          
+          <td>BRE</td>
+        
+          
+          
+          
+          
+          <td class="num">£5.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">143</td>
+        
+          
+          
+          
+          
+          <td class="num">28.6</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Tarkowski</td>
+        
+          
+          
+          
+          
+          <td>DEF</td>
+        
+          
+          
+          
+          
+          <td>EVE</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">170</td>
+        
+          
+          
+          
+          
+          <td class="num">28.3</td>
+        
+      </tr>
+      
+    </tbody>
+  </table>
+  
+</div>
+
+    </div>
+    <div>
+      <h3 class="sub-hdr">The Ever-Presents</h3>
+      <p class="note">Never injured, never rotated, never dropped.</p>
+      
+<div class="table-wrap">
+  
+  <table>
+    <thead><tr>
+      
+        
+        <th>Player</th>
+      
+        
+        <th>Pos</th>
+      
+        
+        <th>Club</th>
+      
+        
+        <th class="num">Price</th>
+      
+        
+        <th class="num">Mins</th>
+      
+        
+        <th class="num">Pts</th>
+      
+    </tr></thead>
+    <tbody>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Petrović</td>
+        
+          
+          
+          
+          
+          <td>GK</td>
+        
+          
+          
+          
+          
+          <td>BOU</td>
+        
+          
+          
+          
+          
+          <td class="num">£4.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">3420</td>
+        
+          
+          
+          
+          
+          <td class="num">124</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Verbruggen</td>
+        
+          
+          
+          
+          
+          <td>GK</td>
+        
+          
+          
+          
+          
+          <td>BHA</td>
+        
+          
+          
+          
+          
+          <td class="num">£4.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">3420</td>
+        
+          
+          
+          
+          
+          <td class="num">130</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Pickford</td>
+        
+          
+          
+          
+          
+          <td>GK</td>
+        
+          
+          
+          
+          
+          <td>EVE</td>
+        
+          
+          
+          
+          
+          <td class="num">£5.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">3420</td>
+        
+          
+          
+          
+          
+          <td class="num">135</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Leno</td>
+        
+          
+          
+          
+          
+          <td>GK</td>
+        
+          
+          
+          
+          
+          <td>FUL</td>
+        
+          
+          
+          
+          
+          <td class="num">£4.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">3420</td>
+        
+          
+          
+          
+          
+          <td class="num">122</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Virgil</td>
+        
+          
+          
+          
+          
+          <td>DEF</td>
+        
+          
+          
+          
+          
+          <td>LIV</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">3420</td>
+        
+          
+          
+          
+          
+          <td class="num">175</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Truffert</td>
+        
+          
+          
+          
+          
+          <td>DEF</td>
+        
+          
+          
+          
+          
+          <td>BOU</td>
+        
+          
+          
+          
+          
+          <td class="num">£5.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">3378</td>
+        
+          
+          
+          
+          
+          <td class="num">165</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Milenković</td>
+        
+          
+          
+          
+          
+          <td>DEF</td>
+        
+          
+          
+          
+          
+          <td>NFO</td>
+        
+          
+          
+          
+          
+          <td class="num">£5.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">3375</td>
+        
+          
+          
+          
+          
+          <td class="num">119</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Anderson</td>
+        
+          
+          
+          
+          
+          <td>MID</td>
+        
+          
+          
+          
+          
+          <td>MCI</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">3332</td>
+        
+          
+          
+          
+          
+          <td class="num">180</td>
+        
+      </tr>
+      
+    </tbody>
+  </table>
+  
+</div>
+
+    </div>
+  </div>
+</div>
+
+
+<div id="fixtures" class="section">
+  <div class="section-hdr">
+    <div class="section-left">
+      <div class="section-title">3. Fixture Intel</div>
+      <div class="section-sub">Opening 5 gameweeks by average difficulty</div>
+    </div>
+    <div class="section-right">Pre-Season</div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <h3 class="sub-hdr">Kindest Openers</h3>
+      
+<div class="table-wrap">
+  
+  <table>
+    <thead><tr>
+      
+        
+        <th>Club</th>
+      
+        
+        <th class="num">Avg difficulty (GW1-5)</th>
+      
+    </tr></thead>
+    <tbody>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>LIV</td>
+        
+          
+          
+          
+          
+          <td class="num">2.6</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>LEE</td>
+        
+          
+          
+          
+          
+          <td class="num">2.8</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>MCI</td>
+        
+          
+          
+          
+          
+          <td class="num">2.8</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>MUN</td>
+        
+          
+          
+          
+          
+          <td class="num">2.8</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>TOT</td>
+        
+          
+          
+          
+          
+          <td class="num">2.8</td>
+        
+      </tr>
+      
+    </tbody>
+  </table>
+  
+</div>
+
+    </div>
+    <div>
+      <h3 class="sub-hdr">Toughest Openers</h3>
+      
+<div class="table-wrap">
+  
+  <table>
+    <thead><tr>
+      
+        
+        <th>Club</th>
+      
+        
+        <th class="num">Avg difficulty (GW1-5)</th>
+      
+    </tr></thead>
+    <tbody>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>FUL</td>
+        
+          
+          
+          
+          
+          <td class="num">3.6</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>BOU</td>
+        
+          
+          
+          
+          
+          <td class="num">3.6</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>COV</td>
+        
+          
+          
+          
+          
+          <td class="num">3.4</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>SUN</td>
+        
+          
+          
+          
+          
+          <td class="num">3.2</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>IPS</td>
+        
+          
+          
+          
+          
+          <td class="num">3.2</td>
+        
+      </tr>
+      
+    </tbody>
+  </table>
+  
+</div>
+
+    </div>
+  </div>
+
+  <h3 class="sub-hdr">Gameweek 1</h3>
+  
+<div class="table-wrap">
+  
+  <table>
+    <thead><tr>
+      
+        
+        <th>Home</th>
+      
+        
+        <th>Away</th>
+      
+        
+        <th class="num">Home diff.</th>
+      
+        
+        <th class="num">Away diff.</th>
+      
+    </tr></thead>
+    <tbody>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>ARS</td>
+        
+          
+          
+          
+          
+          <td>COV</td>
+        
+          
+          
+          
+          
+          <td class="num">2</td>
+        
+          
+          
+          
+          
+          <td class="num">5</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>HUL</td>
+        
+          
+          
+          
+          
+          <td>MUN</td>
+        
+          
+          
+          
+          
+          <td class="num">4</td>
+        
+          
+          
+          
+          
+          <td class="num">2</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>EVE</td>
+        
+          
+          
+          
+          
+          <td>CRY</td>
+        
+          
+          
+          
+          
+          <td class="num">3</td>
+        
+          
+          
+          
+          
+          <td class="num">3</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>IPS</td>
+        
+          
+          
+          
+          
+          <td>SUN</td>
+        
+          
+          
+          
+          
+          <td class="num">2</td>
+        
+          
+          
+          
+          
+          <td class="num">2</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>NFO</td>
+        
+          
+          
+          
+          
+          <td>LEE</td>
+        
+          
+          
+          
+          
+          <td class="num">2</td>
+        
+          
+          
+          
+          
+          <td class="num">3</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>BRE</td>
+        
+          
+          
+          
+          
+          <td>TOT</td>
+        
+          
+          
+          
+          
+          <td class="num">3</td>
+        
+          
+          
+          
+          
+          <td class="num">3</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>BHA</td>
+        
+          
+          
+          
+          
+          <td>AVL</td>
+        
+          
+          
+          
+          
+          <td class="num">3</td>
+        
+          
+          
+          
+          
+          <td class="num">3</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>MCI</td>
+        
+          
+          
+          
+          
+          <td>BOU</td>
+        
+          
+          
+          
+          
+          <td class="num">3</td>
+        
+          
+          
+          
+          
+          <td class="num">5</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>NEW</td>
+        
+          
+          
+          
+          
+          <td>LIV</td>
+        
+          
+          
+          
+          
+          <td class="num">4</td>
+        
+          
+          
+          
+          
+          <td class="num">3</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>FUL</td>
+        
+          
+          
+          
+          
+          <td>CHE</td>
+        
+          
+          
+          
+          
+          <td class="num">4</td>
+        
+          
+          
+          
+          
+          <td class="num">3</td>
+        
+      </tr>
+      
+    </tbody>
+  </table>
+  
+</div>
+
+</div>
+
+
+<div id="market" class="section">
+  <div class="section-hdr">
+    <div class="section-left">
+      <div class="section-title">4. The Market</div>
+      <div class="section-sub">Where the money and the crowd have gone</div>
+    </div>
+    <div class="section-right">Pre-Season</div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <h3 class="sub-hdr">Most Expensive</h3>
+      
+<div class="table-wrap">
+  
+  <table>
+    <thead><tr>
+      
+        
+        <th>Player</th>
+      
+        
+        <th>Pos</th>
+      
+        
+        <th>Club</th>
+      
+        
+        <th class="num">Price</th>
+      
+        
+        <th class="num">Owned</th>
+      
+    </tr></thead>
+    <tbody>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Haaland</td>
+        
+          
+          
+          
+          
+          <td>FWD</td>
+        
+          
+          
+          
+          
+          <td>MCI</td>
+        
+          
+          
+          
+          
+          <td class="num">£15.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">73.3%</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>B.Fernandes</td>
+        
+          
+          
+          
+          
+          <td>MID</td>
+        
+          
+          
+          
+          
+          <td>MUN</td>
+        
+          
+          
+          
+          
+          <td class="num">£12.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">47.8%</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Saka</td>
+        
+          
+          
+          
+          
+          <td>MID</td>
+        
+          
+          
+          
+          
+          <td>ARS</td>
+        
+          
+          
+          
+          
+          <td class="num">£9.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">10.6%</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Palmer</td>
+        
+          
+          
+          
+          
+          <td>MID</td>
+        
+          
+          
+          
+          
+          <td>CHE</td>
+        
+          
+          
+          
+          
+          <td class="num">£9.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">10.9%</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Isak</td>
+        
+          
+          
+          
+          
+          <td>FWD</td>
+        
+          
+          
+          
+          
+          <td>LIV</td>
+        
+          
+          
+          
+          
+          <td class="num">£9.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">14.1%</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Semenyo</td>
+        
+          
+          
+          
+          
+          <td>MID</td>
+        
+          
+          
+          
+          
+          <td>MCI</td>
+        
+          
+          
+          
+          
+          <td class="num">£8.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">28.4%</td>
+        
+      </tr>
+      
+    </tbody>
+  </table>
+  
+</div>
+
+    </div>
+    <div>
+      <h3 class="sub-hdr">The Template</h3>
+      <p class="note">Most-owned players across the whole game right now.</p>
+      
+<div class="table-wrap">
+  
+  <table>
+    <thead><tr>
+      
+        
+        <th>Player</th>
+      
+        
+        <th>Pos</th>
+      
+        
+        <th>Club</th>
+      
+        
+        <th class="num">Price</th>
+      
+        
+        <th class="num">Owned</th>
+      
+    </tr></thead>
+    <tbody>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>Haaland</td>
+        
+          
+          
+          
+          
+          <td>FWD</td>
+        
+          
+          
+          
+          
+          <td>MCI</td>
+        
+          
+          
+          
+          
+          <td class="num">£15.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">73.3%</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>João Pedro</td>
+        
+          
+          
+          
+          
+          <td>FWD</td>
+        
+          
+          
+          
+          
+          <td>CHE</td>
+        
+          
+          
+          
+          
+          <td class="num">£7.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">57.2%</td>
+        
+      </tr>
+      
+      <tr class="top3">
+        
+          
+          
+          
+          
+          <td>B.Fernandes</td>
+        
+          
+          
+          
+          
+          <td>MID</td>
+        
+          
+          
+          
+          
+          <td>MUN</td>
+        
+          
+          
+          
+          
+          <td class="num">£12.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">47.8%</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Szoboszlai</td>
+        
+          
+          
+          
+          
+          <td>MID</td>
+        
+          
+          
+          
+          
+          <td>LIV</td>
+        
+          
+          
+          
+          
+          <td class="num">£7.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">41.9%</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Raya</td>
+        
+          
+          
+          
+          
+          <td>GK</td>
+        
+          
+          
+          
+          
+          <td>ARS</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">31.4%</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Semenyo</td>
+        
+          
+          
+          
+          
+          <td>MID</td>
+        
+          
+          
+          
+          
+          <td>MCI</td>
+        
+          
+          
+          
+          
+          <td class="num">£8.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">28.4%</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Mbeumo</td>
+        
+          
+          
+          
+          
+          <td>MID</td>
+        
+          
+          
+          
+          
+          <td>MUN</td>
+        
+          
+          
+          
+          
+          <td class="num">£8.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">27.9%</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Gabriel</td>
+        
+          
+          
+          
+          
+          <td>DEF</td>
+        
+          
+          
+          
+          
+          <td>ARS</td>
+        
+          
+          
+          
+          
+          <td class="num">£8.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">27.5%</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Rogers</td>
+        
+          
+          
+          
+          
+          <td>MID</td>
+        
+          
+          
+          
+          
+          <td>CHE</td>
+        
+          
+          
+          
+          
+          <td class="num">£7.5m</td>
+        
+          
+          
+          
+          
+          <td class="num">26.4%</td>
+        
+      </tr>
+      
+      <tr>
+        
+          
+          
+          
+          
+          <td>Calvert-Lewin</td>
+        
+          
+          
+          
+          
+          <td>FWD</td>
+        
+          
+          
+          
+          
+          <td>LEE</td>
+        
+          
+          
+          
+          
+          <td class="num">£6.0m</td>
+        
+          
+          
+          
+          
+          <td class="num">25.7%</td>
+        
+      </tr>
+      
+    </tbody>
+  </table>
+  
+</div>
+
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  The Dossier &mdash; TML &middot; Pre-season 2026/2027 &middot; generated 17 Aug 2026, 11:13 UTC<br>
+  Predictions are derived from 2025/26 data and are, like all predictions, an invitation to be wrong in public.
+</div>
+</div>
+
+<script>
+(function () {
+  // tojson, not a text/plain <script>: script elements are raw-text, so HTML
+  // entities inside them are never decoded and would paste as "&#39;".
+  var payload = "*THE DOSSIER \u2014 2026/2027 PRE-SEASON*\n_TML_\n\n\u23f0 GW1 deadline: Fri 21 Aug 2026, 17:30 UTC\n\n\ud83c\udfc6 Defending champion: Caesar \u2b50 (2373 pts)\n\ud83e\udea3 Last season\u0027s bottle job: son of a doge \u2b50\ufe0f\u2b50\ufe0f \u2014 18 weeks top, finished 4th\n\n*PREDICTIONS \u2014 screenshot these and hold me to them*\n1. [The Title] Caesar \u2b50 does NOT retain it. Reigning champions have the biggest target and the worst luck \u2014 Sunny Sharma finishes outside the top two.\n2. [The Dark Horse] TML \u2b50\ufe0f\u2b50\ufe0f wins the whole thing. Third last season, 67 points off the title \u2014 one good captaincy run is worth more than that.\n3. [The Bottle Watch] son of a doge \u2b50\ufe0f\u2b50\ufe0f leads the league again at some point \u2014 and blows it again. Led for 18 weeks last season and still finished 4th.\n4. [The DefCon King] Senesi (TOT, \u00a36.0m) is the most underpriced asset in the game. 52 DefCon points last season at a 70% hit rate, and only 10.0% of the game owns him.\n5. [The Trap] Semenyo (MCI, \u00a38.5m) is this season\u0027s great disappointment. Beat his xG by 5.9 goals last season \u2014 finishing that hot does not repeat, and 28.4% of you are about to find out.\n6. [The Bounce-Back] Yeremy (CRY, \u00a35.5m) outscores his price bracket. Underperformed his expected numbers by 6.7 last season \u2014 that is variance, not decline.\n7. [The Fast Start] Whoever loads up on LIV assets wins August. Easiest opening 5 fixtures in the league (avg difficulty 2.6).\n8. [The Template] Haaland at 73.3% ownership is the single biggest rank swing of the season. Own him and you tread water; fade him and you either win the league or lose it.\n9. [The Hit Merchant] Saka FC takes at least 52 points of hits again and still finishes below the manager who took none. 36 transfers last season says the itch is incurable.\n10. [The Floor] Someone in this league scores under 20 in a gameweek before Christmas. Arteta Ballers managed 13 in GW34 last season and the bar has never been lower.\n\n*DEFCON KINGS (25/26)*\n\u2022 Senesi (TOT, \u00a36.0m) \u2014 52 pts, 70% of games\n\u2022 Anderson (MCI, \u00a36.5m) \u2014 52 pts, 68% of games\n\u2022 Tarkowski (EVE, \u00a36.0m) \u2014 44 pts, 59% of games\n\u2022 Lacroix (CHE, \u00a36.0m) \u2014 40 pts, 57% of games\n\u2022 Ampadu (LEE, \u00a35.5m) \u2014 38 pts, 54% of games\n\n*EASIEST GW1-5:* LIV (2.6), LEE (2.8), MCI (2.8)\n\nFull dossier: https://orbisfelis.github.io/fpl-dossier/";
+  var btn = document.getElementById('copy-btn');
+  var prev = document.getElementById('preview-btn');
+  var box = document.getElementById('share-preview');
+
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  function done(ok) {
+    btn.textContent = ok ? 'Copied ✓' : 'Press ⌘C to copy';
+    btn.setAttribute('data-copied', ok ? '1' : '0');
+    if (!ok) box.classList.add('open');
+    setTimeout(function () {
+      btn.textContent = 'Copy for WhatsApp';
+      btn.removeAttribute('data-copied');
+    }, 2500);
+  }
+
+  btn.addEventListener('click', function () {
+    // navigator.clipboard needs a secure context; file:// and plain http fall back.
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(payload)
+        .then(function () { done(true); })
+        .catch(function () { done(fallbackCopy(payload)); });
+    } else {
+      done(fallbackCopy(payload));
+    }
+  });
+
+  prev.addEventListener('click', function () {
+    box.classList.toggle('open');
+    prev.textContent = box.classList.contains('open') ? 'Hide text' : 'Preview text';
+  });
+})();
+</script>
+
+<script>
+(function () {
+  // Same picker as the gameweek dossiers; GW0 renders as "Pre-Season".
+  var ctx = window.__DOSSIER || {};
+  var picker = document.getElementById('nav-picker');
+  var seasonSel = document.getElementById('season-select');
+  var gwSel = document.getElementById('gw-select');
+  if (!picker || !seasonSel || !gwSel) return;
+
+  function seasonLabel(s) { return '20' + s.replace('-', '/20'); }
+  function gwLabel(gw) { return Number(gw) === 0 ? 'Pre-Season' : 'GW' + gw; }
+
+  fetch('../manifest.json', { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (m) {
+      if (!m || !m.seasons) return;
+      var seasons = Object.keys(m.seasons).sort().reverse();
+      if (!seasons.length) return;
+      var curSeason = ctx.season && m.seasons[ctx.season] ? ctx.season : seasons[0];
+
+      seasons.forEach(function (s) {
+        var o = document.createElement('option');
+        o.value = s; o.textContent = seasonLabel(s);
+        if (s === curSeason) o.selected = true;
+        seasonSel.appendChild(o);
+      });
+
+      function fillGws(season, selectedGw) {
+        gwSel.innerHTML = '';
+        (m.seasons[season] || []).slice().sort(function (a, b) { return b - a; })
+          .forEach(function (gw) {
+            var o = document.createElement('option');
+            o.value = gw; o.textContent = gwLabel(gw);
+            if (Number(gw) === Number(selectedGw)) o.selected = true;
+            gwSel.appendChild(o);
+          });
+      }
+      fillGws(curSeason, ctx.gw);
+
+      function go(season, gw) { window.location.href = '../' + season + '/GW' + gw + '.html'; }
+      seasonSel.addEventListener('change', function () {
+        var gws = (m.seasons[seasonSel.value] || []).slice().sort(function (a, b) { return b - a; });
+        if (gws.length) go(seasonSel.value, gws[0]);
+      });
+      gwSel.addEventListener('change', function () {
+        if (gwSel.value !== '') go(seasonSel.value, gwSel.value);
+      });
+
+      var total = seasons.reduce(function (n, s) { return n + m.seasons[s].length; }, 0);
+      if (total > 1) picker.hidden = false;
+    })
+    .catch(function () {});
+})();
+</script>
+</body>
+</html>
