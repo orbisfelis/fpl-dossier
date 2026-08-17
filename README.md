@@ -255,6 +255,123 @@ Next season opens with a fresh `fpl.db` (just delete or rename the current one
 before the first scrape of the new season). Historical DBs can be queried side
 by side via `ATTACH DATABASE` in sqlite3.
 
+## Pre-season page
+
+Before GW1 there are no gameweek results, so the normal dossier can't render.
+`fpl preseason` builds the equivalent from what does exist — the archived
+previous season plus the new season's prices, fixtures and deadlines — and
+publishes it as **`GW0.html`**, so it slots into the existing season/gameweek
+picker (labelled "Pre-Season") and the root redirect points at it until GW1
+lands.
+
+```bash
+# Publish into docs/<season>/GW0.html and refresh the manifest + index
+fpl preseason --prev-db data/25_26_fpl.db --url https://you.github.io/fpl-dossier/
+
+# Or write a standalone file without touching docs/
+fpl preseason --prev-db data/25_26_fpl.db -o /tmp/preseason.html
+```
+
+What's on it:
+
+* **Predictions** — falsifiable, data-derived calls (title, dark horse, bottle
+  watch, DefCon king, the trap, the bounce-back, fast start, template, hit
+  merchant, the floor). Each one cites the number it came from.
+* **Copy for WhatsApp** — one button copies a plain-text version, with
+  WhatsApp's own `*bold*`/`_italic_` markup, straight to the clipboard.
+  "Preview text" shows it first.
+* **Where We Left Off** — final table, champion's margin, best/worst single
+  gameweek, points left on the bench, longest spell top.
+* **Player Intel** — DefCon kings, regression watch (biggest xG
+  overperformers), bounce-back candidates (biggest underperformers), best
+  value under £7.0m, and the ever-presents — all last season's underlying
+  numbers priced at this season's cost.
+* **Fixture Intel** — kindest and toughest opening runs, plus every GW1 tie.
+* **The Market** — most expensive, and the current template by ownership.
+
+`--prev-db` is optional: without it the league-history section and player
+intel are omitted and the page falls back to fixtures and market only, so a
+brand-new league still gets a usable page. Everything is deterministic — no
+API key or LLM needed.
+
+## Reddit grounding input
+
+r/FantasyPL is a useful sanity check on the model (template picks, injury
+chatter, who the community rates). **No setup required** — it works out of the
+box:
+
+```bash
+# Top posts of the past week, with the 8 best comments on each
+fpl reddit --limit 50 --time week
+
+# What's hot right now, posts only (much faster — no per-post requests)
+fpl reddit --sort hot --comments 0
+
+# Any subreddit / window
+fpl reddit --sub FPL --sort top --time month --out data/reddit_month.json
+```
+
+Reddit's plain `.json` endpoints now return a 403 HTML block page to every
+unauthenticated client regardless of User-Agent, but the **public Atom feeds
+still work**, so that is the default backend. Two consequences:
+
+* RSS exposes no scores or comment counts — posts come back in Reddit's own
+  ranking order instead (`rank` in the JSON).
+* Rate limits are strict. Requests are paced ~3s apart with exponential
+  backoff, so `--comments 8` over 50 posts takes a few minutes. Fetching
+  posts only (`--comments 0`) is one request. If you get rate-limited, wait a
+  few minutes — failures degrade to a warning and the run still writes output.
+
+**Optional OAuth upgrade** — higher limits, plus scores and comment counts.
+Create a free "script" app at <https://www.reddit.com/prefs/apps> (redirect URI
+`http://localhost:8080`) and add to `.env`, which is git-ignored:
+
+```bash
+REDDIT_CLIENT_ID=your_id
+REDDIT_CLIENT_SECRET=your_secret
+```
+
+It is then used automatically; force either backend with `--backend rss|oauth`.
+Read-only app-only auth — no Reddit password. If your app insists on the
+password grant, also set `REDDIT_USERNAME`/`REDDIT_PASSWORD`.
+
+Two files are written: the raw `.json` (everything) and a `.md` digest
+(most-mentioned players, then posts with top comments). The digest is the one
+to feed an LLM — point Claude at it and it grounds team advice in what the
+community is actually saying. Player mentions are matched against `web_name`
+in the current-season DB, so the counts surface real players rather than
+random capitalised words.
+
+Read-only, app-only OAuth: no Reddit account password is involved. Set
+`REDDIT_USERNAME`/`REDDIT_PASSWORD` too only if your app requires the password
+grant.
+
+## New season checklist
+
+Pre-season (any time after the FPL API flips to the new season, usually July):
+
+```bash
+# 1. Scrape the new season into a fresh DB. Pre-season this pulls players
+#    (new prices), teams, gameweeks and fixtures; the league 404s until it
+#    renews near GW1, which the scraper tolerates (bootstrap-only warning).
+docker compose run --rm fpl scrape --db data/26_27_fpl.db
+
+# 2. Point the env at the new DB and keep last season's archive for
+#    same-week comparisons (activates the "vs Last Season" report section
+#    and the narrative's cross-season context from GW1).
+#    In .env:  FPL_DB=data/26_27_fpl.db
+#              FPL_PREV_DB=data/25_26_fpl.db
+```
+
+Prices drift over the summer as the deadline approaches — re-run the scrape
+the day before the GW1 deadline for final prices. After GW1 finishes, the
+league standings exist again and the normal weekly scrape + publish loop
+resumes (`--prev-db` / `FPL_PREV_DB` makes the prev-season sections light up).
+
+Note: the `players` table stores FPL's `code` — the ID that is stable across
+seasons (`id` is not) — so future cross-season player joins don't need name
+matching.
+
 ## Architecture
 
 ```

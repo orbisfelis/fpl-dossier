@@ -22,10 +22,11 @@ async def collect_league_entries(fpl: FPLClient, league_id: int) -> tuple[list[d
     page = 1
     while True:
         data = await fpl.league_page(league_id, page)
-        if not data:
-            raise RuntimeError(
-                f"League {league_id} returned no data — wrong ID, or private?"
-            )
+        if not data or "standings" not in data:
+            # Pre-season the league may not exist yet (renews near GW1).
+            log.warning("League %d has no standings yet (pre-season?) — "
+                        "scraping bootstrap/fixtures only", league_id)
+            return entries, league_name
         if not league_name:
             league_name = data.get("league", {}).get("name", "")
         standings = data["standings"]
