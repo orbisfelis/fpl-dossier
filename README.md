@@ -367,6 +367,48 @@ docker compose run --rm fpl scrape --db data/26_27_fpl.db
 #              FPL_PREV_DB=data/25_26_fpl.db
 ```
 
+### Identity registry (leagues + managers across seasons)
+
+FPL recycles nothing. Each season the mini-league is re-created under a **new
+league ID**, every manager gets a **new entry ID**, and team names — plus the
+occasional display name — change too. Nothing in the API links a season to the
+one before it.
+
+`data/registry.db` is a small file that outlives any single season and holds
+that mapping: one row per logical league (a *lineage*), one per human (a stable
+`person_id`), and the league/entry IDs each used per season.
+
+```bash
+# After scraping a season, record its ids (safe to re-run)
+fpl registry sync --db data/25_26_fpl.db --league 59720  --season 25-26
+fpl registry sync --db data/26_27_fpl.db --league 126735 --season 26-27
+
+# Who is who, across every season
+fpl registry list
+```
+
+```
+person  name                           25-26       26-27
+    10  Milen Kindekov                319258       37784
+     4  Sunny Sharma                  332468      647222
+    23  Evros Stephanou                    -      848041
+```
+
+Syncing links managers to known people by normalised name, but only to
+*propose* the link — once recorded it is authoritative, so anyone can rename
+themselves afterwards without breaking their history. Fix a bad guess (or link
+a returning manager who rejoined under a new name) with:
+
+```bash
+fpl registry link --lineage tml --season 26-27 --entry 848041 --person 7
+```
+
+The registry is consulted automatically by `resolve_prev_league()` (finding
+last season's league ID) and by the "vs Last Season" and Form Book comparisons
+(translating last season's entry IDs into this season's). All of it degrades to
+name matching when no registry file exists, so it is optional — but with it,
+year-on-year comparisons survive both ID churn and renames.
+
 ### New joiners and manager identity
 
 **Both the league ID and manager entry IDs change at the season rollover.**

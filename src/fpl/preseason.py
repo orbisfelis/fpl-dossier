@@ -208,12 +208,14 @@ def _player_intel(conn: sqlite3.Connection, prev_db: Path, limit: int = 8) -> di
 # ---------------------------------------------------------------------------
 
 def _form_book(conn: sqlite3.Connection, league_id: int,
-               prev_names: set[str]) -> list[dict]:
+               prev_names: set[str],
+               returning_ids: set[int] | None = None) -> list[dict]:
     """Every manager's FPL career, from /entry/<id>/history/ `past`.
 
-    New joiners are those whose *name* is absent from the archived previous
-    season. entry_id cannot be used: it changes at the season rollover, so an
-    id-based diff would flag the entire league as new every year.
+    A manager is returning if the identity registry links their entry to a
+    previous season (authoritative, survives renames), or failing that if their
+    name appears in the archive. Raw entry_id cannot be compared directly: it
+    changes at the rollover, so an id diff would flag everyone as new annually.
     """
     from .report import manager_key
     managers = _rows(conn.execute(
@@ -232,7 +234,11 @@ def _form_book(conn: sqlite3.Connection, league_id: int,
     out = []
     for m in managers:
         # prev_names empty (no archive) => nobody can be judged new
-        is_new = bool(prev_names) and manager_key(m["player_name"]) not in prev_names
+        if returning_ids:
+            is_new = m["entry_id"] not in returning_ids
+        else:
+            is_new = (bool(prev_names)
+                      and manager_key(m["player_name"]) not in prev_names)
         seasons = by_entry.get(m["entry_id"], [])
         scored = [s for s in seasons if s["total_points"]]
         pcts = [s["rank_percentage"] for s in seasons
@@ -526,9 +532,25 @@ def collect_preseason(db_path: Path, league_id: int, prev_db: Path | None,
     # Needs prev_names, so it runs after the archive has been read.
     form_book: list[dict] = []
     if managers_present:
+        returning_ids: set[int] = set()
+        try:
+            import os
+            from .registry import (DEFAULT_REGISTRY, open_registry,
+                                   prev_entry_translation)
+            reg_path = Path(os.environ.get("FPL_REGISTRY", DEFAULT_REGISTRY))
+            if reg_path.exists():
+                reg = open_registry(reg_path)
+                try:
+                    returning_ids = set(
+                        prev_entry_translation(reg, league_id).values())
+                finally:
+                    reg.close()
+        except (sqlite3.Error, ImportError, OSError):
+            returning_ids = set()
+
         fconn = sqlite3.connect(db_path)
         try:
-            form_book = _form_book(fconn, league_id, prev_names)
+            form_book = _form_book(fconn, league_id, prev_names, returning_ids)
         finally:
             fconn.close()
 

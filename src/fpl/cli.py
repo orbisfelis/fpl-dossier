@@ -105,6 +105,39 @@ def main(argv: list[str] | None = None) -> int:
                     help=f"GitHub Pages output dir (default: {DEFAULT_DOCS})")
     _add_narrative_opts(pp)
 
+    # registry -------------------------------------------------------------
+    # --registry is accepted either side of the subcommand, so both
+    # `registry --registry X sync` and `registry sync --registry X` work.
+    reg_common = argparse.ArgumentParser(add_help=False)
+    reg_common.add_argument("--registry", type=Path, default=None,
+                            help="Registry DB (default: data/registry.db, "
+                                 "or $FPL_REGISTRY)")
+
+    rg = subparsers.add_parser("registry", parents=[common, reg_common],
+                               help="Track league/manager identity across seasons")
+    rgsub = rg.add_subparsers(dest="registry_cmd", required=True)
+
+    rgs = rgsub.add_parser("sync", parents=[reg_common],
+                           help="Record this season's league id + roster")
+    rgs.add_argument("--db", type=Path, default=DEFAULT_DB, dest="season_db",
+                     help="Season DB to read the roster from")
+    rgs.add_argument("--league", type=int, default=_env_int("FPL_LEAGUE_ID"),
+                     required="FPL_LEAGUE_ID" not in os.environ)
+    rgs.add_argument("--season", default=None,
+                     help="Season label, e.g. 26-27 (default: derived)")
+    rgs.add_argument("--lineage", default=None,
+                     help="Force the lineage id these seasons belong to")
+
+    rgsub.add_parser("list", parents=[reg_common],
+                     help="Show each person's entry id by season")
+
+    rgl = rgsub.add_parser("link", parents=[reg_common],
+                           help="Repair a mis-linked manager")
+    rgl.add_argument("--lineage", required=True)
+    rgl.add_argument("--season", required=True)
+    rgl.add_argument("--entry", type=int, required=True)
+    rgl.add_argument("--person", type=int, required=True)
+
     # preseason ------------------------------------------------------------
     ps = subparsers.add_parser("preseason", parents=[common],
                                help="Build the pre-season welcome page (published as GW0)")
@@ -184,6 +217,41 @@ def main(argv: list[str] | None = None) -> int:
             prev_db=args.prev_db,
         )
         print(f"Published to: {season_dir} (manifest + index.html updated)")
+
+    elif args.command == "registry":
+        from . import registry as reg
+        from .report import current_season
+        registry_path = args.registry or Path(
+            os.environ.get("FPL_REGISTRY", reg.DEFAULT_REGISTRY))
+        conn = reg.open_registry(registry_path)
+        if args.registry_cmd == "sync":
+            s = reg.sync_season(conn, args.season_db,
+                                args.season or current_season(), args.league,
+                                lineage_id=args.lineage)
+            print(f"{s['label']} [{s['lineage_id']}] {s['season']} "
+                  f"= league {s['league_id']}")
+            print(f"  {s['managers']} managers: {s['linked']} linked to known "
+                  f"people, {s['created']} new, {s['already']} already recorded")
+            if s["previous_league_id"]:
+                print(f"  previous season's league id: {s['previous_league_id']}")
+        elif args.registry_cmd == "link":
+            reg.link(conn, args.lineage, args.season, args.entry, args.person)
+            print(f"Linked entry {args.entry} ({args.season}) "
+                  f"to person {args.person}")
+        else:
+            people = reg.roster(conn)
+            if not people:
+                print("Registry is empty — run: fpl registry sync")
+            else:
+                seasons = people[0]["all_seasons"]
+                print(f"{'person':>6}  {'name':<24}" +
+                      "".join(f"{s:>12}" for s in seasons))
+                for p in sorted(people, key=lambda x: x["name"].casefold()):
+                    cells = "".join(
+                        f"{(str(p['seasons'][s]['entry_id']) if s in p['seasons'] else '-'):>12}"
+                        for s in seasons)
+                    print(f"{p['person_id']:>6}  {p['name'][:24]:<24}{cells}")
+        conn.close()
 
     elif args.command == "preseason":
         from .preseason import generate_preseason, publish_preseason
