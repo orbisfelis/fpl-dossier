@@ -219,6 +219,35 @@
   .nar-text { font-size: 14px; line-height: 1.7; }
   .nar-text strong { font-weight: 700; color: var(--slate); }
 
+  .bench-hdr {
+    background: linear-gradient(135deg, #4a1d5e 0%, #6b2d84 50%, #8e44ad 100%);
+    text-align: center; padding: 24px; margin-bottom: 20px;
+    border-left: 5px solid #d980fa;
+  }
+  .bench-hdr .hdr-title { font-size: 28px; font-weight: 700; font-style: italic; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .bench-hdr .hdr-sub { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+  .bench-wrap { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; align-items: stretch; margin-bottom: 16px; }
+  .bench-card {
+    border: 1px solid #8e44ad; border-radius: 2px; padding: 24px;
+    text-align: center; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; background: rgba(142,68,173,0.06);
+  }
+  .bench-verdict { font-size: 64px; font-weight: 900; font-style: italic; line-height: 1; letter-spacing: 1px; color: #8e44ad; }
+  .bench-detail { font-size: 13px; margin-top: 12px; max-width: 380px; line-height: 1.55; }
+  .bench-pick {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 2px; padding: 18px 20px;
+  }
+  .bench-pick label {
+    display: block; font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--muted); margin-bottom: 10px;
+  }
+  .bench-marks { width: 100%; font-size: 13px; }
+  .bench-marks td { padding: 4px 8px; border-bottom: 1px solid #f0f0f0; }
+  .bench-marks td.num { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .bench-note { font-size: 12px; color: var(--muted); margin-top: 12px; line-height: 1.5; }
+  @media (max-width: 720px) { .bench-wrap { grid-template-columns: 1fr; } }
+
   .watch-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); margin-bottom: 16px; }
   .watch {
     background: var(--card); border: 1px solid var(--border);
@@ -250,6 +279,7 @@
 <nav class="nav">
   <a class="nav-brand" href="#top">THE <span>DOSSIER</span></a>
   <a href="#story">The Column</a>
+  <a href="#benchmark">Jay's GF</a>
   <a href="#watch">Ones to Watch</a>
   <a href="#predictions">Predictions</a>
   <a href="#recap">Last Season</a>
@@ -299,6 +329,47 @@
     <div class="nar-text">{{ p.html|safe }}</div>
   </div>
   {% endfor %}
+</div>
+{% endif %}
+
+{# ============ THE GAUNTLET (league-specific running joke) ============ #}
+{% if benchmark %}
+<div id="benchmark" class="section">
+  <div class="bench-hdr">
+    <div class="hdr-title">{{ benchmark.title }}</div>
+    <div class="hdr-sub">Not yet, nobody has played a game. Here is the pace you have to beat.</div>
+  </div>
+
+  <div class="bench-wrap">
+    <div class="bench-card target">
+      <div class="bench-verdict">{{ benchmark.final }}</div>
+      <div class="bench-detail">
+        The number {{ benchmark.label }} put up last season, at
+        <strong>{{ benchmark.per_gw }}</strong> points a gameweek. She is not
+        playing this year, so it never moves &mdash; and from GW1 this section
+        becomes a YES or NO for every one of you.
+      </div>
+    </div>
+    <div class="bench-pick">
+      <label>Checkpoints to clear</label>
+      <table class="bench-marks">
+        <tbody>
+          {% for m in benchmark.marks %}
+          <tr>
+            <td>GW{{ m.event }}</td>
+            <td class="num">{{ m.target }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p class="bench-note">
+        Her best week was <strong>{{ benchmark.best_gw.points }}</strong> in
+        GW{{ benchmark.best_gw.event }}{% if benchmark.worst_gw %}, her worst
+        <strong>{{ benchmark.worst_gw.points }}</strong> in
+        GW{{ benchmark.worst_gw.event }}{% endif %}.
+      </p>
+    </div>
+  </div>
 </div>
 {% endif %}
 

@@ -578,6 +578,57 @@ def _predictions(history: dict, intel: dict, fixtures: dict,
 
 
 # ---------------------------------------------------------------------------
+# the benchmark, pre-season: no scores yet, so show the target pace
+# ---------------------------------------------------------------------------
+
+def _benchmark_pace(prev_db: Path | None, league_id: int, season: str,
+                    checkpoints: tuple[int, ...] = (1, 5, 10, 15, 20, 25, 30, 38)
+                    ) -> dict | None:
+    """The gauntlet a nominated manager set last season, as checkpoints.
+
+    Shares _BENCHMARK_SECTIONS with the weekly dossier, so the joke is
+    configured in exactly one place. Returns None unless this league/season has
+    one and the archive can answer it.
+    """
+    from .report import _BENCHMARK_SECTIONS, resolve_prev_league
+
+    cfg = _BENCHMARK_SECTIONS.get((league_id, season))
+    if not cfg or not prev_db or not Path(prev_db).exists():
+        return None
+    try:
+        conn = sqlite3.connect(prev_db)
+        prev_league = resolve_prev_league(conn, league_id)
+        rows = _rows(conn.execute(
+            """SELECT mg.event, mg.points, mg.total_points
+               FROM manager_gameweeks mg JOIN managers m ON m.entry_id = mg.entry_id
+               WHERE m.league_id = ? AND m.player_name = ?
+               ORDER BY mg.event""", (prev_league, cfg["benchmark_manager"])))
+        conn.close()
+    except sqlite3.Error:
+        return None
+    if not rows:
+        return None
+
+    by_event = {r["event"]: r["total_points"] for r in rows}
+    final = max((r["total_points"] or 0) for r in rows)
+    best = max(rows, key=lambda r: r["points"] or 0)
+    worst = min((r for r in rows if (r["points"] or 0) > 0),
+                key=lambda r: r["points"], default=None)
+    marks = [{"event": ev, "target": by_event[ev]}
+             for ev in checkpoints if ev in by_event]
+    return {
+        "title": cfg["title"],
+        "label": cfg["benchmark_label"],
+        "final": final,
+        "per_gw": round(final / len(rows), 1) if rows else None,
+        "marks": marks,
+        "best_gw": {"event": best["event"], "points": best["points"]},
+        "worst_gw": ({"event": worst["event"], "points": worst["points"]}
+                     if worst else None),
+    }
+
+
+# ---------------------------------------------------------------------------
 # pre-season narrative
 # ---------------------------------------------------------------------------
 
@@ -761,6 +812,16 @@ def whatsapp_text(data: dict) -> str:
                          f"{int(r['dc_pts'])} pts, {int(r['hit_rate'])}% of games")
         lines.append("")
 
+    b = data.get("benchmark")
+    if b:
+        lines.append(f"*{b['title'].upper()}*")
+        lines.append(f"Not yet — nobody has kicked a ball. The target is "
+                     f"*{b['final']}* ({b['per_gw']}/gw).")
+        marks = " · ".join(f"GW{m['event']}: {m['target']}"
+                           for m in b["marks"] if m["event"] in (5, 10, 20, 30))
+        lines.append(f"Checkpoints — {marks}")
+        lines.append("")
+
     watch = data.get("watch") or {}
     picks = [p for p in watch.get("players", []) if not p.get("caution")][:4]
     if picks:
@@ -893,6 +954,7 @@ def collect_preseason(db_path: Path, league_id: int, prev_db: Path | None,
     _apply_identity(history, _identity_map(db_path, league_id))
     data["predictions"] = _predictions(history, intel, fixtures, market)
     data["watch"] = _watchlist(intel, market, fixtures, form_book)
+    data["benchmark"] = _benchmark_pace(prev_db, league_id, season)
     data["narrative"] = write_preseason_narrative(
         data, db_path, league_id, mode=narrative, refresh=refresh_narrative)
     data["whatsapp"] = whatsapp_text(data)
