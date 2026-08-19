@@ -471,12 +471,16 @@
 
   {{ player_table(form_book, ["Team|entry_name", "Manager|player_name", "New?|new_label",
        ">Seasons|seasons", ">Career best|best_points", "In|best_season",
-       ">Top %|best_pct|pct0", ">Average|avg_points", "Last three seasons|recent"],
+       ">Best rank|best_rank_label", "In|best_rank_season", ">Top %|best_rank_pct",
+       ">Average|avg_points", "Last three|recent"],
        empty="No manager history yet — scrape the league (or use --entry) first.") }}
   <p class="note">
-    &ldquo;Top %&rdquo; is the best overall finish as a percentile of the whole game,
-    which compares across seasons more fairly than raw rank. Career figures come
-    from each manager's FPL history, so they cover seasons long before this league existed.
+    &ldquo;Best rank&rdquo; is the highest overall finish across a manager's whole
+    FPL career, with the season it came in and what share of the entire player
+    base finished above them. It is often a different season from their best
+    points total &mdash; scoring rules and the size of the game both move year
+    to year, so rank travels better than raw points. Career figures cover
+    seasons long before this league existed.
   </p>
 </div>
 {% endif %}

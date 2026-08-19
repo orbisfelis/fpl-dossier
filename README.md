@@ -291,8 +291,11 @@ What's on it:
 * **Where We Left Off** — final table, champion's margin, best/worst single
   gameweek, points left on the bench, longest spell top.
 * **The Form Book** — every manager's FPL career from `/entry/<id>/history/`:
-  seasons played, career best, best percentile finish, average, and the last
-  three seasons. Managers whose `entry_id` is absent from the archived
+  seasons played, career best points, **best overall rank** with the season it
+  came in and the share of the whole player base that finished above them,
+  average, and the last three seasons. Best rank is usually a *different*
+  season from best points — scoring rules and the size of the game both move
+  year to year, so rank travels better across seasons than raw points. Managers whose `entry_id` is absent from the archived
   previous season are flagged **NEW**, so joiners are called out by name.
 * **Player Intel** — DefCon kings, regression watch (biggest xG
   overperformers), bounce-back candidates (biggest underperformers), best

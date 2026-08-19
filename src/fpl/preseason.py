@@ -31,6 +31,18 @@ DC_SQL = """(CASE WHEN p.element_type = 2
                   ELSE 0 END)"""
 
 
+def _pct_label(pct: float | None) -> str | None:
+    """FPL reports rank_percentage rounded, and 0.0 means better than 99.9%,
+    so never print a bare '0%'."""
+    if pct is None:
+        return None
+    if pct >= 1:
+        return f"{pct:.0f}%"
+    if pct > 0:
+        return f"{pct:.1f}%"
+    return "<0.1%"
+
+
 def _rows(cur) -> list[dict]:
     cols = [c[0] for c in cur.description]
     return [dict(zip(cols, r)) for r in cur.fetchall()]
@@ -309,7 +321,10 @@ def _form_book(conn: sqlite3.Connection, league_id: int,
         pcts = [s["rank_percentage"] for s in seasons
                 if s["rank_percentage"] is not None]
         best = max(scored, key=lambda s: s["total_points"]) if scored else None
-        # Best finish = lowest percentile (top N%).
+        # Best finish is the lowest overall rank, which is not necessarily the
+        # season with the most points — scoring rules move between years.
+        ranked = [s for s in seasons if s.get("rank")]
+        best_rank = min(ranked, key=lambda s: s["rank"]) if ranked else None
         best_pct = min(pcts) if pcts else None
         recent = sorted(scored, key=lambda s: s["season_name"])[-3:]
         out.append({
@@ -322,6 +337,13 @@ def _form_book(conn: sqlite3.Connection, league_id: int,
             "best_points": best["total_points"] if best else None,
             "best_season": best["season_name"] if best else None,
             "best_pct": best_pct,
+            "pct_label": _pct_label(best_pct),
+            "best_rank": best_rank["rank"] if best_rank else None,
+            "best_rank_label": f"{best_rank['rank']:,}" if best_rank else None,
+            "best_rank_season": best_rank["season_name"] if best_rank else None,
+            "best_rank_points": best_rank["total_points"] if best_rank else None,
+            "best_rank_pct": _pct_label(best_rank["rank_percentage"])
+                             if best_rank else None,
             "avg_points": round(sum(s["total_points"] for s in scored) / len(scored))
                           if scored else None,
             "last_points": recent[-1]["total_points"] if recent else None,
@@ -425,18 +447,21 @@ def _watchlist(intel: dict, market: dict, fixtures: dict,
 
     # Rivals: best career percentile among managers actually in the league.
     rivals = []
-    for m in sorted((x for x in form_book if x.get("best_pct") is not None),
-                    key=lambda x: (x["best_pct"], -(x["best_points"] or 0)))[:4]:
-        pct = m["best_pct"]
-        pct_label = "under 1" if pct < 1 else f"{pct:.0f}"
+    ranked = [x for x in form_book if x.get("best_rank")]
+    for m in sorted(ranked, key=lambda x: x["best_rank"])[:4]:
         rivals.append({
             "team": m["entry_name"], "manager": m["player_name"],
             "seasons": m["seasons"], "best_points": m["best_points"],
             "best_season": m["best_season"], "best_pct": m["best_pct"],
+            "best_rank": m["best_rank"], "best_rank_label": m["best_rank_label"],
+            "best_rank_season": m["best_rank_season"],
+            "best_rank_points": m["best_rank_points"],
+            "best_rank_pct": m["best_rank_pct"],
+            "pct_label": m["best_rank_pct"],
             "is_new": m["is_new"],
-            "pct_label": pct_label,
-            "reason": (f"Career best {m['best_points']} in {m['best_season']}, "
-                       f"top {pct_label}% of the world"
+            "reason": (f"Finished {m['best_rank_label']} in the world in "
+                       f"{m['best_rank_season']} — the top {m['best_rank_pct']} "
+                       f"of everyone playing — on {m['best_rank_points']} points"
                        + (f", across {m['seasons']} seasons" if m["seasons"] > 4 else "")
                        + (". And nobody here has seen him play." if m["is_new"] else ".")),
         })
@@ -837,8 +862,9 @@ def whatsapp_text(data: dict) -> str:
     if watch.get("rivals"):
         lines.append("*MANAGERS TO FEAR*")
         for r in watch["rivals"][:3]:
-            lines.append(f"• {r['team']} ({r['manager']}) — career best "
-                         f"{r['best_points']}, top {r['pct_label']}%")
+            lines.append(f"• {r['team']} ({r['manager']}) — best rank "
+                         f"{r['best_rank_label']} ({r['best_rank_season']}), "
+                         f"top {r['best_rank_pct']}")
         lines.append("")
 
     if data["fixtures"]["easiest"]:
