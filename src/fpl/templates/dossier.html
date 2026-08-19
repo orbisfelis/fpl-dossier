@@ -622,7 +622,6 @@
     <a href="#story">Story</a>
     <a href="#fame">Fame</a>
     <a href="#shame">Shame</a>
-    <a href="#benchmark">Jay's GF</a>
     <a href="#leaderboard">Table</a>
     <a href="#review">Review</a>
     <a href="#transfers">Transfers</a>
@@ -641,6 +640,7 @@
     <a href="#h2h">H2H</a>
     <a href="#around">League</a>
     <a href="#progression">Season</a>
+    <a href="#benchmark">Jay's GF</a>
   </div>
   <div class="nav-picker" id="nav-picker" hidden>
     <select id="season-select" aria-label="Season"></select>
@@ -851,74 +851,6 @@
     {% endif %}
   </ul>
 </div>
-
-{# ============ THE BENCHMARK (league-specific running joke) ============ #}
-{% if benchmark %}
-<div id="benchmark" class="section">
-  <div class="bench-hdr">
-    <div class="hdr-title">{{ benchmark.title }}</div>
-    <div class="hdr-sub">{{ benchmark.subtitle }} &mdash; she had
-      <strong>{{ benchmark.target }}</strong> after GW{{ benchmark.event }}</div>
-  </div>
-
-  <div class="bench-wrap">
-    <div class="bench-pick">
-      <label for="bench-select">Pick your team</label>
-      <select id="bench-select" aria-label="Manager">
-        {% for m in benchmark.managers %}
-        <option value="{{ loop.index0 }}">{{ m.team }} &mdash; {{ m.manager }}</option>
-        {% endfor %}
-      </select>
-      <p class="bench-note">
-        {{ benchmark.beating }} of {{ benchmark.total_managers }}
-        {{ "manager is" if benchmark.beating == 1 else "managers are" }}
-        currently ahead of her.
-        {% if benchmark.season_total %}
-        She finished last season on {{ benchmark.season_total }}.
-        {% endif %}
-      </p>
-    </div>
-
-    <div class="bench-card" id="bench-card">
-      <div class="bench-verdict" id="bench-verdict">&mdash;</div>
-      <div class="bench-detail" id="bench-detail"></div>
-    </div>
-  </div>
-</div>
-<script id="bench-data" type="application/json">{{ benchmark.managers|tojson }}</script>
-<script>
-(function () {
-  var data = JSON.parse(document.getElementById('bench-data').textContent);
-  var sel = document.getElementById('bench-select');
-  var card = document.getElementById('bench-card');
-  var verdict = document.getElementById('bench-verdict');
-  var detail = document.getElementById('bench-detail');
-  var target = {{ benchmark.target|tojson }};
-  var label = {{ benchmark.label|tojson }};
-
-  function render() {
-    var m = data[sel.value];
-    if (!m) return;
-    var ahead = m.beats;
-    card.className = 'bench-card ' + (ahead ? 'yes' : 'no');
-    verdict.textContent = ahead ? 'YES' : 'NO';
-    var gap = Math.abs(m.diff);
-    if (m.diff === 0) {
-      detail.textContent = m.total + ' points — dead level with ' + label +
-        '. Somehow the worst possible outcome.';
-    } else if (ahead) {
-      detail.textContent = m.total + ' points, ' + gap + ' clear of ' + label +
-        ' (' + target + '). Enjoy it while it lasts.';
-    } else {
-      detail.textContent = m.total + ' points, ' + gap + ' behind ' + label +
-        ' (' + target + '). She is not even playing this season.';
-    }
-  }
-  sel.addEventListener('change', render);
-  render();
-})();
-</script>
-{% endif %}
 
 {# ==================== LEADERBOARD ==================== #}
 <div id="leaderboard" class="section">
@@ -2498,6 +2430,74 @@
 {% endif %}
 
 {# ==================== FOOTER ==================== #}
+{# ============ THE BENCHMARK (league-specific running joke) ============ #}
+{% if benchmark %}
+<div id="benchmark" class="section">
+  <div class="bench-hdr">
+    <div class="hdr-title">{{ benchmark.title }}</div>
+    <div class="hdr-sub">{{ benchmark.subtitle }} &mdash; she had
+      <strong>{{ benchmark.target }}</strong> after GW{{ benchmark.event }}</div>
+  </div>
+
+  <div class="bench-wrap">
+    <div class="bench-pick">
+      <label for="bench-select">Pick your team</label>
+      <select id="bench-select" aria-label="Manager">
+        {% for m in benchmark.managers %}
+        <option value="{{ loop.index0 }}">{{ m.team }} &mdash; {{ m.manager }}</option>
+        {% endfor %}
+      </select>
+      <p class="bench-note">
+        {{ benchmark.beating }} of {{ benchmark.total_managers }}
+        {{ "manager is" if benchmark.beating == 1 else "managers are" }}
+        currently ahead of her.
+        {% if benchmark.season_total %}
+        She finished last season on {{ benchmark.season_total }}.
+        {% endif %}
+      </p>
+    </div>
+
+    <div class="bench-card" id="bench-card">
+      <div class="bench-verdict" id="bench-verdict">&mdash;</div>
+      <div class="bench-detail" id="bench-detail"></div>
+    </div>
+  </div>
+</div>
+<script id="bench-data" type="application/json">{{ benchmark.managers|tojson }}</script>
+<script>
+(function () {
+  var data = JSON.parse(document.getElementById('bench-data').textContent);
+  var sel = document.getElementById('bench-select');
+  var card = document.getElementById('bench-card');
+  var verdict = document.getElementById('bench-verdict');
+  var detail = document.getElementById('bench-detail');
+  var target = {{ benchmark.target|tojson }};
+  var label = {{ benchmark.label|tojson }};
+
+  function render() {
+    var m = data[sel.value];
+    if (!m) return;
+    var ahead = m.beats;
+    card.className = 'bench-card ' + (ahead ? 'yes' : 'no');
+    verdict.textContent = ahead ? 'YES' : 'NO';
+    var gap = Math.abs(m.diff);
+    if (m.diff === 0) {
+      detail.textContent = m.total + ' points — dead level with ' + label +
+        '. Somehow the worst possible outcome.';
+    } else if (ahead) {
+      detail.textContent = m.total + ' points, ' + gap + ' clear of ' + label +
+        ' (' + target + '). Enjoy it while it lasts.';
+    } else {
+      detail.textContent = m.total + ' points, ' + gap + ' behind ' + label +
+        ' (' + target + '). She is not even playing this season.';
+    }
+  }
+  sel.addEventListener('change', render);
+  render();
+})();
+</script>
+{% endif %}
+
 <div class="footer">
   Generated by <strong>fpl-scraper</strong> &middot; Data: fantasy.premierleague.com &middot; {{ generated }}
 </div>

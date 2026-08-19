@@ -279,7 +279,6 @@
 <nav class="nav">
   <a class="nav-brand" href="#top">THE <span>DOSSIER</span></a>
   <a href="#story">The Column</a>
-  <a href="#benchmark">Jay's GF</a>
   <a href="#watch">Ones to Watch</a>
   <a href="#predictions">Predictions</a>
   <a href="#recap">Last Season</a>
@@ -287,6 +286,7 @@
   <a href="#players">Player Intel</a>
   <a href="#fixtures">Fixtures</a>
   <a href="#market">Market</a>
+  <a href="#benchmark">Jay's GF</a>
   <div class="nav-picker" id="nav-picker" hidden>
     <select id="season-select" aria-label="Season"></select>
     <select id="gw-select" aria-label="Gameweek"></select>
@@ -329,47 +329,6 @@
     <div class="nar-text">{{ p.html|safe }}</div>
   </div>
   {% endfor %}
-</div>
-{% endif %}
-
-{# ============ THE GAUNTLET (league-specific running joke) ============ #}
-{% if benchmark %}
-<div id="benchmark" class="section">
-  <div class="bench-hdr">
-    <div class="hdr-title">{{ benchmark.title }}</div>
-    <div class="hdr-sub">Not yet, nobody has played a game. Here is the pace you have to beat.</div>
-  </div>
-
-  <div class="bench-wrap">
-    <div class="bench-card target">
-      <div class="bench-verdict">{{ benchmark.final }}</div>
-      <div class="bench-detail">
-        The number {{ benchmark.label }} put up last season, at
-        <strong>{{ benchmark.per_gw }}</strong> points a gameweek. She is not
-        playing this year, so it never moves &mdash; and from GW1 this section
-        becomes a YES or NO for every one of you.
-      </div>
-    </div>
-    <div class="bench-pick">
-      <label>Checkpoints to clear</label>
-      <table class="bench-marks">
-        <tbody>
-          {% for m in benchmark.marks %}
-          <tr>
-            <td>GW{{ m.event }}</td>
-            <td class="num">{{ m.target }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      <p class="bench-note">
-        Her best week was <strong>{{ benchmark.best_gw.points }}</strong> in
-        GW{{ benchmark.best_gw.event }}{% if benchmark.worst_gw %}, her worst
-        <strong>{{ benchmark.worst_gw.points }}</strong> in
-        GW{{ benchmark.worst_gw.event }}{% endif %}.
-      </p>
-    </div>
-  </div>
 </div>
 {% endif %}
 
@@ -617,6 +576,47 @@
     </div>
   </div>
 </div>
+
+{# ============ THE GAUNTLET (league-specific running joke) ============ #}
+{% if benchmark %}
+<div id="benchmark" class="section">
+  <div class="bench-hdr">
+    <div class="hdr-title">{{ benchmark.title }}</div>
+    <div class="hdr-sub">Not yet, nobody has played a game. Here is the pace you have to beat.</div>
+  </div>
+
+  <div class="bench-wrap">
+    <div class="bench-card target">
+      <div class="bench-verdict">{{ benchmark.final }}</div>
+      <div class="bench-detail">
+        The number {{ benchmark.label }} put up last season, at
+        <strong>{{ benchmark.per_gw }}</strong> points a gameweek. She is not
+        playing this year, so it never moves &mdash; and from GW1 this section
+        becomes a YES or NO for every one of you.
+      </div>
+    </div>
+    <div class="bench-pick">
+      <label>Checkpoints to clear</label>
+      <table class="bench-marks">
+        <tbody>
+          {% for m in benchmark.marks %}
+          <tr>
+            <td>GW{{ m.event }}</td>
+            <td class="num">{{ m.target }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p class="bench-note">
+        Her best week was <strong>{{ benchmark.best_gw.points }}</strong> in
+        GW{{ benchmark.best_gw.event }}{% if benchmark.worst_gw %}, her worst
+        <strong>{{ benchmark.worst_gw.points }}</strong> in
+        GW{{ benchmark.worst_gw.event }}{% endif %}.
+      </p>
+    </div>
+  </div>
+</div>
+{% endif %}
 
 <div class="foot">
   The Dossier &mdash; {{ league_name }} &middot; Pre-season {{ season_label }} &middot; generated {{ generated }}<br>
