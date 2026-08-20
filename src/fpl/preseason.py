@@ -479,10 +479,11 @@ def _watchlist(intel: dict, market: dict, fixtures: dict,
 # ---------------------------------------------------------------------------
 
 def _predictions(history: dict, intel: dict, fixtures: dict,
-                 market: dict) -> list[dict]:
+                 market: dict, form_book: list[dict] | None = None) -> list[dict]:
     """Falsifiable, data-derived calls. Each one names a number so the league
     can hold it against the dossier come May."""
     out: list[dict] = []
+    form_book = form_book or []
 
     # Only reference managers who are actually in the league this season.
     def here(rec: dict | None) -> bool:
@@ -508,6 +509,35 @@ def _predictions(history: dict, intel: dict, fixtures: dict,
                     f"run is worth more than that.",
             "subject": dark["entry_name"],
             "basis": f"3rd in 25/26 on {dark['total_points']} pts"})
+
+    # The title race tightens: a 64-point cushion is a lot of nothing going
+    # wrong, and it rarely goes that smoothly twice.
+    if history.get("margin"):
+        margin = history["margin"]
+        out.append({
+            "tag": "The Margin",
+            "text": f"The title is decided by fewer than {margin} points. Last "
+                    f"season's cushion flattered a race that was live into "
+                    f"April — nobody gets a clear run like that two years "
+                    f"running.",
+            "basis": f"{margin}-pt winning margin in 25/26"})
+
+    # A newcomer with real pedigree is worth naming before they beat you.
+    newcomers = [m for m in form_book
+                 if m.get("is_new") and m.get("best_points")]
+    if newcomers:
+        n = max(newcomers, key=lambda m: m["best_points"])
+        rank_bit = (f", and a best finish of {n['best_rank_label']} overall"
+                    if n.get("best_rank_label") else "")
+        out.append({
+            "tag": "The New Boy",
+            "text": f"{n['entry_name']} finishes in the top half at the first "
+                    f"attempt. {n['seasons']} seasons on record, a career best "
+                    f"of {n['best_points']}{rank_bit} — this is not a beginner, "
+                    f"whatever the group chat assumes about new arrivals.",
+            "subject": n["entry_name"],
+            "basis": f"new to the league; {n['seasons']} seasons, "
+                     f"best {n['best_points']} pts"})
 
     bottler = history.get("bottler") if here(history.get("bottler")) else None
     if bottler:
@@ -550,6 +580,46 @@ def _predictions(history: dict, intel: dict, fixtures: dict,
             "basis": f"{b['goals']}G+{b['assists']}A from "
                      f"{round(b['xg'] + b['xa'], 1)} expected"})
 
+    # A premium price the previous season did nothing to earn: the market is
+    # quoting a recovery, which is a forecast, not a fact.
+    priced_on_hope = [p for p in intel["premium"] if p.get("pts") is not None]
+    if priced_on_hope:
+        h = min(priced_on_hope, key=lambda p: p["pts"])
+        out.append({
+            "tag": "The Rehab",
+            "text": f"{h['web_name']} ({h['club']}, £{h['price']}m) is the "
+                    f"biggest gamble in the game. He scored {h['pts']} points "
+                    f"all last season and is still priced like a premium — "
+                    f"{h['own']}% of you are paying for a season that has not "
+                    f"happened yet. He beats that total by GW20 or he wrecks "
+                    f"somebody's year.",
+            "basis": f"{h['pts']} pts in 25/26, priced £{h['price']}m"})
+
+    # The bargain nobody has to think about: every minute of last season, at
+    # a price that frees up money everywhere else.
+    # Don't recommend a club the fixtures section is telling people to avoid —
+    # the two calls would contradict each other on the same page.
+    hard_clubs = {r["club"] for r in fixtures.get("hardest") or []}
+    ep = [p for p in intel["ever_present"] if p["club"] not in hard_clubs] \
+         or intel["ever_present"]
+    if ep:
+        c = min(ep, key=lambda p: (p["price"], p["own"]))
+        role = {"GK": "keeper", "DEF": "defender",
+                "MID": "midfielder", "FWD": "forward"}.get(c["pos"], "player")
+        # Below ~10% he is a differential; above that the angle is durability.
+        hook = (f"and only {c['own']}% of the game owns him — the cheapest way "
+                f"to stop thinking about that slot until May"
+                if c["own"] < 10 else
+                f"at an ownership ({c['own']}%) that says the game already "
+                f"knows, and still nobody wants to spend here")
+        out.append({
+            "tag": "The Cheapest Certainty",
+            "text": f"{c['web_name']} ({c['club']}, £{c['price']}m) finishes as "
+                    f"a top-five {role} for points per million. He played all "
+                    f"{c['mins']:,} minutes last season for {c['pts']} points, "
+                    f"{hook}.",
+            "basis": f"{c['apps']}/38 starts, {c['pts']} pts at £{c['price']}m"})
+
     if fixtures["easiest"]:
         e = fixtures["easiest"][0]
         out.append({
@@ -558,6 +628,18 @@ def _predictions(history: dict, intel: dict, fixtures: dict,
                     f"opening {fixtures['span']} fixtures in the league "
                     f"(avg difficulty {e['fdr']}).",
             "basis": f"{e['club']} FDR {e['fdr']} over GW1-{fixtures['span']}"})
+
+    # The mirror of the fast start: a brutal opening depresses prices on
+    # players who were fine all along.
+    if fixtures["hardest"]:
+        hd = fixtures["hardest"][0]
+        out.append({
+            "tag": "The Slow Start",
+            "text": f"{hd['club']} assets are August's worst buy and October's "
+                    f"best. Hardest opening {fixtures['span']} in the league "
+                    f"(avg difficulty {hd['fdr']}) — whoever holds through the "
+                    f"bad run gets them cheaper than anyone who waits.",
+            "basis": f"{hd['club']} FDR {hd['fdr']} over GW1-{fixtures['span']}"})
 
     if market["most_owned"]:
         m = market["most_owned"][0]
@@ -591,6 +673,17 @@ def _predictions(history: dict, intel: dict, fixtures: dict,
             "subject": hits["entry_name"],
             "basis": f"-{int(hits['cost'])} pts on hits across "
                      f"{int(hits['moves'])} transfers"})
+
+    best = history.get("best_gw")
+    if best and best.get("points"):
+        who = (f"{best['entry_name']}'s" if here(best) else "Last season's best")
+        out.append({
+            "tag": "The Ceiling",
+            "text": f"Somebody beats {best['points']} in a single gameweek. "
+                    f"{who} {best['points']} in GW{best['event']} is the bar, "
+                    f"and a triple captain on the right double gets there "
+                    f"without needing anything clever.",
+            "basis": f"{best['points']} pts in GW{best['event']}, 25/26"})
 
     worst = history.get("worst_gw") if here(history.get("worst_gw")) else None
     if worst:
@@ -982,7 +1075,8 @@ def collect_preseason(db_path: Path, league_id: int, prev_db: Path | None,
         "generated": datetime.now(timezone.utc).strftime("%d %b %Y, %H:%M UTC"),
     }
     _apply_identity(history, _identity_map(db_path, league_id))
-    data["predictions"] = _predictions(history, intel, fixtures, market)
+    data["predictions"] = _predictions(history, intel, fixtures, market,
+                                       form_book)
     data["watch"] = _watchlist(intel, market, fixtures, form_book)
     data["benchmark"] = _benchmark_pace(prev_db, league_id, season)
     data["narrative"] = write_preseason_narrative(
