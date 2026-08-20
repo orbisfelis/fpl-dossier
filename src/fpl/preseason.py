@@ -12,7 +12,9 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import sqlite3
+import statistics
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -34,15 +36,90 @@ DC_SQL = """(CASE WHEN p.element_type = 2
 
 
 def _pct_label(pct: float | None) -> str | None:
-    """FPL reports rank_percentage rounded, and 0.0 means better than 99.9%,
-    so never print a bare '0%'."""
+    """Format a percentile, keeping resolution on the very small ones.
+
+    Above 1% whole numbers are plenty. Below that the interesting finishes all
+    live in the same two decimal places — a 704th and a 5,677th are wildly
+    different seasons that both round to "0.1%" — so small values get two
+    significant figures instead of a flat '<0.1%'.
+    """
     if pct is None:
         return None
     if pct >= 1:
         return f"{pct:.0f}%"
-    if pct > 0:
+    if pct >= 0.1:
         return f"{pct:.1f}%"
+    if pct > 0:
+        # Two significant figures: 0.00857 -> 0.0086, 0.062 -> 0.062.
+        decimals = 1 - math.floor(math.log10(pct))
+        return f"{pct:.{min(decimals, 6)}f}%"
     return "<0.1%"
+
+
+def _season_sizes(conn: sqlite3.Connection) -> dict[str, float]:
+    """Estimate how many people played each past season.
+
+    FPL reports `rank_percentage` already rounded — one decimal below 1%, whole
+    numbers above it — so every elite finish flattens to "0.1%" or "0.0" and the
+    archive can no longer say how good it was. The rank itself is exact, so the
+    only missing piece is the size of the field.
+
+    Each (rank, reported pct) pair brackets that size: the true percentage sits
+    within half a printed step of what was printed, so the field must lie in
+    [rank*100/(p+half), rank*100/(p-half)]. Intersecting the brackets for a
+    season pins it to about 1%, which supports the two significant figures
+    `_pct_label` prints and no more.
+
+    Only mid-table finishes are used. A rounded 2% carries 25% relative error
+    while a rounded 40% carries barely 1%, and one stray low-percentage entry
+    is enough to drag the intersection empty — which is exactly what a single
+    manager did to 2025/26. Prefer the reliable tail, widen the net only if a
+    season is too small to fill it, and fall back to the median where the
+    brackets still refuse to agree.
+    """
+    rows = conn.execute(
+        """SELECT season_name, rank, rank_percentage FROM manager_past_seasons
+           WHERE rank > 0 AND rank_percentage IS NOT NULL""").fetchall()
+    by: dict[str, list[tuple[int, float]]] = {}
+    for season, rank, pct in rows:
+        by.setdefault(season, []).append((rank, pct))
+
+    sizes: dict[str, float] = {}
+    for season, obs in by.items():
+        for threshold in (10, 3, 1):
+            sample = [(r, p) for r, p in obs if p >= threshold]
+            if len(sample) >= 3:
+                break
+        else:
+            sample = [(r, p) for r, p in obs if p > 0]
+        if not sample:
+            continue
+
+        lo, hi = 0.0, float("inf")
+        for rank, pct in sample:
+            half = (0.1 if pct < 1 else 1.0) / 2
+            lo = max(lo, rank * 100.0 / (pct + half))
+            hi = min(hi, rank * 100.0 / (pct - half))
+        sizes[season] = ((lo + hi) / 2 if lo <= hi else
+                         statistics.median(r * 100.0 / p for r, p in sample))
+    return sizes
+
+
+def _precise_pct(rank: int | None, season: str | None,
+                 sizes: dict[str, float], fallback: float | None) -> float | None:
+    """Percentile from the exact rank, but only where rounding lost something.
+
+    At 1% and above FPL's own figure is fine — it is computed from their real
+    denominator, and substituting an estimate there just picks fights at the
+    boundaries (a reported 2% re-deriving to 1.499% and printing as "1%").
+    Below 1% the rounding is coarse enough to erase the whole story, so an
+    estimated field size beats a number that has already been flattened.
+    """
+    if fallback is not None and fallback >= 1:
+        return fallback
+    if rank and season and sizes.get(season):
+        return 100.0 * rank / sizes[season]
+    return fallback
 
 
 def _rows(cur) -> list[dict]:
@@ -310,6 +387,7 @@ def _form_book(conn: sqlite3.Connection, league_id: int,
     by_entry: dict[int, list[dict]] = {}
     for row in history:
         by_entry.setdefault(row["entry_id"], []).append(row)
+    sizes = _season_sizes(conn)
 
     out = []
     for m in managers:
@@ -321,14 +399,21 @@ def _form_book(conn: sqlite3.Connection, league_id: int,
                       and manager_key(m["player_name"]) not in prev_names)
         seasons = by_entry.get(m["entry_id"], [])
         scored = [s for s in seasons if s["total_points"]]
-        pcts = [s["rank_percentage"] for s in seasons
-                if s["rank_percentage"] is not None]
+        # Recover the resolution FPL rounded away before taking any minimum:
+        # picking the smallest of the printed values would tie every elite
+        # season at "0.0" and then choose between them arbitrarily.
+        pcts = [p for p in (_precise_pct(s.get("rank"), s.get("season_name"),
+                                         sizes, s.get("rank_percentage"))
+                            for s in seasons) if p is not None]
         best = max(scored, key=lambda s: s["total_points"]) if scored else None
         # Best finish is the lowest overall rank, which is not necessarily the
         # season with the most points — scoring rules move between years.
         ranked = [s for s in seasons if s.get("rank")]
         best_rank = min(ranked, key=lambda s: s["rank"]) if ranked else None
         best_pct = min(pcts) if pcts else None
+        best_rank_pct = _precise_pct(
+            best_rank["rank"], best_rank["season_name"], sizes,
+            best_rank["rank_percentage"]) if best_rank else None
         recent = sorted(scored, key=lambda s: s["season_name"])[-3:]
         out.append({
             "entry_id": m["entry_id"],
@@ -345,8 +430,7 @@ def _form_book(conn: sqlite3.Connection, league_id: int,
             "best_rank_label": f"{best_rank['rank']:,}" if best_rank else None,
             "best_rank_season": best_rank["season_name"] if best_rank else None,
             "best_rank_points": best_rank["total_points"] if best_rank else None,
-            "best_rank_pct": _pct_label(best_rank["rank_percentage"])
-                             if best_rank else None,
+            "best_rank_pct": _pct_label(best_rank_pct) if best_rank else None,
             "avg_points": round(sum(s["total_points"] for s in scored) / len(scored))
                           if scored else None,
             "last_points": recent[-1]["total_points"] if recent else None,
