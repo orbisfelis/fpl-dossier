@@ -40,6 +40,14 @@
 <title>The Dossier &mdash; TML GW14</title>
 <style>
   :root {
+    /* Without this browsers "helpfully" auto-darken a light-only page and
+       invert backgrounds while leaving hardcoded text colours alone, which is
+       how the cover meta ended up white-on-white. Declaring both schemes hands
+       the decision back to the palette below. */
+    color-scheme: light dark;
+    /* --slate is chrome (nav, section bars) and stays dark in both themes.
+       --strong is emphasis TEXT sitting on a card: it has to flip. They were
+       the same token, which is why bold text vanished on a dark background. */
     --slate: #2d3e50;
     --dark: #1e2a38;
     --green: #37a76b;
@@ -48,11 +56,27 @@
     --red-soft: rgba(176,58,46,0.08);
     --accent: #00ff87;
     --text: #2c3e50;
+    --strong: #2d3e50;
     --muted: #888;
     --border: #e0e0e0;
     --row-alt: #f8f9fb;
     --bg: #f4f5f7;
     --card: #fff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --green: #4cc98a;
+      --green-soft: rgba(76,201,138,0.14);
+      --red: #e2705f;
+      --red-soft: rgba(226,112,95,0.14);
+      --text: #d6dee7;
+      --strong: #eaf2fa;
+      --muted: #8b97a5;
+      --border: #2b3947;
+      --row-alt: #1a232e;
+      --bg: #131a22;
+      --card: #1b242f;
+    }
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -81,7 +105,9 @@
     padding: 3px 6px; font-family: inherit; font-size: 12px; cursor: pointer;
   }
   .nav-picker select:hover { border-color: var(--accent); }
-  .nav-picker select option { color: #000; }
+  /* The option list is drawn by the OS in the viewer's theme, so a hardcoded
+     black went invisible on a dark popup. */
+  .nav-picker select option { color: var(--text); background: var(--card); }
 
   /* ==================== LAYOUT ==================== */
   .wrap { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
@@ -142,6 +168,45 @@
 
   .section { padding: 28px 0; }
 
+  /* ============ BENCHMARK (league-specific running joke) ============ */
+  .bench-hdr {
+    background: linear-gradient(135deg, #4a1d5e 0%, #6b2d84 50%, #8e44ad 100%);
+    text-align: center; padding: 24px; margin-bottom: 20px;
+    border-left: 5px solid #d980fa;
+  }
+  .bench-hdr .hdr-title { font-size: 28px; font-weight: 700; font-style: italic; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .bench-hdr .hdr-sub { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+  .bench-hdr .hdr-sub strong { color: #fff; }
+  .bench-wrap { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; align-items: stretch; }
+  .bench-pick {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 2px; padding: 18px 20px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .bench-pick label {
+    display: block; font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--muted); margin-bottom: 8px;
+  }
+  .bench-pick select {
+    width: 100%; padding: 10px 12px; font-family: inherit; font-size: 14px;
+    border: 1px solid var(--border); border-radius: 3px; background: var(--card);
+    color: var(--text); cursor: pointer;
+  }
+  .bench-pick select:focus { outline: 2px solid #8e44ad; outline-offset: 1px; }
+  .bench-note { font-size: 12px; color: var(--muted); margin-top: 12px; line-height: 1.5; }
+  .bench-card {
+    border: 1px solid var(--border); border-radius: 2px; padding: 22px;
+    text-align: center; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; background: var(--card);
+  }
+  .bench-card.yes { background: rgba(55,167,107,0.08); border-color: var(--green); }
+  .bench-card.no { background: rgba(176,58,46,0.08); border-color: var(--red); }
+  .bench-verdict { font-size: 64px; font-weight: 900; font-style: italic; line-height: 1; letter-spacing: 2px; }
+  .bench-card.yes .bench-verdict { color: var(--green); }
+  .bench-card.no .bench-verdict { color: var(--red); }
+  .bench-detail { font-size: 13px; margin-top: 10px; max-width: 340px; line-height: 1.5; }
+  @media (max-width: 720px) { .bench-wrap { grid-template-columns: 1fr; } }
+
   /* ==================== AWARD CARDS ==================== */
   .cards-row { display: grid; gap: 14px; margin-bottom: 14px; }
   .cards-3 { grid-template-columns: repeat(3, 1fr); }
@@ -161,8 +226,8 @@
   .card-icon {
     width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border);
     display: flex; align-items: center; justify-content: center;
-    font-size: 15px; font-weight: 700; flex-shrink: 0; background: #fff;
-    color: var(--slate); font-family: Georgia, "Times New Roman", serif;
+    font-size: 15px; font-weight: 700; flex-shrink: 0; background: var(--card);
+    color: var(--strong); font-family: Georgia, "Times New Roman", serif;
   }
   .sm-icon { width: 30px; height: 30px; font-size: 12px; }
 
@@ -170,11 +235,11 @@
   .card-winner { text-align: center; flex: 1; }
   .winner-name { font-size: 22px; font-weight: 900; font-style: italic; color: var(--text); line-height: 1.2; }
   .winner-mgr { font-size: 11px; color: var(--muted); margin-top: 3px; }
-  .winner-val { font-size: 28px; font-weight: 900; color: var(--slate); flex-shrink: 0; padding-left: 16px; }
+  .winner-val { font-size: 28px; font-weight: 900; color: var(--strong); flex-shrink: 0; padding-left: 16px; }
 
   .sm-winner { text-align: center; padding: 12px 0 6px; }
   .sm-winner .winner-name { font-size: 18px; }
-  .sm-winner-val { font-size: 20px; font-weight: 900; color: var(--slate); margin-top: 2px; }
+  .sm-winner-val { font-size: 20px; font-weight: 900; color: var(--strong); margin-top: 2px; }
 
   .card-runners { border-top: 1px solid var(--border); padding-top: 8px; margin-top: 6px; }
   .runner-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; font-size: 11px; color: var(--muted); }
@@ -228,7 +293,7 @@
   .bold { font-weight: 700; }
   .muted { color: var(--muted); }
 
-  .rank-cell { font-weight: 700; color: var(--slate); text-align: center; width: 28px; }
+  .rank-cell { font-weight: 700; color: var(--strong); text-align: center; width: 28px; }
   .move-cell { font-size: 11px; width: 20px; text-align: center; }
   .move-cell .up { color: var(--green); }
   .move-cell .dn { color: var(--red); }
@@ -246,7 +311,7 @@
   .stat-val { font-weight: 700; }
 
   h3.sub-title {
-    font-size: 13px; font-weight: 700; color: var(--slate);
+    font-size: 13px; font-weight: 700; color: var(--strong);
     margin: 14px 0 8px; border-bottom: 3px solid var(--accent);
     padding-bottom: 4px; display: inline-block;
   }
@@ -320,7 +385,7 @@
     text-transform: uppercase; margin-bottom: 6px;
   }
   .nar-text { font-size: 14px; line-height: 1.75; }
-  .nar-text strong { color: var(--slate); }
+  .nar-text strong { color: var(--strong); }
 
   /* ==================== EXTENDED STATS ==================== */
   .stat-note { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
@@ -334,7 +399,7 @@
   table.h2h th.row-hdr, table.h2h td.row-hdr {
     text-align: left; background: var(--row-alt); font-weight: 600; position: sticky; left: 0;
   }
-  table.h2h td.diag { background: #ececec; }
+  table.h2h td.diag { background: var(--border); }
   table.h2h td.pos { background: rgba(55,167,107,0.18); }
   table.h2h td.neg { background: rgba(176,58,46,0.16); }
   .pill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
@@ -343,7 +408,7 @@
     padding: 10px 12px;
   }
   .pill .pill-top { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
-  .pill .pill-main { font-size: 15px; font-weight: 700; color: var(--slate); }
+  .pill .pill-main { font-size: 15px; font-weight: 700; color: var(--strong); }
   .pill .pill-sub { font-size: 11px; color: var(--muted); }
 
   /* ==================== MOBILE ==================== */
@@ -480,6 +545,7 @@
     <a href="#h2h">H2H</a>
     <a href="#around">League</a>
     <a href="#progression">Season</a>
+    <a href="#benchmark">Jay's GF</a>
   </div>
   <div class="nav-picker" id="nav-picker" hidden>
     <select id="season-select" aria-label="Season"></select>
@@ -508,7 +574,7 @@
         
       </td>
     </tr>
-    <tr><td>Generated:</td><td>2026-06-13 09:13 UTC</td></tr>
+    <tr><td>Generated:</td><td>2026-08-20 09:27 UTC</td></tr>
   </table>
 </div>
 
@@ -525,22 +591,17 @@
   
   <div class="narrative-card">
     <div class="nar-label" style="color: var(--red);">The Disgraces</div>
-    <div class="nar-text"><strong>FC MarRow</strong> finished last on <strong>43</strong>, but the disgrace of the week was <strong>Skill McGill</strong>: a Sliding Doors gap of <strong>38</strong>, the season's single most expensive act of self-harm, after their previous team would have scored <strong>96</strong>. To actively transfer your way out of a <strong>96</strong>-point week takes a rare anti-talent. <strong>Saka FC</strong>, naturally, captained <strong>Eze</strong> for <strong>2</strong>, because some things are eternal. One manager torched a near-record week; another simply kept doing the same broken thing.</div>
+    <div class="nar-text">Somebody had to finish last, and <strong>FC MarRow</strong> volunteered enthusiastically: <strong>43 points</strong>, a full 24 under par. <strong>Saka FC</strong> handed the armband to Eze for a princely <strong>2</strong> points, while No Name was banking 28 from Haaland. <strong>Skill McGill</strong> left <strong>21</strong> points warming the bench — selection by coin toss, presumably. And the Sliding Doors award: had <strong>Skill McGill</strong> simply gone on holiday this week, last week's team would have scored 96 — instead the meddling produced 58. That's <strong>38</strong> points of pure activity tax.</div>
   </div>
   
   <div class="narrative-card">
-    <div class="nar-label" style="color: var(--slate);">The Shockers</div>
-    <div class="nar-text"><strong>Pamparam</strong> topped the week on <strong>86</strong>, a statement score from a side starting to find its range, and <strong>son of a doge</strong>'s <strong>Foden</strong>-for-<strong>M.Salah</strong> call (<strong>+16</strong>) hinted at a stirring among the fallen leaders. <strong>Project X</strong>'s <strong>Watkins</strong> differential (<strong>13</strong>) rewarded the lonely. After weeks in the congestion, a couple of contenders are flexing again. The big scores are migrating back towards the top of the table.</div>
-  </div>
-  
-  <div class="narrative-card">
-    <div class="nar-label" style="color: #b8860b;">The Title Race</div>
-    <div class="nar-text"><strong>Caesar</strong> lead by <strong>26</strong>, but the story is behind them: <strong>son of a doge</strong> have crept back to second, the great fortunate refusing to accept their demotion. <strong>Bluehomie</strong> slip to third, <strong>37</strong> adrift. The doge's recovery turns this back into a two-horse race, with <strong>24</strong> still to play and a substantial gap to bridge. <strong>Caesar</strong> look comfortable; whether comfort survives contact with <strong>son of a doge</strong>'s luck is another matter.</div>
+    <div class="nar-label" style="color: var(--strong);">The Shockers</div>
+    <div class="nar-text"><strong>Pamparam ⭐️ ⭐️ ⭐️</strong> took Manager of the Week with <strong>86</strong> points. <strong>Arteta Ballers</strong> rocketed <strong>3</strong> places up the table. <strong>son of a doge ⭐️⭐️</strong> saw the future, buying Foden for M.Salah — a <strong>+16</strong> stroke of genius. Differential of the week: <strong>Project X</strong> was the only manager starting Watkins, who duly hauled <strong>13</strong>.</div>
   </div>
   
   <div class="narrative-card">
     <div class="nar-label" style="color: var(--green);">The Nerd Corner</div>
-    <div class="nar-text">A healthy <strong>67.0</strong>, <strong>+9</strong> on the world. <strong>son of a doge</strong> climb to <strong>+87</strong> above expected; whatever the football gods are doing, they are doing it for one team in particular, and they are not subtle about it. The model notes, for the hundredth time, that this is unsustainable. The model has been wrong for fourteen consecutive weeks.</div>
+    <div class="nar-text">Collectively respectable: the league averaged <strong>67.0</strong>, +9 against the global FPL average of 58. The template XI benchmark scored <strong>70</strong> this week; only <strong>10</strong> of 21 managers beat the autopilot. Park-the-bus report: <strong>Pamparam ⭐️ ⭐️ ⭐️</strong>'s XI ground out <strong>8</strong> DefCon points, the week's high. Beautiful? No. Points? Yes. The xPts model maintains that <strong>son of a doge ⭐️⭐️</strong> is the league's luckiest manager, running <strong>+87</strong> above expected. Regression is patient.</div>
   </div>
   
 </div>
@@ -4207,7 +4268,7 @@
   
   <h3 class="sub-title">Chip Rankings</h3>
   <div style="margin-bottom:10px;">
-    <label for="chip-filter" style="font-size:12px; font-weight:600; color:var(--slate);">Filter by chip:</label>
+    <label for="chip-filter" style="font-size:12px; font-weight:600; color: var(--strong);">Filter by chip:</label>
     <select id="chip-filter" style="padding:4px 8px; font-size:12px; border:1px solid var(--border); border-radius:3px; background:var(--card); color:var(--text);">
       <option value="all">All Chips</option>
       <option value="wildcard">Wildcard</option>
@@ -11941,7 +12002,7 @@
 
 
   <div style="margin-bottom:12px;">
-    <label for="progression-select" style="font-size:12px; font-weight:600; color:var(--slate);">Select manager:</label>
+    <label for="progression-select" style="font-size:12px; font-weight:600; color: var(--strong);">Select manager:</label>
     <select id="progression-select" style="padding:4px 8px; font-size:12px; border:1px solid var(--border); border-radius:3px; background:var(--card); color:var(--text);">
       
       <option value="332468">Caesar ⭐ (Sunny Sharma)</option>
@@ -12123,10 +12184,259 @@
 
 
 
+<div id="vs-last-season" class="section">
+  
+<div class="section-hdr">
+  <div class="section-left">
+    <div class="section-title">20. vs Last Season</div>
+    <div class="section-sub">Same gameweek, one year on</div>
+  </div>
+  <div class="section-right">Gameweek 14</div>
+</div>
+
+
+  <p class="stat-note">
+    League average this gameweek: <strong>67.0</strong>
+    
+      vs <strong>67.0</strong> at the same stage last season
+      (+0.0).
+    
+    A year ago, <strong>Caesar ⭐</strong> led on 894.
+  </p>
+
+  
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Team</th><th>Manager</th>
+      <th class="num">This Year</th><th class="num">Last Year</th><th class="num">&Delta;</th>
+      <th class="num">Rank Now</th><th class="num">Rank Then</th>
+    </tr></thead>
+    <tbody>
+      
+      <tr>
+        <td class="bold">Caesar ⭐</td>
+        <td>Sunny Sharma</td>
+        <td class="num bold">894</td>
+        <td class="num muted">894</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">1st</td>
+        <td class="num muted">1st</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">son of a doge ⭐️⭐️</td>
+        <td>M B</td>
+        <td class="num bold">868</td>
+        <td class="num muted">868</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">2nd</td>
+        <td class="num muted">2nd</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Bluehomie (YouTube)</td>
+        <td>Bluehomie -YouTube-</td>
+        <td class="num bold">857</td>
+        <td class="num muted">857</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">3rd</td>
+        <td class="num muted">3rd</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Livin&#39; Saliba Loca</td>
+        <td>Darius Goodarzi</td>
+        <td class="num bold">848</td>
+        <td class="num muted">848</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">4th</td>
+        <td class="num muted">4th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Pamparam ⭐️ ⭐️ ⭐️</td>
+        <td>Milen Kindekov</td>
+        <td class="num bold">843</td>
+        <td class="num muted">843</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">5th</td>
+        <td class="num muted">5th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Luceros</td>
+        <td>Claude-Noel Tamakloe</td>
+        <td class="num bold">829</td>
+        <td class="num muted">829</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">6th</td>
+        <td class="num muted">6th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">TML ⭐️⭐️</td>
+        <td>Aman Sharma</td>
+        <td class="num bold">824</td>
+        <td class="num muted">824</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">7th</td>
+        <td class="num muted">7th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">AntiAlgoFPL</td>
+        <td>Amit Putty</td>
+        <td class="num bold">813</td>
+        <td class="num muted">813</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">8th</td>
+        <td class="num muted">8th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">No Name</td>
+        <td>Akash Patel</td>
+        <td class="num bold">798</td>
+        <td class="num muted">798</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">9th</td>
+        <td class="num muted">9th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">TODHFODH FC</td>
+        <td>Sahil Vora</td>
+        <td class="num bold">794</td>
+        <td class="num muted">794</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">10th</td>
+        <td class="num muted">10th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Skill McGill</td>
+        <td>Kartar Gill</td>
+        <td class="num bold">786</td>
+        <td class="num muted">786</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">11th</td>
+        <td class="num muted">11th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">FC MarRow</td>
+        <td>Kris McCarthy</td>
+        <td class="num bold">780</td>
+        <td class="num muted">780</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">12th</td>
+        <td class="num muted">12th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Arteta Ballers</td>
+        <td>Kelvin Ampene</td>
+        <td class="num bold">776</td>
+        <td class="num muted">776</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">13th</td>
+        <td class="num muted">13th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">The Refugees</td>
+        <td>Aarif Kassam</td>
+        <td class="num bold">767</td>
+        <td class="num muted">767</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">14th</td>
+        <td class="num muted">14th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Vault 101 XI</td>
+        <td>ALEXIS DRITSAS</td>
+        <td class="num bold">765</td>
+        <td class="num muted">765</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">15th</td>
+        <td class="num muted">15th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Saka FC</td>
+        <td>Chris B</td>
+        <td class="num bold">753</td>
+        <td class="num muted">753</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">16th</td>
+        <td class="num muted">16th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Papua New Quinney</td>
+        <td>Adam Quinney</td>
+        <td class="num bold">750</td>
+        <td class="num muted">750</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">17th</td>
+        <td class="num muted">17th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Releven Tigers FC</td>
+        <td>Stephen Rudd</td>
+        <td class="num bold">748</td>
+        <td class="num muted">748</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">18th</td>
+        <td class="num muted">18th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Change Name</td>
+        <td>Jay Curtis</td>
+        <td class="num bold">737</td>
+        <td class="num muted">737</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">19th</td>
+        <td class="num muted">19th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Project X</td>
+        <td>Nnaemeka Ezugwu</td>
+        <td class="num bold">731</td>
+        <td class="num muted">731</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">20th</td>
+        <td class="num muted">20th</td>
+      </tr>
+      
+      <tr>
+        <td class="bold">Twickers United</td>
+        <td>Martin Borizanov</td>
+        <td class="num bold">659</td>
+        <td class="num muted">659</td>
+        <td class="num bold muted">+0</td>
+        <td class="num">21st</td>
+        <td class="num muted">21st</td>
+      </tr>
+      
+    </tbody>
+  </table>
+  </div>
+  
+</div>
+
+
+
+
 
 
 <div class="footer">
-  Generated by <strong>fpl-scraper</strong> &middot; Data: fantasy.premierleague.com &middot; 2026-06-13 09:13 UTC
+  Generated by <strong>fpl-scraper</strong> &middot; Data: fantasy.premierleague.com &middot; 2026-08-20 09:27 UTC
 </div>
 
 </div>
@@ -12473,6 +12783,7 @@
   if (!picker || !seasonSel || !gwSel) return;
 
   function seasonLabel(s) { return '20' + s.replace('-', '/20'); }  // "25-26" -> "2025/2026"
+  function gwLabel(gw) { return Number(gw) === 0 ? 'Pre-Season' : 'GW' + gw; }  // GW0 is the pre-season page
 
   fetch('../manifest.json', { cache: 'no-store' })
     .then(function (r) { return r.ok ? r.json() : null; })
@@ -12495,7 +12806,7 @@
         var gws = (m.seasons[season] || []).slice().sort(function (a, b) { return b - a; });
         gws.forEach(function (gw) {
           var o = document.createElement('option');
-          o.value = gw; o.textContent = 'GW' + gw;
+          o.value = gw; o.textContent = gwLabel(gw);
           if (gw === selectedGw) o.selected = true;
           gwSel.appendChild(o);
         });

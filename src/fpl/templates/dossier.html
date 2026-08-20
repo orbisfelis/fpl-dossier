@@ -161,6 +161,14 @@
 <title>The Dossier &mdash; {{ league_name }} GW{{ event }}</title>
 <style>
   :root {
+    /* Without this browsers "helpfully" auto-darken a light-only page and
+       invert backgrounds while leaving hardcoded text colours alone, which is
+       how the cover meta ended up white-on-white. Declaring both schemes hands
+       the decision back to the palette below. */
+    color-scheme: light dark;
+    /* --slate is chrome (nav, section bars) and stays dark in both themes.
+       --strong is emphasis TEXT sitting on a card: it has to flip. They were
+       the same token, which is why bold text vanished on a dark background. */
     --slate: #2d3e50;
     --dark: #1e2a38;
     --green: #37a76b;
@@ -169,11 +177,27 @@
     --red-soft: rgba(176,58,46,0.08);
     --accent: #00ff87;
     --text: #2c3e50;
+    --strong: #2d3e50;
     --muted: #888;
     --border: #e0e0e0;
     --row-alt: #f8f9fb;
     --bg: #f4f5f7;
     --card: #fff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --green: #4cc98a;
+      --green-soft: rgba(76,201,138,0.14);
+      --red: #e2705f;
+      --red-soft: rgba(226,112,95,0.14);
+      --text: #d6dee7;
+      --strong: #eaf2fa;
+      --muted: #8b97a5;
+      --border: #2b3947;
+      --row-alt: #1a232e;
+      --bg: #131a22;
+      --card: #1b242f;
+    }
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -202,7 +226,9 @@
     padding: 3px 6px; font-family: inherit; font-size: 12px; cursor: pointer;
   }
   .nav-picker select:hover { border-color: var(--accent); }
-  .nav-picker select option { color: #000; }
+  /* The option list is drawn by the OS in the viewer's theme, so a hardcoded
+     black went invisible on a dark popup. */
+  .nav-picker select option { color: var(--text); background: var(--card); }
 
   /* ==================== LAYOUT ==================== */
   .wrap { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
@@ -284,7 +310,7 @@
   }
   .bench-pick select {
     width: 100%; padding: 10px 12px; font-family: inherit; font-size: 14px;
-    border: 1px solid var(--border); border-radius: 3px; background: #fff;
+    border: 1px solid var(--border); border-radius: 3px; background: var(--card);
     color: var(--text); cursor: pointer;
   }
   .bench-pick select:focus { outline: 2px solid #8e44ad; outline-offset: 1px; }
@@ -321,8 +347,8 @@
   .card-icon {
     width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border);
     display: flex; align-items: center; justify-content: center;
-    font-size: 15px; font-weight: 700; flex-shrink: 0; background: #fff;
-    color: var(--slate); font-family: Georgia, "Times New Roman", serif;
+    font-size: 15px; font-weight: 700; flex-shrink: 0; background: var(--card);
+    color: var(--strong); font-family: Georgia, "Times New Roman", serif;
   }
   .sm-icon { width: 30px; height: 30px; font-size: 12px; }
 
@@ -330,11 +356,11 @@
   .card-winner { text-align: center; flex: 1; }
   .winner-name { font-size: 22px; font-weight: 900; font-style: italic; color: var(--text); line-height: 1.2; }
   .winner-mgr { font-size: 11px; color: var(--muted); margin-top: 3px; }
-  .winner-val { font-size: 28px; font-weight: 900; color: var(--slate); flex-shrink: 0; padding-left: 16px; }
+  .winner-val { font-size: 28px; font-weight: 900; color: var(--strong); flex-shrink: 0; padding-left: 16px; }
 
   .sm-winner { text-align: center; padding: 12px 0 6px; }
   .sm-winner .winner-name { font-size: 18px; }
-  .sm-winner-val { font-size: 20px; font-weight: 900; color: var(--slate); margin-top: 2px; }
+  .sm-winner-val { font-size: 20px; font-weight: 900; color: var(--strong); margin-top: 2px; }
 
   .card-runners { border-top: 1px solid var(--border); padding-top: 8px; margin-top: 6px; }
   .runner-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; font-size: 11px; color: var(--muted); }
@@ -388,7 +414,7 @@
   .bold { font-weight: 700; }
   .muted { color: var(--muted); }
 
-  .rank-cell { font-weight: 700; color: var(--slate); text-align: center; width: 28px; }
+  .rank-cell { font-weight: 700; color: var(--strong); text-align: center; width: 28px; }
   .move-cell { font-size: 11px; width: 20px; text-align: center; }
   .move-cell .up { color: var(--green); }
   .move-cell .dn { color: var(--red); }
@@ -406,7 +432,7 @@
   .stat-val { font-weight: 700; }
 
   h3.sub-title {
-    font-size: 13px; font-weight: 700; color: var(--slate);
+    font-size: 13px; font-weight: 700; color: var(--strong);
     margin: 14px 0 8px; border-bottom: 3px solid var(--accent);
     padding-bottom: 4px; display: inline-block;
   }
@@ -480,7 +506,7 @@
     text-transform: uppercase; margin-bottom: 6px;
   }
   .nar-text { font-size: 14px; line-height: 1.75; }
-  .nar-text strong { color: var(--slate); }
+  .nar-text strong { color: var(--strong); }
 
   /* ==================== EXTENDED STATS ==================== */
   .stat-note { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
@@ -494,7 +520,7 @@
   table.h2h th.row-hdr, table.h2h td.row-hdr {
     text-align: left; background: var(--row-alt); font-weight: 600; position: sticky; left: 0;
   }
-  table.h2h td.diag { background: #ececec; }
+  table.h2h td.diag { background: var(--border); }
   table.h2h td.pos { background: rgba(55,167,107,0.18); }
   table.h2h td.neg { background: rgba(176,58,46,0.16); }
   .pill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
@@ -503,7 +529,7 @@
     padding: 10px 12px;
   }
   .pill .pill-top { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
-  .pill .pill-main { font-size: 15px; font-weight: 700; color: var(--slate); }
+  .pill .pill-main { font-size: 15px; font-weight: 700; color: var(--strong); }
   .pill .pill-sub { font-size: 11px; color: var(--muted); }
 
   /* ==================== MOBILE ==================== */
@@ -1262,7 +1288,7 @@
   {% if chip_detail %}
   <h3 class="sub-title">Chip Rankings</h3>
   <div style="margin-bottom:10px;">
-    <label for="chip-filter" style="font-size:12px; font-weight:600; color:var(--slate);">Filter by chip:</label>
+    <label for="chip-filter" style="font-size:12px; font-weight:600; color: var(--strong);">Filter by chip:</label>
     <select id="chip-filter" style="padding:4px 8px; font-size:12px; border:1px solid var(--border); border-radius:3px; background:var(--card); color:var(--text);">
       <option value="all">All Chips</option>
       <option value="wildcard">Wildcard</option>
@@ -2350,7 +2376,7 @@
   {{ section_bar("19", "Season Progression", "Per-manager journey through the season") }}
 
   <div style="margin-bottom:12px;">
-    <label for="progression-select" style="font-size:12px; font-weight:600; color:var(--slate);">Select manager:</label>
+    <label for="progression-select" style="font-size:12px; font-weight:600; color: var(--strong);">Select manager:</label>
     <select id="progression-select" style="padding:4px 8px; font-size:12px; border:1px solid var(--border); border-radius:3px; background:var(--card); color:var(--text);">
       {% for r in leaderboard %}
       <option value="{{ r.entry_id }}">{{ r.entry_name }} ({{ r.player_name }})</option>

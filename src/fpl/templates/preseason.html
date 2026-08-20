@@ -55,6 +55,14 @@
 <title>The Dossier &mdash; {{ league_name }} Pre-Season {{ season_label }}</title>
 <style>
   :root {
+    /* Without this browsers "helpfully" auto-darken a light-only page and
+       invert backgrounds while leaving hardcoded text colours alone, which is
+       how the cover meta ended up white-on-white. Declaring both schemes hands
+       the decision back to the palette below. */
+    color-scheme: light dark;
+    /* --slate is chrome (nav, section bars) and stays dark in both themes.
+       --strong is emphasis TEXT sitting on a card: it has to flip. They were
+       the same token, which is why bold text vanished on a dark background. */
     --slate: #2d3e50;
     --dark: #1e2a38;
     --green: #37a76b;
@@ -62,11 +70,26 @@
     --gold: #b8860b;
     --accent: #00ff87;
     --text: #2c3e50;
+    --strong: #2d3e50;
     --muted: #888;
     --border: #e0e0e0;
     --row-alt: #f8f9fb;
     --bg: #f4f5f7;
     --card: #fff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --green: #4cc98a;
+      --red: #e2705f;
+      --gold: #d4a537;
+      --text: #d6dee7;
+      --strong: #eaf2fa;
+      --muted: #8b97a5;
+      --border: #2b3947;
+      --row-alt: #1a232e;
+      --bg: #131a22;
+      --card: #1b242f;
+    }
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -91,7 +114,9 @@
     border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;
     padding: 3px 6px; font-family: inherit; font-size: 12px; cursor: pointer;
   }
-  .nav-picker select option { color: #000; }
+  /* The option list is drawn by the OS in the viewer's theme, so a hardcoded
+     black went invisible on a dark popup. */
+  .nav-picker select option { color: var(--text); background: var(--card); }
 
   .wrap { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
 
@@ -192,7 +217,7 @@
   .bold { font-weight: 700; }
 
   .grid-2 { display: grid; gap: 16px; grid-template-columns: repeat(2, 1fr); }
-  .sub-hdr { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; margin: 0 0 8px; color: var(--slate); }
+  .sub-hdr { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; margin: 0 0 8px; color: var(--strong); }
   .note { font-size: 11.5px; color: var(--muted); margin: -8px 0 14px; }
 
   .recap-row { display: grid; gap: 12px; grid-template-columns: repeat(4, 1fr); margin-bottom: 16px; }
@@ -217,7 +242,7 @@
     letter-spacing: 1.2px; margin-bottom: 8px;
   }
   .nar-text { font-size: 14px; line-height: 1.7; }
-  .nar-text strong { font-weight: 700; color: var(--slate); }
+  .nar-text strong { font-weight: 700; color: var(--strong); }
 
   .bench-hdr {
     background: linear-gradient(135deg, #4a1d5e 0%, #6b2d84 50%, #8e44ad 100%);
@@ -254,13 +279,13 @@
     border-left: 4px solid var(--green); border-radius: 2px; padding: 13px 15px;
   }
   .watch.caution { border-left-color: var(--red); }
-  .watch.rival { border-left-color: var(--slate); }
+  .watch.rival { border-left-color: var(--strong); }
   .watch-tag {
     font-size: 10px; font-weight: 800; text-transform: uppercase;
     letter-spacing: 1px; color: var(--green); margin-bottom: 5px;
   }
   .watch.caution .watch-tag { color: var(--red); }
-  .watch.rival .watch-tag { color: var(--slate); }
+  .watch.rival .watch-tag { color: var(--strong); }
   .watch-name { font-size: 15px; font-weight: 700; }
   .watch-meta { font-size: 11px; font-weight: 400; color: var(--muted); display: block; margin-top: 2px; }
   .watch-why { font-size: 12.5px; line-height: 1.5; margin-top: 7px; }
