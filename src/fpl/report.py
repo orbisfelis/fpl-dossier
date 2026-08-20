@@ -22,6 +22,8 @@ from itertools import groupby
 from pathlib import Path
 from textwrap import dedent
 
+from .db import active_clause
+
 POS_LABEL = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD"}
 GOAL_PTS = {1: 6, 2: 6, 3: 5, 4: 4}  # FPL points per goal by position
 
@@ -101,8 +103,9 @@ def generate_report(db_path: Path, output: Path, league_id: int,
 
     if event is None:
         row = conn.execute(
-            """SELECT MAX(event) AS e FROM manager_gameweeks
-               WHERE entry_id IN (SELECT entry_id FROM managers WHERE league_id = ?)""",
+            f"""SELECT MAX(event) AS e FROM manager_gameweeks
+               WHERE entry_id IN (SELECT entry_id FROM managers
+                                  WHERE league_id = ?{active_clause(conn)})""",
             (league_id,),
         ).fetchone()
         event = row["e"]
@@ -661,7 +664,8 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
     league_name = league_row["name"] if league_row else f"League {league_id}"
 
     mgr_count = conn.execute(
-        "SELECT COUNT(*) AS c FROM managers WHERE league_id = ?", (league_id,)
+        f"SELECT COUNT(*) AS c FROM managers "
+        f"WHERE league_id = ?{active_clause(conn)}", (league_id,)
     ).fetchone()["c"]
     gw_avg = conn.execute(
         "SELECT AVG(points) AS a FROM manager_gameweeks mg "
@@ -872,13 +876,14 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
 
     # Transfer P&L per manager this GW
     transfer_pnl_map = {}
-    tpnl_rows = _rows(conn.execute("""
+    tpnl_rows = _rows(conn.execute(f"""
         SELECT tp.entry_id, tp.gross_pnl, mg.event_transfers_cost
         FROM v_transfer_pnl tp
         JOIN manager_gameweeks mg
           ON mg.entry_id = tp.entry_id AND mg.event = tp.event
         WHERE tp.event = ?
-          AND tp.entry_id IN (SELECT entry_id FROM managers WHERE league_id = ?)
+          AND tp.entry_id IN (SELECT entry_id FROM managers
+                              WHERE league_id = ?{active_clause(conn)})
     """, (event, league_id)))
     for r in tpnl_rows:
         gross = r["gross_pnl"] or 0
@@ -1517,7 +1522,7 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
     """, (event, event)))
 
     # --- Who Should Be Top (Phase 10) ---
-    xpts_raw = _rows(conn.execute("""
+    xpts_raw = _rows(conn.execute(f"""
         SELECT mp.entry_id, mp.event, mp.element, mp.multiplier,
                p.element_type,
                COALESCE(pev.event_points, 0) AS actual_pts,
@@ -1537,7 +1542,8 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
         JOIN players p ON p.id = mp.element
         LEFT JOIN v_player_event_points pev
             ON pev.element = mp.element AND pev.event = mp.event
-        WHERE mp.entry_id IN (SELECT entry_id FROM managers WHERE league_id = ?)
+        WHERE mp.entry_id IN (SELECT entry_id FROM managers
+                              WHERE league_id = ?{active_clause(conn)})
           AND mp.multiplier > 0
           AND mp.event <= ?
     """, (league_id, event)))

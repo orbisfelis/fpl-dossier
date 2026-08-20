@@ -26,6 +26,8 @@ import re
 import sqlite3
 from pathlib import Path
 
+from .db import active_clause
+
 log = logging.getLogger(__name__)
 
 DEFAULT_REGISTRY = Path("data/registry.db")
@@ -178,8 +180,9 @@ def sync_season(conn: sqlite3.Connection, season_db: Path, season: str,
         league_row = src.execute("SELECT name FROM leagues WHERE id = ?",
                                  (league_id,)).fetchone()
         managers = src.execute(
-            """SELECT entry_id, entry_name, player_name FROM managers
-               WHERE league_id = ? ORDER BY entry_name""",
+            f"""SELECT entry_id, entry_name, player_name FROM managers
+               WHERE league_id = ?{active_clause(src)}
+               ORDER BY entry_name""",
             (league_id,)).fetchall()
     finally:
         src.close()

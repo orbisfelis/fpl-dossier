@@ -16,6 +16,8 @@ import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .db import active_clause
+
 log = logging.getLogger(__name__)
 
 POS_LABEL = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD"}
@@ -248,7 +250,7 @@ def _identity_map(db_path: Path, league_id: int) -> dict[int, dict]:
     try:
         current = {r[0]: {"team": r[1], "manager": r[2]} for r in conn.execute(
             "SELECT entry_id, entry_name, player_name FROM managers "
-            "WHERE league_id = ?", (league_id,))}
+            f"WHERE league_id = ?{active_clause(conn)}", (league_id,))}
     finally:
         conn.close()
     return {prev: current[cur] for prev, cur in translation.items()
@@ -296,8 +298,9 @@ def _form_book(conn: sqlite3.Connection, league_id: int,
     """
     from .report import manager_key
     managers = _rows(conn.execute(
-        """SELECT entry_id, entry_name, player_name FROM managers
-           WHERE league_id = ? ORDER BY entry_name""", (league_id,)))
+        f"""SELECT entry_id, entry_name, player_name FROM managers
+           WHERE league_id = ?{active_clause(conn)}
+           ORDER BY entry_name""", (league_id,)))
     if not managers:
         return []
 
@@ -899,7 +902,8 @@ def collect_preseason(db_path: Path, league_id: int, prev_db: Path | None,
         n_players = conn.execute(
             "SELECT COUNT(*) FROM players WHERE status='a'").fetchone()[0]
         managers_present = conn.execute(
-            "SELECT COUNT(*) FROM managers WHERE league_id = ?",
+            f"SELECT COUNT(*) FROM managers "
+            f"WHERE league_id = ?{active_clause(conn)}",
             (league_id,)).fetchone()[0]
     finally:
         conn.close()

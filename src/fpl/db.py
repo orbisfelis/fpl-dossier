@@ -121,7 +121,11 @@ CREATE TABLE IF NOT EXISTS managers (
     player_name     TEXT,
     league_id       INTEGER NOT NULL,
     first_seen      TEXT NOT NULL,
-    last_updated    TEXT NOT NULL
+    last_updated    TEXT NOT NULL,
+    -- Set when a scrape finds the manager gone from the league; NULL = current
+    -- member. Departures are flagged, never deleted, so their gameweek rows
+    -- stay intact and already-published reports keep reconciling.
+    left_at         TEXT
 );
 
 CREATE TABLE IF NOT EXISTS manager_gameweeks (
@@ -189,6 +193,18 @@ CREATE TABLE IF NOT EXISTS manager_past_seasons (
 VIEWS_PATH = Path(__file__).parent / "views.sql"
 
 
+def active_clause(conn: sqlite3.Connection) -> str:
+    """SQL fragment restricting a `managers` scan to current members.
+
+    Season archives written before `left_at` existed have no such column, and
+    reports are regularly regenerated against them. Those DBs also record no
+    departures, so degrading to an empty fragment is correct as well as safe —
+    the alternative is an OperationalError on every historical report.
+    """
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(managers)")}
+    return " AND left_at IS NULL" if "left_at" in cols else ""
+
+
 class Store:
     """Thin wrapper over a SQLite connection with table-specific upserts."""
 
@@ -221,6 +237,9 @@ class Store:
         if past and "rank_percentage" not in past:
             self.conn.execute(
                 "ALTER TABLE manager_past_seasons ADD COLUMN rank_percentage REAL")
+        managers = {r[1] for r in self.conn.execute("PRAGMA table_info(managers)")}
+        if managers and "left_at" not in managers:
+            self.conn.execute("ALTER TABLE managers ADD COLUMN left_at TEXT")
 
     # ----- Reference -----
 
@@ -348,9 +367,42 @@ class Store:
                  ON CONFLICT(entry_id) DO UPDATE SET
                      entry_name   = excluded.entry_name,
                      player_name  = excluded.player_name,
-                     last_updated = excluded.last_updated""",
+                     last_updated = excluded.last_updated,
+                     left_at      = NULL""",
             (entry_id, entry_name, player_name, league_id, now, now),
         )
+
+    def mark_departed(self, league_id: int, present: Iterable[int],
+                      now: str) -> list[str]:
+        """Flag league members the latest scrape no longer sees.
+
+        Managers are upserted, never deleted, so without this a manager who
+        quits stays on the roster forever. Rows are kept and stamped with
+        ``left_at`` rather than removed: their gameweek history is still real,
+        and reports for gameweeks they played should continue to add up.
+
+        Callers must only pass a ``present`` set from a *successful* league
+        enumeration — an empty or partial one would flag the whole league.
+        """
+        present = list(present)
+        if not present:
+            return []
+        marks = ",".join("?" * len(present))
+        cur = self.conn.execute(
+            f"""SELECT entry_id, player_name, entry_name FROM managers
+                 WHERE league_id = ? AND left_at IS NULL
+                   AND entry_id NOT IN ({marks})""",
+            (league_id, *present),
+        )
+        gone = cur.fetchall()
+        if gone:
+            self.conn.execute(
+                f"""UPDATE managers SET left_at = ?
+                     WHERE league_id = ? AND left_at IS NULL
+                       AND entry_id NOT IN ({marks})""",
+                (now, league_id, *present),
+            )
+        return [f"{r[1]} ({r[2]})" for r in gone]
 
     def upsert_manager_history(self, entry_id: int, current: Iterable[dict]) -> None:
         self.conn.executemany(

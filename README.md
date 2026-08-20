@@ -441,7 +441,7 @@ last season's league ID) and by the "vs Last Season" and Form Book comparisons
 name matching when no registry file exists, so it is optional — but with it,
 year-on-year comparisons survive both ID churn and renames.
 
-### New joiners and manager identity
+### New joiners, leavers, and manager identity
 
 **Both the league ID and manager entry IDs change at the season rollover.**
 Mini-leagues are re-created each year under a new ID, so point `--league` at
@@ -460,6 +460,19 @@ history, going back as far as they have played. Those rows land in
 `manager_past_seasons` (points, overall rank, percentile finish) and drive the
 pre-season Form Book, where anyone whose name is absent from the archived
 previous season is flagged NEW.
+
+People also leave, and pre-season they leave often — a manager can join in
+July and drop out before a ball is kicked. Managers are only ever upserted, so
+a scrape that stops seeing someone stamps `managers.left_at` instead of
+deleting the row: their gameweek history stays intact and reports for weeks
+they actually played still reconcile, while every roster-facing query filters
+on `left_at IS NULL`. The prune only runs when the league enumeration returned
+somebody, so a 404 or an empty pre-season page can't wipe the roster. Watch for
+`Left the league: <name>` in the scrape log.
+
+Because `left_at` post-dates the first season archives, read paths go through
+`active_clause()` in `db.py`, which returns an empty fragment on a DB that has
+no such column — regenerating an old season's report must not error.
 
 Before the league renews its standings 404, so nobody is discoverable. If you
 need a specific manager early and know their entry ID (from

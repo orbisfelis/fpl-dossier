@@ -198,6 +198,16 @@ async def run_scrape(
             log.info("Committed %d / %d managers",
                      min(i + batch_size, len(entries)), len(entries))
 
+        # Anyone still carrying this league_id who wasn't in the standings has
+        # left. Guarded on a non-empty enumeration so a 404 or a pre-season
+        # empty page can't wipe the roster.
+        if entries:
+            departed = store.mark_departed(
+                league_id, [e["entry"] for e in entries], now)
+            store.commit()
+            for who in departed:
+                log.info("Left the league: %s", who)
+
         # Per-player history (xG, bonus, minutes etc.)
         if not skip_player_history and current_event > 0:
             if owned_only:
