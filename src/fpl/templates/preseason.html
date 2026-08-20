@@ -472,8 +472,16 @@
   {{ player_table(form_book, ["Team|entry_name", "Manager|player_name", "New?|new_label",
        ">Seasons|seasons", ">Career best|best_points", "In|best_season",
        ">Best rank|best_rank_label", "In|best_rank_season", ">Top %|best_rank_pct",
-       ">Average|avg_points", "Last three|recent"],
+       ">Average|avg_points", "Last three|recent", ">Form|form_label"],
        empty="No manager history yet — scrape the league (or use --entry) first.") }}
+  <p class="note">
+    Ordered by <span class="bold">Form</span>, not by career best &mdash; this is
+    the form book, so the last three seasons decide it. Form is each manager's
+    percentile finish across those seasons, weighted towards the most recent, so
+    a good last season counts for more than an old disaster. Managers with fewer
+    than three seasons are scored on what they have; the Seasons column shows how
+    much that is.
+  </p>
   <p class="note">
     &ldquo;Best rank&rdquo; is the highest overall finish across a manager's whole
     FPL career, with the season it came in and what share of the entire player

@@ -122,6 +122,47 @@ def _precise_pct(rank: int | None, season: str | None,
     return fallback
 
 
+def _form_pct(recent: list[dict], sizes: dict[str, float]) -> float | None:
+    """Recent form as a single percentile: the last three seasons, weighted
+    towards the most recent.
+
+    Percentile rather than points, because scoring inflation makes a 2500 from
+    a decade ago and a 2500 from last year incomparable. Weighted 3-2-1 rather
+    than a flat mean, because one catastrophic season otherwise outweighs two
+    good ones and the number stops describing form — a manager who went 90th
+    percentile, then 10th, then 3rd is clearly on the way up, and a mean would
+    still rank them near the bottom.
+
+    Managers with one or two seasons are scored on what they have; the weights
+    slide so their most recent season still counts heaviest.
+
+    Unlike the displayed percentiles this always derives from the exact rank,
+    including above 1%. `_precise_pct` defers to FPL's own figure up there to
+    avoid contradicting a number they publish, but averaging their integers
+    would quantise the whole column — a 1.16% season and a 1.47% season both
+    arriving as "1" is fine to print and useless to sort on.
+    """
+    pcts = []
+    for s in recent:
+        rank, season = s.get("rank"), s.get("season_name")
+        if rank and sizes.get(season):
+            pcts.append(100.0 * rank / sizes[season])
+        elif s.get("rank_percentage") is not None:
+            pcts.append(s["rank_percentage"])
+    if not pcts:
+        return None
+    weights = [1, 2, 3][-len(pcts):]
+    return sum(p * w for p, w in zip(pcts, weights)) / sum(weights)
+
+
+def _form_label(pct: float | None) -> str | None:
+    """Form needs a decimal where `_pct_label` would not bother: it is the
+    column the table sorts on, so neighbouring rows have to be tellable apart."""
+    if pct is None:
+        return None
+    return f"{pct:.1f}%" if pct < 10 else f"{pct:.0f}%"
+
+
 def _rows(cur) -> list[dict]:
     cols = [c[0] for c in cur.description]
     return [dict(zip(cols, r)) for r in cur.fetchall()]
@@ -415,6 +456,7 @@ def _form_book(conn: sqlite3.Connection, league_id: int,
             best_rank["rank"], best_rank["season_name"], sizes,
             best_rank["rank_percentage"]) if best_rank else None
         recent = sorted(scored, key=lambda s: s["season_name"])[-3:]
+        form_pct = _form_pct(recent, sizes)
         out.append({
             "entry_id": m["entry_id"],
             "entry_name": m["entry_name"],
@@ -437,9 +479,15 @@ def _form_book(conn: sqlite3.Connection, league_id: int,
             "last_season": recent[-1]["season_name"] if recent else None,
             "recent": " · ".join(f"{s['season_name'][-2:]}: {s['total_points']}"
                                  for s in recent),
+            "form_pct": form_pct,
+            "form_label": _form_label(form_pct),
         })
-    # Strongest career first; managers with no history sink to the bottom.
-    out.sort(key=lambda r: (r["best_points"] is None, -(r["best_points"] or 0)))
+    # In form order — this is the Form Book, so the most recent three seasons
+    # decide it, not a career peak that might be a decade old. Career best
+    # breaks ties (two managers share a 2647), and anyone with no ranked
+    # season to their name sinks to the bottom.
+    out.sort(key=lambda r: (r["form_pct"] is None, r["form_pct"] or 0,
+                            -(r["best_points"] or 0)))
     return out
 
 
