@@ -501,7 +501,7 @@ def _shape_narrative(parsed: dict) -> list[dict] | None:
     out = [{"label": lbl, "color": col, "html": _narrative_html(parsed.get(key, ""))}
            for lbl, col, key in (
                ("The Disgraces", "var(--red)", "disgraces"),
-               ("The Shockers", "var(--slate)", "shockers"),
+               ("The Shockers", "var(--strong)", "shockers"),
                ("The Title Race", "#b8860b", "title_race"),
                ("The Nerd Corner", "var(--green)", "nerd"))
            if (parsed.get(key) or "").strip()]
@@ -2720,7 +2720,7 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
 
     narrative = [p for p in (
         {"label": "The Disgraces", "color": "var(--red)", "html": " ".join(disgraces)},
-        {"label": "The Shockers", "color": "var(--slate)", "html": " ".join(shockers)},
+        {"label": "The Shockers", "color": "var(--strong)", "html": " ".join(shockers)},
         {"label": "The Nerd Corner", "color": "var(--green)", "html": " ".join(nerd)},
     ) if p["html"]]
 

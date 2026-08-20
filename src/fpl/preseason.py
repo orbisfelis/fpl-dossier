@@ -886,7 +886,7 @@ def _benchmark_pace(prev_db: Path | None, league_id: int, season: str,
 # ---------------------------------------------------------------------------
 
 _PRESEASON_SECTIONS = [
-    ("Unfinished Business", "var(--slate)", "state"),
+    ("Unfinished Business", "var(--strong)", "state"),
     ("The Market", "var(--gold)", "market"),
     ("Ones to Watch", "var(--green)", "watch"),
     ("The Warnings", "var(--red)", "warnings"),
