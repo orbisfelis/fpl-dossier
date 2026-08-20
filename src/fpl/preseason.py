@@ -230,6 +230,35 @@ def _league_history(conn: sqlite3.Connection, league_id: int) -> dict:
            WHERE m.league_id = ? GROUP BY m.entry_id
            ORDER BY cost DESC LIMIT 1""", (league_id,)))
 
+    # Captaincy concentration: who the league actually leaned on, which is a
+    # different question from who they owned.
+    cap_total = conn.execute(
+        """SELECT COUNT(*) FROM manager_picks mp
+           JOIN managers m ON m.entry_id = mp.entry_id
+           WHERE m.league_id = ? AND mp.is_captain = 1""",
+        (league_id,)).fetchone()[0]
+    cap_top = _rows(conn.execute(
+        """SELECT p.web_name, COUNT(*) picks
+           FROM manager_picks mp
+           JOIN managers m ON m.entry_id = mp.entry_id
+           JOIN players p ON p.id = mp.element
+           WHERE m.league_id = ? AND mp.is_captain = 1
+           GROUP BY mp.element ORDER BY picks DESC LIMIT 1""", (league_id,)))
+    cap_distinct = conn.execute(
+        """SELECT COUNT(DISTINCT mp.element) FROM manager_picks mp
+           JOIN managers m ON m.entry_id = mp.entry_id
+           WHERE m.league_id = ? AND mp.is_captain = 1""",
+        (league_id,)).fetchone()[0]
+    captaincy = None
+    if cap_top and cap_total:
+        captaincy = {
+            "web_name": cap_top[0]["web_name"],
+            "picks": cap_top[0]["picks"],
+            "total": cap_total,
+            "distinct": cap_distinct,
+            "share": round(100.0 * cap_top[0]["picks"] / cap_total, 1),
+        }
+
     champ = table[0] if table else None
     runner = table[1] if len(table) > 1 else None
     bottler = next((lead for lead in leaders
@@ -247,6 +276,7 @@ def _league_history(conn: sqlite3.Connection, league_id: int) -> dict:
         "bottler": bottler,
         "bench_king": bench[0] if bench else None,
         "hit_merchant": hits[0] if hits else None,
+        "captaincy": captaincy,
     }
 
 
@@ -816,6 +846,23 @@ def _predictions(history: dict, intel: dict, fixtures: dict,
                     f"and a triple captain on the right double gets there "
                     f"without needing anything clever.",
             "basis": f"{best['points']} pts in GW{best['event']}, 25/26"})
+
+    # Ownership and captaincy are different questions: plenty of people owned
+    # him, but the armband is where the league actually committed.
+    cap = history.get("captaincy")
+    still_here = {r["web_name"] for r in (market.get("most_owned") or [])} | \
+                 {r["web_name"] for r in (intel.get("premium") or [])}
+    if cap and cap["share"] >= 30 and cap["web_name"] in still_here:
+        out.append({
+            "tag": "The Armband",
+            "text": f"{cap['web_name']} takes the armband in more than half of "
+                    f"this league's gameweeks again. He was captained "
+                    f"{cap['picks']} times last season — {cap['share']}% of every "
+                    f"captaincy handed out in here — while {cap['distinct'] - 1} "
+                    f"other players split what was left. Nobody has found a way "
+                    f"out of that yet, and the ones who try lose the week they "
+                    f"get it wrong.",
+            "basis": f"{cap['picks']}/{cap['total']} captaincies in 25/26"})
 
     worst = history.get("worst_gw") if here(history.get("worst_gw")) else None
     if worst:
