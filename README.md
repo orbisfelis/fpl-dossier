@@ -491,6 +491,41 @@ Note: the `players` table stores FPL's `code` — the ID that is stable across
 seasons (`id` is not) — so future cross-season player joins don't need name
 matching.
 
+## Sealing a finished season
+
+A completed season is a record, and it should stop moving. Once the last
+gameweek is published, seal it:
+
+```bash
+fpl seal --db data/25_26_fpl.db --season 25-26 --reason "season finished May 2026"
+```
+
+That writes two markers:
+
+```
+data/25_26_fpl.db.sealed     blocks writes to that database
+docs/25-26/.sealed           blocks regenerating those pages
+```
+
+After which `Store()` refuses to open the DB and `fpl publish` refuses to write
+into `docs/25-26/`, both with a message rather than a stack trace (exit code 2).
+Reading is untouched — `--prev-db` still works, so the current season's "vs last
+season" sections and the pre-season Form Book keep resolving against the
+archive.
+
+Override with `--force-unsealed`, or remove the seal entirely with
+`fpl unseal --db ... --season ...`. Neither is something to reach for casually.
+
+**Why this exists.** Regenerating the 25/26 archive to pick up a new dark theme
+silently replaced all 38 AI-written columns with phrase-bank text, because the
+machine doing the regeneration had no `ANTHROPIC_API_KEY` and the cache lookup
+sat behind the provider check. Every page still rendered, nothing errored, and
+the loss was invisible until someone read one. A template change should never be
+able to rewrite a season that is already in the books.
+
+Note that `data/` is git-ignored, so the DB marker is local while the docs
+marker is committed and travels with the repo.
+
 ## Architecture
 
 ```

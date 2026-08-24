@@ -146,9 +146,10 @@ async def run_scrape(
     skip_player_history: bool = False,
     owned_only: bool = False,
     extra_entries: list[int] | None = None,
+    force_unsealed: bool = False,
 ) -> None:
     now = datetime.now(timezone.utc).isoformat()
-    store = Store(db_path)
+    store = Store(db_path, force_unsealed=force_unsealed)
     sem = asyncio.Semaphore(concurrency)
 
     async with httpx.AsyncClient(

@@ -157,12 +157,15 @@ def publish_reports(db_path: Path, league_id: int, docs_dir: Path,
                     season: str | None = None, event: int | None = None,
                     all_gws: bool = False, narrative: str = "auto",
                     refresh_narrative: bool = False,
-                    prev_db: Path | None = None) -> Path:
+                    prev_db: Path | None = None,
+                    force_unsealed: bool = False) -> Path:
     """Render HTML report(s) into ``docs/<season>/GW<N>.html``, then rebuild the
     manifest and the root ``index.html`` redirect that drive the GW/season
     dropdown on GitHub Pages."""
     season = season or current_season()
     season_dir = docs_dir / season
+    from .seal import check_docs_writable
+    check_docs_writable(season_dir, force=force_unsealed)
     season_dir.mkdir(parents=True, exist_ok=True)
 
     events = _available_events(db_path, league_id)
