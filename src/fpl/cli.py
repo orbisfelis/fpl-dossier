@@ -46,6 +46,10 @@ def main(argv: list[str] | None = None) -> int:
     common.add_argument("--db", type=Path, default=DEFAULT_DB,
                         help=f"SQLite path (default: {DEFAULT_DB})")
     common.add_argument("--verbose", "-v", action="store_true")
+    common.add_argument("--force-unsealed", action="store_true",
+                        dest="force_unsealed",
+                        help="Write to a sealed (finished) season anyway. "
+                             "Deliberately verbose — a sealed season is a record.")
 
     parser = argparse.ArgumentParser(
         prog="fpl",
@@ -104,6 +108,20 @@ def main(argv: list[str] | None = None) -> int:
     pp.add_argument("--docs", type=Path, default=DEFAULT_DOCS,
                     help=f"GitHub Pages output dir (default: {DEFAULT_DOCS})")
     _add_narrative_opts(pp)
+
+    # seal -----------------------------------------------------------------
+    sl = subparsers.add_parser("seal", parents=[common],
+                               help="Freeze a finished season: no more DB writes, "
+                                    "no more regenerated pages")
+    sl.add_argument("--season", required=True,
+                    help="Season label, e.g. 25-26 (locks docs/<season>/)")
+    sl.add_argument("--docs", type=Path, default=DEFAULT_DOCS)
+    sl.add_argument("--reason", default="season complete")
+
+    us = subparsers.add_parser("unseal", parents=[common],
+                               help="Remove a season's seal (rarely correct)")
+    us.add_argument("--season", required=True)
+    us.add_argument("--docs", type=Path, default=DEFAULT_DOCS)
 
     # registry -------------------------------------------------------------
     # --registry is accepted either side of the subcommand, so both
@@ -195,6 +213,15 @@ def main(argv: list[str] | None = None) -> int:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
 
+    from .seal import SealedError
+    try:
+        return _dispatch(args, parser)
+    except SealedError as exc:
+        print(f"refused: {exc}", file=sys.stderr)
+        return 2
+
+
+def _dispatch(args, parser) -> int:
     if args.command == "scrape":
         asyncio.run(run_scrape(
             league_id=args.league,
@@ -203,6 +230,7 @@ def main(argv: list[str] | None = None) -> int:
             skip_player_history=args.skip_player_history,
             owned_only=args.owned_only,
             extra_entries=args.extra_entries,
+            force_unsealed=args.force_unsealed,
         ))
 
     elif args.command == "report":
@@ -222,9 +250,25 @@ def main(argv: list[str] | None = None) -> int:
             args.db, args.league, args.docs,
             season=args.season, event=args.gw, all_gws=args.all_gws,
             narrative=args.narrative, refresh_narrative=args.refresh_narrative,
-            prev_db=args.prev_db,
+            prev_db=args.prev_db, force_unsealed=args.force_unsealed,
         )
         print(f"Published to: {season_dir} (manifest + index.html updated)")
+
+    elif args.command == "seal":
+        from .seal import seal as do_seal
+        made = do_seal(args.db, args.docs / args.season, reason=args.reason)
+        for m in made:
+            print(f"sealed: {m}")
+        if not made:
+            print("nothing sealed (check --db and --season)")
+
+    elif args.command == "unseal":
+        from .seal import unseal as do_unseal
+        gone = do_unseal(args.db, args.docs / args.season)
+        for m in gone:
+            print(f"unsealed: {m}")
+        if not gone:
+            print("nothing was sealed")
 
     elif args.command == "registry":
         from . import registry as reg

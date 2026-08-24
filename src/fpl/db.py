@@ -208,7 +208,11 @@ def active_clause(conn: sqlite3.Connection) -> str:
 class Store:
     """Thin wrapper over a SQLite connection with table-specific upserts."""
 
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, force_unsealed: bool = False):
+        # A sealed season is a finished record; opening it here would let a
+        # migration or a stray scrape rewrite history.
+        from .seal import check_db_writable
+        check_db_writable(path, force=force_unsealed)
         path.parent.mkdir(parents=True, exist_ok=True)
         self.conn = sqlite3.connect(path)
         self.conn.execute("PRAGMA foreign_keys = ON")

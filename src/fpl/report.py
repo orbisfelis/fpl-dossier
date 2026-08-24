@@ -121,7 +121,9 @@ def generate_report(db_path: Path, output: Path, league_id: int,
 
     # Optionally let Claude write the top narrative (HTML only). "auto" prefers
     # the API when ANTHROPIC_API_KEY is set, then the local `claude` CLI login,
-    # else the deterministic phrase banks.
+    # else the deterministic phrase banks. Called in every mode, because a
+    # column already in the cache should be served whatever this machine can
+    # generate today.
     if fmt == "html":
         mode = narrative
         if mode == "auto":
@@ -131,11 +133,10 @@ def generate_report(db_path: Path, output: Path, league_id: int,
                 mode = "cli"
             else:
                 mode = "phrases"
-        if mode in ("llm", "cli"):
-            written = write_narrative(data.get("narrative_facts") or {}, league_id,
-                                      event, db_path, mode, refresh=refresh_narrative)
-            if written is not None:
-                data["narrative"] = written
+        written = write_narrative(data.get("narrative_facts") or {}, league_id,
+                                  event, db_path, mode, refresh=refresh_narrative)
+        if written is not None:
+            data["narrative"] = written
 
     output.parent.mkdir(parents=True, exist_ok=True)
 
@@ -156,12 +157,15 @@ def publish_reports(db_path: Path, league_id: int, docs_dir: Path,
                     season: str | None = None, event: int | None = None,
                     all_gws: bool = False, narrative: str = "auto",
                     refresh_narrative: bool = False,
-                    prev_db: Path | None = None) -> Path:
+                    prev_db: Path | None = None,
+                    force_unsealed: bool = False) -> Path:
     """Render HTML report(s) into ``docs/<season>/GW<N>.html``, then rebuild the
     manifest and the root ``index.html`` redirect that drive the GW/season
     dropdown on GitHub Pages."""
     season = season or current_season()
     season_dir = docs_dir / season
+    from .seal import check_docs_writable
+    check_docs_writable(season_dir, force=force_unsealed)
     season_dir.mkdir(parents=True, exist_ok=True)
 
     events = _available_events(db_path, league_id)
@@ -586,6 +590,29 @@ def _provider_cli(facts: dict) -> dict | None:
 _NARRATIVE_PROVIDERS = {"llm": _provider_api, "cli": _provider_cli}
 
 
+def read_cached_narrative(db_path: Path, league_id: int,
+                          event: int) -> list[dict] | None:
+    """Previously written column for this gameweek, if any."""
+    try:
+        cache = sqlite3.connect(db_path)
+    except sqlite3.Error:
+        return None
+    try:
+        row = cache.execute(
+            "SELECT content FROM narrative_cache WHERE league_id = ? AND event = ?",
+            (league_id, event)).fetchone()
+    except sqlite3.Error:
+        return None
+    finally:
+        cache.close()
+    if not row:
+        return None
+    try:
+        return json.loads(row[0])
+    except (TypeError, ValueError):
+        return None
+
+
 def write_narrative(facts: dict, league_id: int, event: int, db_path: Path,
                     mode: str, refresh: bool = False) -> list[dict] | None:
     """Narrative paragraphs written by Claude (via the ``mode`` provider) from the
@@ -593,6 +620,15 @@ def write_narrative(facts: dict, league_id: int, event: int, db_path: Path,
     Returns None when there's nothing worth writing about or the provider is
     unavailable/fails — so publishing never breaks. Cached per (league, GW) in
     the DB; pass refresh=True to regenerate."""
+    # A cached column is worth serving even when this machine has no provider
+    # configured. It was written by one; losing it on republish just because
+    # ANTHROPIC_API_KEY is unset would silently downgrade the page to phrase
+    # banks and nobody would notice until they read it.
+    if not refresh:
+        cached = read_cached_narrative(db_path, league_id, event)
+        if cached:
+            return cached
+
     provider = _NARRATIVE_PROVIDERS.get(mode)
     if provider is None or not facts or len(facts) <= 4:  # 4 = bare header fields
         return None
@@ -603,16 +639,6 @@ def write_narrative(facts: dict, league_id: int, event: int, db_path: Path,
             "CREATE TABLE IF NOT EXISTS narrative_cache ("
             "league_id INTEGER NOT NULL, event INTEGER NOT NULL, model TEXT, "
             "content TEXT, created_at TEXT, PRIMARY KEY (league_id, event))")
-        if not refresh:
-            row = cache.execute(
-                "SELECT content FROM narrative_cache WHERE league_id = ? AND event = ?",
-                (league_id, event)).fetchone()
-            if row:
-                try:
-                    return json.loads(row[0])
-                except (TypeError, ValueError):
-                    pass
-
         # Thread in last week's column for continuity (callbacks, running jokes,
         # momentum). Sequential generation means GW N-1 is already cached.
         ctx = dict(facts)
