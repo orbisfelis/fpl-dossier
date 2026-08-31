@@ -243,5 +243,13 @@ class FeatureStore:
             f[f"team opponent league rank {w}"] = self.rank.get(opponent)
         f["status team league rank"] = self.rank.get(club)
         f["status opponent league rank"] = self.rank.get(opponent)
-        f["status player availability"] = availability
+        # The paper describes this as a percentage, but the shipped scaler was
+        # fit on 0-1 (data_min_=0.0, data_max_=1.0). Passing 0-100 puts every
+        # value far outside the trained range, where the trees saturate and the
+        # feature stops doing anything at all — a flagged player then scores
+        # exactly like a fit one. Accept the percentage callers naturally have
+        # and normalise here.
+        f["status player availability"] = (availability / 100.0
+                                           if availability is not None and availability > 1.0
+                                           else availability)
         return f
