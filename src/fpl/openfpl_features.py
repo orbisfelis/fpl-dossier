@@ -185,17 +185,85 @@ class FeatureStore:
         for c in self.team_hist:
             self.team_hist[c].sort(key=lambda x: x["date"], reverse=True)
 
-        # league rank by points-to-date, per season
-        self.rank: dict[str, int] = {}
-        pts = defaultdict(float)
+        # League rank is computed as-of a date, not once at load time.
+        #
+        # Two problems motivated this. Ranking on current-season points alone
+        # meant that in GW3 the model was told Hull were 3rd and Liverpool 13th
+        # — two gameweeks of noise feeding twelve columns. Worse, because the
+        # table was built once from cur_season, every *training* row (drawn from
+        # the previous season) received that same constant, leaking a later
+        # season's form backwards into older examples. Ranks now derive only
+        # from matches before the fixture being predicted, blended with the
+        # prior season's final table until enough of the current one is played.
+        self._rank_cache: dict[str | None, dict[str, int]] = {}
+        self._season_starts: dict[str, str] = {}
         for club, rows in self.team_hist.items():
             for m in rows:
-                if m["season"] != self.cur_season:
+                s, d = m["season"], m["date"]
+                if s not in self._season_starts or d < self._season_starts[s]:
+                    self._season_starts[s] = d
+        self.rank = self._rank_as_of(None)
+
+    # a newly promoted side has no prior table; start it near the bottom
+    PROMOTED_PRIOR = 18
+    # matches after which the live table is trusted on its own
+    RANK_SETTLES_AFTER = 10
+
+    def _season_for(self, as_of: str | None) -> str:
+        """Which season a date falls in — the latest one that had started."""
+        if as_of is None:
+            return self.cur_season
+        best = self.cur_season
+        for s, start in sorted(self._season_starts.items(), key=lambda kv: kv[1]):
+            if start <= as_of:
+                best = s
+        return best
+
+    def _points_table(self, season: str, before: str | None):
+        pts: dict[str, float] = defaultdict(float)
+        played: dict[str, int] = defaultdict(int)
+        for club, rows in self.team_hist.items():
+            for m in rows:
+                if m["season"] != season:
+                    continue
+                if before and m["date"] >= before:
                     continue
                 res = m.get("result")
                 pts[club] += 3 if res == "w" else 1 if res == "d" else 0
-        for i, (club, _) in enumerate(sorted(pts.items(), key=lambda kv: -kv[1]), 1):
-            self.rank[club] = i
+                played[club] += 1
+        return pts, played
+
+    def _rank_as_of(self, as_of: str | None) -> dict[str, int]:
+        """Table-to-date blended with last season's finish.
+
+        Early in a season the live table is mostly noise, so it is averaged with
+        the previous season's final positions, the live table taking over as
+        matches accumulate.
+        """
+        if as_of in self._rank_cache:
+            return self._rank_cache[as_of]
+        season = self._season_for(as_of)
+        clubs = sorted({c for c, rows in self.team_hist.items()
+                        if any(m["season"] == season for m in rows)})
+        cur_pts, cur_played = self._points_table(season, as_of)
+
+        prev_rank: dict[str, int] = {}
+        if season == self.cur_season:
+            prev_pts, _ = self._points_table(self.prev_season, None)
+            for i, (c, _) in enumerate(
+                    sorted(prev_pts.items(), key=lambda kv: -kv[1]), 1):
+                prev_rank[c] = i
+
+        live = {c: i for i, c in enumerate(
+            sorted(clubs, key=lambda c: -cur_pts.get(c, 0.0)), 1)}
+        n = max(cur_played.values()) if cur_played else 0
+        w = min(n / self.RANK_SETTLES_AFTER, 1.0)
+        blended = {c: w * live[c] + (1 - w) * prev_rank.get(c, self.PROMOTED_PRIOR)
+                   for c in clubs}
+        out = {c: i for i, (c, _) in enumerate(
+            sorted(blended.items(), key=lambda kv: kv[1]), 1)}
+        self._rank_cache[as_of] = out
+        return out
 
     # ----- assembly ------------------------------------------------------
     def features(self, element: int, club: str, opponent: str, home: bool,
@@ -238,11 +306,12 @@ class FeatureStore:
             for fam, col in TEAM_FAMS.items():
                 for w, v in _windows(rows, col).items():
                     f[f"{side} {fam} {w}"] = v
+        rank = self._rank_as_of(as_of)
         for w in WINDOWS:
-            f[f"team league rank {w}"] = self.rank.get(club)
-            f[f"team opponent league rank {w}"] = self.rank.get(opponent)
-        f["status team league rank"] = self.rank.get(club)
-        f["status opponent league rank"] = self.rank.get(opponent)
+            f[f"team league rank {w}"] = rank.get(club)
+            f[f"team opponent league rank {w}"] = rank.get(opponent)
+        f["status team league rank"] = rank.get(club)
+        f["status opponent league rank"] = rank.get(opponent)
         # The paper describes this as a percentage, but the shipped scaler was
         # fit on 0-1 (data_min_=0.0, data_max_=1.0). Passing 0-100 puts every
         # value far outside the trained range, where the trees saturate and the
