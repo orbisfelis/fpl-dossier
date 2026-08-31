@@ -202,6 +202,46 @@ def main(argv: list[str] | None = None) -> int:
     rd.add_argument("--out", type=Path, default=None,
                     help="Output JSON path (a .md digest is written alongside)")
 
+    # train / predict ---------------------------------------------------------
+    tp_common = argparse.ArgumentParser(add_help=False)
+    tp_common.add_argument("--prev-db", type=Path, default=_env_path("FPL_PREV_DB"),
+                           help="Previous season's DB (or set FPL_PREV_DB) — the "
+                                "model trains on it and the long windows need it")
+    tp_common.add_argument("--season", default=None,
+                           help="Current Understat season (default: inferred)")
+    tp_common.add_argument("--prev-season", default=None,
+                           help="Previous Understat season (default: season - 1)")
+    tp_common.add_argument("--model", type=Path, default=None,
+                           help="Model path (default: data/models/openfpl.json)")
+
+    tr = subparsers.add_parser("train", parents=[common, tp_common],
+                               help="Fit the points model on last season's matches")
+    tr.add_argument("--seed", type=int, default=0)
+
+    pr = subparsers.add_parser("predict", parents=[common, tp_common],
+                               help="Predict a gameweek and store it in the DB")
+    pr.add_argument("--gw", type=int, default=None,
+                    help="Gameweek to predict (default: the next one)")
+    pr.add_argument("--top", type=int, default=30,
+                    help="How many rows to print (default: 30)")
+    pr.add_argument("--no-write", action="store_true", dest="no_write",
+                    help="Print only; do not write the predictions table")
+
+    # understat --------------------------------------------------------------
+    ut = subparsers.add_parser("understat", parents=[common],
+                               help="Pull Understat xG/xA into the DB (feeds the model)")
+    ut.add_argument("--season", default=None,
+                    help="Understat season start year, e.g. 2026 "
+                         "(default: inferred from the fixtures in the DB)")
+    ut.add_argument("--league", default="EPL")
+    ut.add_argument("--check", action="store_true",
+                    help="Only report how far Understat trails FPL, then exit "
+                         "non-zero if it is stale. Cheap enough to gate a build on.")
+    ut.add_argument("--skip-player-matches", action="store_true",
+                    dest="skip_player_matches",
+                    help="Season aggregates only — much faster, but the per-match "
+                         "windows the model needs will not be refreshed")
+
     # shell ----------------------------------------------------------------
     subparsers.add_parser("shell", parents=[common],
                           help="Open a sqlite3 shell on the DB")
@@ -219,6 +259,14 @@ def main(argv: list[str] | None = None) -> int:
     except SealedError as exc:
         print(f"refused: {exc}", file=sys.stderr)
         return 2
+
+
+def _infer_season(conn) -> str | None:
+    """Understat labels a season by the calendar year it starts in."""
+    row = conn.execute(
+        "SELECT MIN(substr(kickoff_time, 1, 4)) FROM fixtures "
+        "WHERE kickoff_time IS NOT NULL").fetchone()
+    return row[0] if row and row[0] else None
 
 
 def _dispatch(args, parser) -> int:
@@ -338,6 +386,105 @@ def _dispatch(args, parser) -> int:
             print(f"Reddit: {e}", file=sys.stderr)
             return 1
         print(f"Wrote: {path}\nDigest: {path.with_suffix('.md')}")
+
+    elif args.command in ("train", "predict"):
+        import sqlite3
+        from . import predict as predict_mod
+        from . import understat as understat_mod
+        if not args.db.exists():
+            print(f"DB not found: {args.db}", file=sys.stderr)
+            return 1
+        if not args.prev_db or not Path(args.prev_db).exists():
+            print("Need --prev-db (or FPL_PREV_DB): the model trains on last "
+                  "season and the 10/38-match windows reach back into it.",
+                  file=sys.stderr)
+            return 1
+        conn = sqlite3.connect(args.db)
+        season = args.season or _infer_season(conn)
+        if season is None:
+            print("Could not infer the season; pass --season", file=sys.stderr)
+            return 1
+        prev_season = args.prev_season or str(int(season) - 1)
+        model_path = args.model or predict_mod.DEFAULT_MODEL
+
+        # Features summarise recent matches, so building them while Understat
+        # still trails FPL silently produces NULL 1-match windows.
+        fresh = understat_mod.freshness(conn, season)
+        if fresh["stale"]:
+            print(f"warning: understat only reaches {fresh['understat_latest']} but "
+                  f"FPL has settled {fresh['fpl_latest_finished']}; "
+                  f"run `fpl understat` first", file=sys.stderr)
+
+        if args.command == "train":
+            m = predict_mod.train(args.db, args.prev_db, season, prev_season,
+                                  model_path=model_path, seed=args.seed)
+            print(f"trained on {m['rows']} rows x {m['features']} features")
+            print(f"  MAE {m['mae']:.3f}   baseline {m['baseline_mae']:.3f}"
+                  f"   corr {m['corr']:.3f}   trees {m['best_iteration']}")
+            print(f"  wrote {model_path}")
+            return 0
+
+        gw = args.gw
+        if gw is None:
+            row = conn.execute(
+                "SELECT id FROM gameweeks WHERE is_next = 1").fetchone()
+            gw = row[0] if row else None
+        if gw is None:
+            print("Could not determine the next gameweek; pass --gw", file=sys.stderr)
+            return 1
+        if not Path(model_path).exists():
+            print(f"No model at {model_path} — run `fpl train` first", file=sys.stderr)
+            return 1
+        rows = predict_mod.predict_event(args.db, args.prev_db, season, prev_season,
+                                         gw, model_path=model_path,
+                                         write=not args.no_write)
+        if not rows:
+            print(f"No fixtures for GW{gw}", file=sys.stderr)
+            return 1
+        names = {r[0]: (r[1], r[2]) for r in conn.execute(
+            "SELECT p.id, p.web_name, t.short_name FROM players p "
+            "JOIN teams t ON t.id = p.team_id")}
+        print(f"GW{gw} predictions ({len(rows)} players"
+              + ("" if args.no_write else ", stored in `predictions`") + ")\n")
+        for r in rows[:args.top]:
+            n, tm = names.get(r["element"], ("?", "?"))
+            print(f"  {r['predicted_points']:5.2f}  {n[:18]:19}{tm:4}"
+                  f" {'H' if r['was_home'] else 'A'} v {r['opponent']}")
+
+    elif args.command == "understat":
+        import sqlite3
+        from . import understat as understat_mod
+        from .seal import check_db_writable
+        if not args.db.exists():
+            print(f"DB not found: {args.db}", file=sys.stderr)
+            return 1
+        conn = sqlite3.connect(args.db)
+        season = args.season or _infer_season(conn)
+        if season is None:
+            print("Could not infer the season; pass --season", file=sys.stderr)
+            return 1
+        info = understat_mod.freshness(conn, season)
+        if args.check:
+            print(f"season {info['season']}: understat up to {info['understat_latest']}, "
+                  f"FPL settled up to {info['fpl_latest_finished']} "
+                  f"({info['player_matches']} player-matches)")
+            if info["stale"]:
+                print("STALE — run `fpl understat` before building features",
+                      file=sys.stderr)
+                return 1
+            print("up to date")
+            return 0
+        check_db_writable(args.db, force=args.force_unsealed)
+        res = understat_mod.scrape_season(
+            conn, season, league=args.league,
+            with_player_matches=not args.skip_player_matches)
+        conn.commit()
+        after = understat_mod.freshness(conn, season)
+        print(f"understat {season}: " +
+              ", ".join(f"{k} {v}" for k, v in res.items()))
+        print(f"  now up to {after['understat_latest']} "
+              f"(FPL settled up to {after['fpl_latest_finished']})"
+              + ("  STILL STALE" if after["stale"] else ""))
 
     elif args.command == "shell":
         import subprocess
