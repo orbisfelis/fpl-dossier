@@ -1915,6 +1915,17 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
     # --- Ride or Die: longest unbroken run holding a single player ---
     elt_names = {r["id"]: r["web_name"]
                  for r in _rows(conn.execute("SELECT id, web_name FROM players"))}
+    # A Free Hit swaps the whole squad for one gameweek and reverts it after, so
+    # manager_picks holds the temporary side and a player kept throughout simply
+    # vanishes for that event. Nothing was sold, so the run should survive it.
+    freehits: dict[int, set[int]] = {}
+    for r in _rows(conn.execute("""
+        SELECT mc.entry_id, mc.event
+        FROM manager_chips mc
+        JOIN managers m ON m.entry_id = mc.entry_id
+        WHERE m.league_id = ? AND mc.chip = 'freehit' AND mc.event <= ?
+    """, (league_id, event))):
+        freehits.setdefault(r["entry_id"], set()).add(r["event"])
     hold_rows = _rows(conn.execute("""
         SELECT mp.entry_id, mp.element, mp.event
         FROM manager_picks mp
@@ -1925,9 +1936,17 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
     ride: dict[int, tuple] = {}
     for (eid, element), grp in groupby(hold_rows, key=lambda r: (r["entry_id"], r["element"])):
         evs = [g["event"] for g in grp]
+        fh = freehits.get(eid, frozenset())
         longest = cur = 1
         for a, b in zip(evs, evs[1:]):
-            cur = cur + 1 if b == a + 1 else 1
+            if b == a + 1:
+                cur += 1
+            elif all(g in fh for g in range(a + 1, b)):
+                # Every week of the gap was a Free Hit: the player was held the
+                # whole time, so those weeks count towards the run too.
+                cur += b - a
+            else:
+                cur = 1
             longest = max(longest, cur)
         if longest > ride.get(eid, (0, None))[0]:
             ride[eid] = (longest, element)
