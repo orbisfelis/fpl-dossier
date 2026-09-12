@@ -196,6 +196,7 @@ class FeatureStore:
         # from matches before the fixture being predicted, blended with the
         # prior season's final table until enough of the current one is played.
         self._rank_cache: dict[str | None, dict[str, int]] = {}
+        self._def_rank_cache: dict[str | None, dict[str, int]] = {}
         self._season_starts: dict[str, str] = {}
         for club, rows in self.team_hist.items():
             for m in rows:
@@ -265,6 +266,60 @@ class FeatureStore:
         self._rank_cache[as_of] = out
         return out
 
+    def _xga_table(self, season: str, before: str | None):
+        """Mean expected goals conceded per match, per club, up to `before`."""
+        tot: dict[str, float] = defaultdict(float)
+        played: dict[str, int] = defaultdict(int)
+        for club, rows in self.team_hist.items():
+            for m in rows:
+                if m["season"] != season:
+                    continue
+                if before and m["date"] >= before:
+                    continue
+                v = m.get("xga")
+                if v is None:
+                    continue
+                tot[club] += v
+                played[club] += 1
+        return ({c: tot[c] / played[c] for c in tot if played[c]}, played)
+
+    def _def_rank_as_of(self, as_of: str | None) -> dict[str, int]:
+        """Defensive strength as a 1-20 rank, 1 = fewest expected goals conceded.
+
+        The league-position feature already carries overall quality, but a side
+        can be mid-table and defend well (or lead the league by outscoring
+        everyone). Expected goals conceded is the direct signal for how hard a
+        team is to score against, and it was previously only visible to the
+        model spread thinly across ten windowed `opponent xga` columns. Blended
+        with the prior season on the same schedule as the league table, since
+        three matches of xGA is mostly noise.
+        """
+        if as_of in self._def_rank_cache:
+            return self._def_rank_cache[as_of]
+        season = self._season_for(as_of)
+        clubs = sorted({c for c, rows in self.team_hist.items()
+                        if any(m["season"] == season for m in rows)})
+        cur_xga, cur_played = self._xga_table(season, as_of)
+
+        prev_rank: dict[str, int] = {}
+        if season == self.cur_season:
+            prev_xga, _ = self._xga_table(self.prev_season, None)
+            for i, (c, _) in enumerate(
+                    sorted(prev_xga.items(), key=lambda kv: kv[1]), 1):
+                prev_rank[c] = i
+
+        worst = max(cur_xga.values(), default=0.0) + 1.0
+        live = {c: i for i, c in enumerate(
+            sorted(clubs, key=lambda c: cur_xga.get(c, worst)), 1)}
+        n = max(cur_played.values()) if cur_played else 0
+        w = min(n / self.RANK_SETTLES_AFTER, 1.0)
+        blended = {c: w * live[c] + (1 - w) * prev_rank.get(c, self.PROMOTED_PRIOR)
+                   for c in clubs}
+        out = {c: i for i, (c, _) in enumerate(
+            sorted(blended.items(), key=lambda kv: kv[1]), 1)}
+        self._def_rank_cache[as_of] = out
+        return out
+
     # ----- assembly ------------------------------------------------------
     def features(self, element: int, club: str, opponent: str, home: bool,
                  availability: float, as_of: str | None = None,
@@ -312,6 +367,11 @@ class FeatureStore:
             f[f"team opponent league rank {w}"] = rank.get(opponent)
         f["status team league rank"] = rank.get(club)
         f["status opponent league rank"] = rank.get(opponent)
+        # How hard each side is to score against, as one ordinal the trees can
+        # split on cleanly — see _def_rank_as_of.
+        drank = self._def_rank_as_of(as_of)
+        f["status team defensive rank"] = drank.get(club)
+        f["status opponent defensive rank"] = drank.get(opponent)
         # The paper describes this as a percentage, but the shipped scaler was
         # fit on 0-1 (data_min_=0.0, data_max_=1.0). Passing 0-100 puts every
         # value far outside the trained range, where the trees saturate and the
