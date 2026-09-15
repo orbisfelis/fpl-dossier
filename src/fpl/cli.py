@@ -107,6 +107,10 @@ def main(argv: list[str] | None = None) -> int:
                     help="Season label for the docs/<season>/ folder (default: derived, e.g. 25-26)")
     pp.add_argument("--docs", type=Path, default=DEFAULT_DOCS,
                     help=f"GitHub Pages output dir (default: {DEFAULT_DOCS})")
+    pp.add_argument("--allow-provisional", action="store_true",
+                    help="Publish even if FPL has not settled the gameweek. Auto-subs "
+                         "land with the data_checked flag, so before it anyone who "
+                         "started a non-playing player is short their bench points")
     _add_narrative_opts(pp)
 
     # seal -----------------------------------------------------------------
@@ -299,6 +303,7 @@ def _dispatch(args, parser) -> int:
             season=args.season, event=args.gw, all_gws=args.all_gws,
             narrative=args.narrative, refresh_narrative=args.refresh_narrative,
             prev_db=args.prev_db, force_unsealed=args.force_unsealed,
+            allow_provisional=args.allow_provisional,
         )
         print(f"Published to: {season_dir} (manifest + index.html updated)")
 

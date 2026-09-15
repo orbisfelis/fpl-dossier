@@ -153,12 +153,62 @@ def generate_report(db_path: Path, output: Path, league_id: int,
 # GitHub Pages publishing
 # ---------------------------------------------------------------------------
 
+class ProvisionalGameweekError(RuntimeError):
+    """Raised when something tries to publish a gameweek FPL has not settled."""
+
+
+def gameweek_settled(db_path: Path, event: int) -> bool | None:
+    """Has FPL finished settling this gameweek?
+
+    True/False from the event's ``data_checked`` flag, or None when we cannot
+    tell — the gameweek predates the column, or has no row at all (GW0).
+    """
+    try:
+        conn = sqlite3.connect(db_path)
+    except sqlite3.Error:
+        return None
+    try:
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(gameweeks)")}
+        if "data_checked" not in cols:
+            return None
+        row = conn.execute(
+            "SELECT data_checked FROM gameweeks WHERE id = ?", (event,)).fetchone()
+    except sqlite3.Error:
+        return None
+    finally:
+        conn.close()
+    if not row or row[0] is None:
+        return None
+    return bool(row[0])
+
+
+def check_gameweek_settled(db_path: Path, event: int, force: bool = False) -> None:
+    """Refuse to publish a gameweek FPL has not finished settling.
+
+    Every fixture having a score is not the end of the week. FPL applies
+    automatic substitutions only once it marks the event ``data_checked``, so
+    between the final whistle and that flag a manager who started someone who
+    did not play is still short their bench replacement's points. Publishing in
+    that window ships a table that is quietly wrong, and the page carries no
+    sign of it — which is exactly how it gets missed.
+    """
+    if force or gameweek_settled(db_path, event) is not False:
+        return
+    raise ProvisionalGameweekError(
+        f"GW{event} is not settled yet: FPL has not set data_checked, so "
+        f"automatic substitutions have not been applied and scores for anyone "
+        f"who started a non-playing player are understated. Wait for the flag "
+        f"(re-run `fpl scrape` to refresh it), or pass --allow-provisional to "
+        f"publish anyway.")
+
+
 def publish_reports(db_path: Path, league_id: int, docs_dir: Path,
                     season: str | None = None, event: int | None = None,
                     all_gws: bool = False, narrative: str = "auto",
                     refresh_narrative: bool = False,
                     prev_db: Path | None = None,
-                    force_unsealed: bool = False) -> Path:
+                    force_unsealed: bool = False,
+                    allow_provisional: bool = False) -> Path:
     """Render HTML report(s) into ``docs/<season>/GW<N>.html``, then rebuild the
     manifest and the root ``index.html`` redirect that drive the GW/season
     dropdown on GitHub Pages."""
@@ -173,13 +223,21 @@ def publish_reports(db_path: Path, league_id: int, docs_dir: Path,
         raise RuntimeError(f"No gameweek data found for league {league_id}")
 
     if all_gws:
-        targets = events
+        # A backfill should not be held up by the week currently in flight;
+        # drop it and say so, rather than refusing the whole archive.
+        targets = []
+        for ev in events:
+            if allow_provisional or gameweek_settled(db_path, ev) is not False:
+                targets.append(ev)
+            else:
+                log.warning("GW%d not settled yet (no data_checked) — skipping", ev)
     elif event is not None:
         targets = [event]
     else:
         targets = [max(events)]
 
     for ev in targets:
+        check_gameweek_settled(db_path, ev, force=allow_provisional)
         generate_report(db_path, season_dir / f"GW{ev}.html", league_id,
                         ev, fmt="html", season=season, narrative=narrative,
                         refresh_narrative=refresh_narrative, prev_db=prev_db)
