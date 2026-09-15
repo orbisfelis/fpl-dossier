@@ -149,10 +149,16 @@ class FeatureStore:
         for season, table, link in ((self.cur_season, "player_gameweeks", self.link_cur),
                                     (self.prev_season, "prev.player_gameweeks", self.link_prev)):
             rev = {v: k for k, v in link.items()}
+            # FPL creates a player_gameweeks row for every fixture in the live
+            # gameweek, zeroed, before a ball is kicked. Those rows are not
+            # blanks — the match has not happened — and letting them into the
+            # short windows reads as a player who has just stopped playing.
+            # A fixture that has kicked off has a score, provisional or final.
             for r in self.conn.execute(f"""
                     SELECT g.*, f.kickoff_time ko FROM {table} g
-                    LEFT JOIN {'fixtures' if season == self.cur_season else 'prev.fixtures'} f
-                      ON f.id = g.fixture"""):
+                    JOIN {'fixtures' if season == self.cur_season else 'prev.fixtures'} f
+                      ON f.id = g.fixture
+                    WHERE f.team_h_score IS NOT NULL"""):
                 uid = link.get(r["element"])
                 if uid is None:
                     continue
