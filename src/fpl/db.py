@@ -45,7 +45,8 @@ CREATE TABLE IF NOT EXISTS gameweeks (
     is_current              INTEGER,
     is_next                 INTEGER,
     average_entry_score     INTEGER,
-    highest_score           INTEGER
+    highest_score           INTEGER,
+    data_checked            INTEGER                     -- FPL has run auto-subs
 );
 
 CREATE TABLE IF NOT EXISTS fixtures (
@@ -244,6 +245,9 @@ class Store:
         managers = {r[1] for r in self.conn.execute("PRAGMA table_info(managers)")}
         if managers and "left_at" not in managers:
             self.conn.execute("ALTER TABLE managers ADD COLUMN left_at TEXT")
+        gws = {r[1] for r in self.conn.execute("PRAGMA table_info(gameweeks)")}
+        if gws and "data_checked" not in gws:
+            self.conn.execute("ALTER TABLE gameweeks ADD COLUMN data_checked INTEGER")
 
     # ----- Reference -----
 
@@ -274,11 +278,12 @@ class Store:
         self.conn.executemany(
             """INSERT OR REPLACE INTO gameweeks
                 (id, name, deadline_time, finished, is_current, is_next,
-                 average_entry_score, highest_score)
-                VALUES (?,?,?,?,?,?,?,?)""",
+                 average_entry_score, highest_score, data_checked)
+                VALUES (?,?,?,?,?,?,?,?,?)""",
             [(e["id"], e["name"], e["deadline_time"], int(e["finished"]),
               int(e["is_current"]), int(e["is_next"]),
-              e.get("average_entry_score"), e.get("highest_score")) for e in events],
+              e.get("average_entry_score"), e.get("highest_score"),
+              int(e.get("data_checked") or 0)) for e in events],
         )
 
     def upsert_fixtures(self, fixtures: Iterable[dict]) -> None:
