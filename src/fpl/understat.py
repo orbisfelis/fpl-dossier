@@ -233,3 +233,30 @@ def scrape_season(conn: sqlite3.Connection, season: str, league: str = "EPL",
     conn.commit()
     return {"teams": len(teams), "team_matches": n_tm,
             "players": len(players), "player_matches": n_pm}
+
+
+def freshness(conn: sqlite3.Connection, season: str) -> dict:
+    """How far Understat trails the fixtures FPL has already settled.
+
+    Understat ingests a match some hours after it finishes, so a feature vector
+    built too eagerly gets NULLs in its 1-match windows while the longer ones
+    quietly carry stale means. That is invisible downstream — the columns exist
+    and look plausible — so callers should check this before building features.
+    """
+    row = conn.execute(
+        "SELECT MAX(date) FROM understat_player_matches WHERE season = ?",
+        (season,)).fetchone()
+    us_latest = row[0] if row else None
+    row = conn.execute(
+        "SELECT MAX(substr(kickoff_time, 1, 10)) FROM fixtures WHERE finished = 1"
+    ).fetchone()
+    fpl_latest = row[0] if row else None
+    return {
+        "season": season,
+        "understat_latest": us_latest,
+        "fpl_latest_finished": fpl_latest,
+        "stale": bool(us_latest and fpl_latest and us_latest < fpl_latest),
+        "player_matches": conn.execute(
+            "SELECT COUNT(*) FROM understat_player_matches WHERE season = ?",
+            (season,)).fetchone()[0],
+    }

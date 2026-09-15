@@ -1,3 +1,11 @@
 httpx>=0.27
 jinja2>=3.1
 anthropic>=0.49
+
+# Prediction model (fpl train / fpl predict). Kept as lower bounds so the
+# container tracks the versions the model was developed against; the saved
+# booster is JSON, so it survives xgboost upgrades.
+numpy>=2.0
+pandas>=2.2
+scikit-learn>=1.5
+xgboost>=2.1
