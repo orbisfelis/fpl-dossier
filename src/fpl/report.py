@@ -157,49 +157,34 @@ class ProvisionalGameweekError(RuntimeError):
     """Raised when something tries to publish a gameweek FPL has not settled."""
 
 
-def gameweek_settled(db_path: Path, event: int) -> bool | None:
-    """Has FPL finished settling this gameweek?
-
-    True/False from the event's ``data_checked`` flag, or None when we cannot
-    tell — the gameweek predates the column, or has no row at all (GW0).
-    """
-    try:
-        conn = sqlite3.connect(db_path)
-    except sqlite3.Error:
-        return None
-    try:
-        cols = {r[1] for r in conn.execute("PRAGMA table_info(gameweeks)")}
-        if "data_checked" not in cols:
-            return None
-        row = conn.execute(
-            "SELECT data_checked FROM gameweeks WHERE id = ?", (event,)).fetchone()
-    except sqlite3.Error:
-        return None
-    finally:
-        conn.close()
-    if not row or row[0] is None:
-        return None
-    return bool(row[0])
-
-
-def check_gameweek_settled(db_path: Path, event: int, force: bool = False) -> None:
-    """Refuse to publish a gameweek FPL has not finished settling.
+def check_gameweek_settled(db_path: Path, event: int, league_id: int | None = None,
+                          force: bool = False) -> None:
+    """Refuse to publish a gameweek that is still settling.
 
     Every fixture having a score is not the end of the week. FPL applies
-    automatic substitutions only once it marks the event ``data_checked``, so
-    between the final whistle and that flag a manager who started someone who
-    did not play is still short their bench replacement's points. Publishing in
-    that window ships a table that is quietly wrong, and the page carries no
-    sign of it — which is exactly how it gets missed.
+    automatic substitutions in its own time afterwards, and until it has, a
+    manager who started a player who did not appear is short their bench
+    replacement's points — the API reports an empty ``automatic_subs`` and a
+    total that is quietly too low.
+
+    The flag to wait for is not obvious. ``data_checked`` marks FPL's final
+    settlement, but the substitutions land before it, so gating on that alone
+    blocks perfectly good pages for hours. Check the squads instead: an
+    outstanding substitution is the thing that actually makes the table wrong.
     """
-    if force or gameweek_settled(db_path, event) is not False:
+    if force:
         return
+    from .autosubs import pending
+    owed = pending(db_path, event, league_id)
+    if not owed:
+        return
+    n = len(owed)
     raise ProvisionalGameweekError(
-        f"GW{event} is not settled yet: FPL has not set data_checked, so "
-        f"automatic substitutions have not been applied and scores for anyone "
-        f"who started a non-playing player are understated. Wait for the flag "
-        f"(re-run `fpl scrape` to refresh it), or pass --allow-provisional to "
-        f"publish anyway.")
+        f"GW{event} is still settling: {n} manager{'s' if n > 1 else ''} "
+        f"{'have' if n > 1 else 'has'} an automatic substitution outstanding "
+        f"(up to {max(owed.values())} points), so the table would be published "
+        f"wrong. Re-run `fpl scrape` once FPL has applied them, or pass "
+        f"--allow-provisional to publish anyway.")
 
 
 def publish_reports(db_path: Path, league_id: int, docs_dir: Path,
@@ -225,19 +210,21 @@ def publish_reports(db_path: Path, league_id: int, docs_dir: Path,
     if all_gws:
         # A backfill should not be held up by the week currently in flight;
         # drop it and say so, rather than refusing the whole archive.
+        from .autosubs import pending
         targets = []
         for ev in events:
-            if allow_provisional or gameweek_settled(db_path, ev) is not False:
+            if allow_provisional or not pending(db_path, ev, league_id):
                 targets.append(ev)
             else:
-                log.warning("GW%d not settled yet (no data_checked) — skipping", ev)
+                log.warning("GW%d still settling (substitutions outstanding) "
+                            "— skipping", ev)
     elif event is not None:
         targets = [event]
     else:
         targets = [max(events)]
 
     for ev in targets:
-        check_gameweek_settled(db_path, ev, force=allow_provisional)
+        check_gameweek_settled(db_path, ev, league_id, force=allow_provisional)
         generate_report(db_path, season_dir / f"GW{ev}.html", league_id,
                         ev, fmt="html", season=season, narrative=narrative,
                         refresh_narrative=refresh_narrative, prev_db=prev_db)
