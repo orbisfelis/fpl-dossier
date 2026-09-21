@@ -2097,6 +2097,11 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
     bandwagon = dict(bandwagon_row) if bandwagon_row else None
 
     # --- Transfer Lab table (activity, hits, net, deadline-day habit) ---
+    # Wildcard and Free Hit swaps land in manager_transfers but are free and
+    # unlimited, and FPL does not count them: its own tally (event_transfers,
+    # and last_deadline_total_transfers on the entry) excludes those weeks. A
+    # manager who has wildcarded twice shows 30-odd rows here and "2" on his own
+    # team page. Count what FPL counts, or the column is meaningless.
     tx_behav = {r["entry_id"]: r for r in _rows(conn.execute("""
         SELECT mt.entry_id, COUNT(*) AS transfers,
                SUM(CASE WHEN mt.time IS NOT NULL AND g.deadline_time IS NOT NULL
@@ -2106,6 +2111,9 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
         JOIN managers m ON m.entry_id = mt.entry_id
         JOIN gameweeks g ON g.id = mt.event
         WHERE m.league_id = ? AND mt.event <= ?
+          AND NOT EXISTS (SELECT 1 FROM manager_chips mc
+                          WHERE mc.entry_id = mt.entry_id AND mc.event = mt.event
+                            AND mc.chip IN ('wildcard', 'freehit'))
         GROUP BY mt.entry_id
     """, (league_id, event)))}
     transfer_lab = []
@@ -2525,6 +2533,9 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
         FROM manager_transfers mt
         JOIN managers m ON m.entry_id = mt.entry_id
         WHERE m.league_id = ? AND mt.event <= ?
+          AND NOT EXISTS (SELECT 1 FROM manager_chips mc
+                          WHERE mc.entry_id = mt.entry_id AND mc.event = mt.event
+                            AND mc.chip IN ('wildcard', 'freehit'))
     """, (league_id, event))):
         rc = rage_counts[r["entry_id"]]
         rc[1] += 1
