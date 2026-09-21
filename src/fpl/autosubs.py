@@ -78,10 +78,15 @@ def pending_for_squad(squad: list[dict], chip: str | None) -> tuple[list[tuple],
             gained += sub["points"] * out["multiplier"]
             break
 
-    # A captain who did not play hands the armband to the vice.
+    # A captain who did not play hands the armband to the vice — but only if he
+    # is still holding it. Once FPL has moved it, or he was benched to begin
+    # with, his multiplier is no longer above 1 and there is nothing pending;
+    # reading that as an outstanding handover invents a negative adjustment and
+    # blocks a gameweek that has in fact long since settled.
     cap = next((p for p in squad if p["is_captain"]), None)
     vice = next((p for p in squad if p["is_vice_captain"]), None)
-    if cap and vice and cap["minutes"] <= 0 and vice["minutes"] > 0:
+    if (cap and vice and cap["multiplier"] > 1
+            and cap["minutes"] <= 0 and vice["minutes"] > 0):
         gained += vice["points"] * (cap["multiplier"] - 1)
         moves.append(("captain", cap, vice))
     return moves, gained
