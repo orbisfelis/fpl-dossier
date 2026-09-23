@@ -105,6 +105,27 @@ CREATE VIEW v_transfer_pnl AS
     GROUP BY mt.entry_id, mt.event;
 
 
+DROP VIEW IF EXISTS v_real_transfers;
+CREATE VIEW v_real_transfers AS
+    -- The transfers FPL actually counts. A Wildcard or Free Hit week is a squad
+    -- rebuild, not a run of transfer decisions: the moves are free, unlimited,
+    -- and arrive one row at a time including every intermediate state a manager
+    -- passed through while drafting. One GW3 wildcard left 48 rows covering 29
+    -- distinct players, 22 of whom were bought and sold again the same week --
+    -- Palmer in, Palmer out, Palmer in. FPL's own tallies (event_transfers, and
+    -- last_deadline_total_transfers on the entry) report 0 for those weeks, and
+    -- its transfer history is not a list of decisions anyone made.
+    -- Anything that counts or lists transfer decisions reads this; the raw
+    -- table stays for chip analysis, which wants the finished squad.
+    SELECT mt.*
+    FROM manager_transfers mt
+    WHERE NOT EXISTS (
+        SELECT 1 FROM manager_chips mc
+        WHERE mc.entry_id = mt.entry_id
+          AND mc.event = mt.event
+          AND mc.chip IN ('wildcard', 'freehit'));
+
+
 DROP VIEW IF EXISTS v_ownership_event;
 CREATE VIEW v_ownership_event AS
     -- League ownership per player per event (XI + bench, used for template).

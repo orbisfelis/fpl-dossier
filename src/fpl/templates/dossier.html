@@ -1133,6 +1133,8 @@
   {% else %}
   <p class="muted">No transfers this gameweek.</p>
   {% endif %}
+
+  <p class="stat-note">Wildcard and Free Hit rebuilds are left out: those swaps are free, unlimited, and FPL counts none of them.</p>
 </div>
 
 {# ==================== CAPTAIN'S CORNER ==================== #}
@@ -1423,6 +1425,8 @@
   {% else %}
   <p class="muted">No transfers this gameweek.</p>
   {% endif %}
+
+  <p class="stat-note">Wildcard and Free Hit rebuilds are left out: those swaps are free, unlimited, and FPL counts none of them.</p>
 </div>
 
 {# ==================== MANAGER OF THE MONTH ==================== #}
@@ -1692,11 +1696,11 @@
     {{ small_card("Bench Disaster", "Most points left on the bench", bench_disaster, "value", icon=icon_minus(), accent="red") }}
     {{ small_card("Hit Merchant", "Most points burned on -4 hits", hit_merchant, "value", icon=icon_minus(), accent="red") }}
     {{ small_card("Scrooge", "Most cash left rotting in the bank", scrooge, "value", icon=icon_pound(), value_fmt="value", accent="green") }}
-    {{ small_card("The Tinkerman", "Most transfers made all season", tinkerman, "value", icon=icon_plus(), accent="green") }}
+    {{ small_card("The Tinkerman", "Most transfers made all season (WC/FH aside)", tinkerman, "value", icon=icon_plus(), accent="green") }}
   </div>
 
   <div class="cards-row cards-4">
-    {{ small_card("Set &amp; Forget", "Fewest transfers made", set_and_forget, "value", icon=icon_shield(), accent="green") }}
+    {{ small_card("Set & Forget", "Fewest transfers made (WC/FH aside)", set_and_forget, "value", icon=icon_shield(), accent="green") }}
     {{ small_card("Mr Template", "Most template XI (avg league ownership)", mr_template, "value", value_fmt="pct", icon=icon_cotton(), accent="green") }}
     {{ small_card("The Hipster", "Least template XI", the_hipster, "value", value_fmt="pct", icon=icon_flame(), accent="green") }}
     {{ small_card("Captain Hindsight", "Most points lost to wrong captaincy", captain_hindsight, "value", icon=icon_captain(), accent="red") }}
