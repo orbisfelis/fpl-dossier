@@ -1041,8 +1041,8 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
     biggest_faller = min(leaderboard, key=lambda r: r["movement"] or 0)
 
     most_bought_row = conn.execute("""
-        SELECT p.web_name, COUNT(*) AS cnt
-        FROM manager_transfers mt
+        SELECT p.web_name, COUNT(DISTINCT mt.entry_id) AS cnt
+        FROM v_real_transfers mt
         JOIN managers m ON m.entry_id = mt.entry_id
         JOIN players p ON p.id = mt.element_in
         WHERE m.league_id = ? AND mt.event = ?
@@ -1050,8 +1050,8 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
     """, (league_id, event)).fetchone()
 
     most_sold_row = conn.execute("""
-        SELECT p.web_name, COUNT(*) AS cnt
-        FROM manager_transfers mt
+        SELECT p.web_name, COUNT(DISTINCT mt.entry_id) AS cnt
+        FROM v_real_transfers mt
         JOIN managers m ON m.entry_id = mt.entry_id
         JOIN players p ON p.id = mt.element_out
         WHERE m.league_id = ? AND mt.event = ?
@@ -1064,7 +1064,7 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
     gw_transfers = _rows(conn.execute("""
         SELECT m.entry_name, pin.web_name AS bought, pout.web_name AS sold,
                COALESCE(pin_pts.event_points, 0) - COALESCE(pout_pts.event_points, 0) AS net
-        FROM manager_transfers mt
+        FROM v_real_transfers mt
         JOIN managers m ON m.entry_id = mt.entry_id
         JOIN players pin ON pin.id = mt.element_in
         JOIN players pout ON pout.id = mt.element_out
@@ -1118,7 +1118,7 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
                GROUP_CONCAT(pout.web_name || ' (' || COALESCE(pout_pts.event_points, 0) || ')', ', ') AS sold,
                SUM(COALESCE(pin_pts.event_points, 0) - COALESCE(pout_pts.event_points, 0)) AS gross,
                mg.event_transfers_cost AS hits
-        FROM manager_transfers mt
+        FROM v_real_transfers mt
         JOIN managers m ON m.entry_id = mt.entry_id
         JOIN players pin ON pin.id = mt.element_in
         JOIN players pout ON pout.id = mt.element_out
@@ -1491,7 +1491,7 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
                COALESCE(pin_pts.event_points, 0) AS bought_pts,
                COALESCE(pout_pts.event_points, 0) AS sold_pts,
                COALESCE(pin_pts.event_points, 0) - COALESCE(pout_pts.event_points, 0) AS net
-        FROM manager_transfers mt
+        FROM v_real_transfers mt
         JOIN managers m ON m.entry_id = mt.entry_id
         JOIN players pin ON pin.id = mt.element_in
         JOIN players pout ON pout.id = mt.element_out
@@ -1775,17 +1775,32 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
         key=lambda r: r["value"], reverse=True)[:3]
 
     # --- Transfer counts (Tinkerman / Set & Forget) ---
+    # v_real_transfers, so this matches the number on a manager's own team page.
     tx_count = {r["entry_id"]: r["cnt"] for r in _rows(conn.execute("""
         SELECT mt.entry_id, COUNT(*) AS cnt
-        FROM manager_transfers mt
+        FROM v_real_transfers mt
         JOIN managers m ON m.entry_id = mt.entry_id
         WHERE m.league_id = ? AND mt.event <= ?
         GROUP BY mt.entry_id
     """, (league_id, event)))}
+    rebuilds = {r["entry_id"]: r["n"] for r in _rows(conn.execute("""
+        SELECT mc.entry_id, COUNT(*) AS n
+        FROM manager_chips mc
+        JOIN managers m ON m.entry_id = mc.entry_id
+        WHERE m.league_id = ? AND mc.event <= ?
+          AND mc.chip IN ('wildcard', 'freehit')
+        GROUP BY mc.entry_id
+    """, (league_id, event)))}
     tinker = [{"entry_name": _name(eid)[0], "player_name": _name(eid)[1],
-               "value": tx_count.get(eid, 0)} for eid in series]
+               "value": tx_count.get(eid, 0), "rebuilds": rebuilds.get(eid, 0)}
+              for eid in series]
     tinkerman = sorted(tinker, key=lambda r: r["value"], reverse=True)[:3]
-    set_and_forget = sorted(tinker, key=lambda r: r["value"])[:3]
+    # A rebuild week costs nothing and counts nothing, so a manager who
+    # wildcarded his whole squad shows 0 here and would walk the award for
+    # leaving his team alone. Break the tie on rebuilds: among managers FPL
+    # says made the same number of transfers, the one who never tore the
+    # squad up is the one who actually set and forgot.
+    set_and_forget = sorted(tinker, key=lambda r: (r["value"], r["rebuilds"]))[:3]
 
     # --- Rank trajectory table (green vs red arrows) ---
     rank_traj = []
@@ -2085,8 +2100,8 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
     """, (event, league_id)))
 
     bandwagon_row = conn.execute("""
-        SELECT p.web_name, t.short_name AS team, mt.event, COUNT(*) AS cnt
-        FROM manager_transfers mt
+        SELECT p.web_name, t.short_name AS team, mt.event, COUNT(DISTINCT mt.entry_id) AS cnt
+        FROM v_real_transfers mt
         JOIN managers m ON m.entry_id = mt.entry_id
         JOIN players p ON p.id = mt.element_in
         JOIN teams t ON t.id = p.team_id
@@ -2097,23 +2112,15 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
     bandwagon = dict(bandwagon_row) if bandwagon_row else None
 
     # --- Transfer Lab table (activity, hits, net, deadline-day habit) ---
-    # Wildcard and Free Hit swaps land in manager_transfers but are free and
-    # unlimited, and FPL does not count them: its own tally (event_transfers,
-    # and last_deadline_total_transfers on the entry) excludes those weeks. A
-    # manager who has wildcarded twice shows 30-odd rows here and "2" on his own
-    # team page. Count what FPL counts, or the column is meaningless.
     tx_behav = {r["entry_id"]: r for r in _rows(conn.execute("""
         SELECT mt.entry_id, COUNT(*) AS transfers,
                SUM(CASE WHEN mt.time IS NOT NULL AND g.deadline_time IS NOT NULL
                         AND (julianday(g.deadline_time) - julianday(mt.time)) * 24 <= 3
                         THEN 1 ELSE 0 END) AS last_minute
-        FROM manager_transfers mt
+        FROM v_real_transfers mt
         JOIN managers m ON m.entry_id = mt.entry_id
         JOIN gameweeks g ON g.id = mt.event
         WHERE m.league_id = ? AND mt.event <= ?
-          AND NOT EXISTS (SELECT 1 FROM manager_chips mc
-                          WHERE mc.entry_id = mt.entry_id AND mc.event = mt.event
-                            AND mc.chip IN ('wildcard', 'freehit'))
         GROUP BY mt.entry_id
     """, (league_id, event)))}
     transfer_lab = []
@@ -2530,12 +2537,9 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
     rage_counts: dict[int, list[int]] = defaultdict(lambda: [0, 0])   # [rage, total]
     for r in _rows(conn.execute("""
         SELECT mt.entry_id, mt.event, mt.time
-        FROM manager_transfers mt
+        FROM v_real_transfers mt
         JOIN managers m ON m.entry_id = mt.entry_id
         WHERE m.league_id = ? AND mt.event <= ?
-          AND NOT EXISTS (SELECT 1 FROM manager_chips mc
-                          WHERE mc.entry_id = mt.entry_id AND mc.event = mt.event
-                            AND mc.chip IN ('wildcard', 'freehit'))
     """, (league_id, event))):
         rc = rage_counts[r["entry_id"]]
         rc[1] += 1
