@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS players (
     total_points            INTEGER,
     form                    REAL,
     status                  TEXT,
+    chance_of_playing_next  INTEGER,                    -- FPL's %, NULL when unflagged
     ep_next                 REAL,                       -- FPL's expected points, next GW
     code                    INTEGER                     -- stable across seasons (unlike id)
 );
@@ -237,6 +238,9 @@ class Store:
             self.conn.execute("ALTER TABLE players ADD COLUMN ep_next REAL")
         if "code" not in players:
             self.conn.execute("ALTER TABLE players ADD COLUMN code INTEGER")
+        if "chance_of_playing_next" not in players:
+            self.conn.execute(
+                "ALTER TABLE players ADD COLUMN chance_of_playing_next INTEGER")
         past = {r[1] for r in self.conn.execute(
             "PRAGMA table_info(manager_past_seasons)")}
         if past and "rank_percentage" not in past:
@@ -262,8 +266,8 @@ class Store:
             """INSERT OR REPLACE INTO players
                 (id, web_name, first_name, second_name, team_id, element_type,
                  now_cost, selected_by_percent, total_points, form, status, ep_next,
-                 code)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                 code, chance_of_playing_next)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             [(p["id"], p["web_name"], p.get("first_name"), p.get("second_name"),
               p["team"], p["element_type"], p["now_cost"],
               _to_float(p.get("selected_by_percent")),
@@ -271,7 +275,8 @@ class Store:
               _to_float(p.get("form")),
               p.get("status"),
               _to_float(p.get("ep_next")),
-              p.get("code")) for p in players],
+              p.get("code"),
+              p.get("chance_of_playing_next_round")) for p in players],
         )
 
     def upsert_gameweeks(self, events: Iterable[dict]) -> None:
