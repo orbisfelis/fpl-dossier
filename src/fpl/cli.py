@@ -10,7 +10,10 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .scrape import run_scrape
+import httpx
+
+from .client import FPLClient
+from .scrape import TIMEOUT, USER_AGENT, run_scrape
 from .report import generate_report, publish_reports
 
 def _load_dotenv(path: Path = Path(".env")) -> None:
@@ -219,8 +222,19 @@ def main(argv: list[str] | None = None) -> int:
                            help="Model path (default: data/models/openfpl.json)")
 
     tr = subparsers.add_parser("train", parents=[common, tp_common],
-                               help="Fit the points model on last season's matches")
-    tr.add_argument("--seed", type=int, default=0)
+                               help="Fit the points model on last season and this "
+                                    "season's completed matches")
+
+    bt = subparsers.add_parser("backtest", parents=[common, tp_common],
+                               help="Score past gameweeks walk-forward")
+    bt.add_argument("--from-gw", type=int, default=3)
+    bt.add_argument("--to-gw", type=int, required=True)
+
+    od = subparsers.add_parser("odds", parents=[common],
+                               help="Log bookmaker prices from a CSV")
+    od.add_argument("--gw", type=int, required=True)
+    od.add_argument("--file", type=Path, required=True,
+                    help="CSV with columns market,subject,decimal_odds[,source]")
 
     pr = subparsers.add_parser("predict", parents=[common, tp_common],
                                help="Predict a gameweek and store it in the DB")
@@ -230,6 +244,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="How many rows to print (default: 30)")
     pr.add_argument("--no-write", action="store_true", dest="no_write",
                     help="Print only; do not write the predictions table")
+    pr.add_argument("--no-refresh", action="store_true", dest="no_refresh",
+                    help="Use injury flags from the last scrape, not live from FPL")
 
     # understat --------------------------------------------------------------
     ut = subparsers.add_parser("understat", parents=[common],
@@ -263,6 +279,13 @@ def main(argv: list[str] | None = None) -> int:
     except SealedError as exc:
         print(f"refused: {exc}", file=sys.stderr)
         return 2
+
+
+async def _live_state(predict_mod) -> tuple[dict, int | None]:
+    async with httpx.AsyncClient(timeout=TIMEOUT,
+                                 headers={"User-Agent": USER_AGENT}) as client:
+        fpl = FPLClient(client, asyncio.Semaphore(1))
+        return predict_mod.live_state(await fpl.bootstrap())
 
 
 def _infer_season(conn) -> str | None:
@@ -392,7 +415,18 @@ def _dispatch(args, parser) -> int:
             return 1
         print(f"Wrote: {path}\nDigest: {path.with_suffix('.md')}")
 
-    elif args.command in ("train", "predict"):
+    elif args.command == "odds":
+        from . import predict as predict_mod
+        if not args.db.exists():
+            print(f"DB not found: {args.db}", file=sys.stderr)
+            return 1
+        stored, unmatched = predict_mod.import_odds(args.db, args.gw, args.file)
+        print(f"Stored {stored} prices for GW{args.gw}")
+        if unmatched:
+            print("No player or team match, so not linked: " + ", ".join(unmatched),
+                  file=sys.stderr)
+
+    elif args.command in ("train", "predict", "backtest"):
         import sqlite3
         from . import predict as predict_mod
         from . import understat as understat_mod
@@ -422,11 +456,24 @@ def _dispatch(args, parser) -> int:
 
         if args.command == "train":
             m = predict_mod.train(args.db, args.prev_db, season, prev_season,
-                                  model_path=model_path, seed=args.seed)
-            print(f"trained on {m['rows']} rows x {m['features']} features")
-            print(f"  MAE {m['mae']:.3f}   baseline {m['baseline_mae']:.3f}"
-                  f"   corr {m['corr']:.3f}   trees {m['best_iteration']}")
-            print(f"  wrote {model_path}")
+                                  model_path=model_path)
+            h = m["holdout"]
+            print(f"trained on {m['rows']} rows ({m['current_season_rows']} this season)"
+                  f" x {m['features']} features")
+            print(f"  matches from {h['from']}, held out: MAE {h['mae_raw']:.3f} raw,"
+                  f" {h['mae_calibrated']:.3f} calibrated")
+            print(f"  wrote {model_path.with_suffix('.meta.json')} and the stage models")
+            return 0
+
+        if args.command == "backtest":
+            results = predict_mod.backtest(args.db, args.prev_db, season, prev_season,
+                                           args.from_gw, args.to_gw)
+            print("  GW   MAE  rank  top20   projected 4+ (n, projected, scored)")
+            for r in results:
+                high = (f"{r['high_players']:3}  {r['high_projected']:.2f}  {r['high_points']:.2f}"
+                        if r["high_players"] else "  0")
+                print(f"  {r['event']:2}  {r['mae']:.2f}  {r['rank_corr']:.2f}"
+                      f"  {r['top20_points']:5.2f}   {high}")
             return 0
 
         gw = args.gw
@@ -437,12 +484,20 @@ def _dispatch(args, parser) -> int:
         if gw is None:
             print("Could not determine the next gameweek; pass --gw", file=sys.stderr)
             return 1
-        if not Path(model_path).exists():
+        if not Path(model_path).with_suffix(".meta.json").exists():
             print(f"No model at {model_path} — run `fpl train` first", file=sys.stderr)
             return 1
+        flags, next_event = None, None
+        if not args.no_refresh:
+            try:
+                flags, next_event = asyncio.run(_live_state(predict_mod))
+            except httpx.HTTPError as e:
+                print(f"warning: could not fetch live flags ({e}); using the last scrape",
+                      file=sys.stderr)
         rows = predict_mod.predict_event(args.db, args.prev_db, season, prev_season,
                                          gw, model_path=model_path,
-                                         write=not args.no_write)
+                                         write=not args.no_write,
+                                         flags=flags, next_event=next_event)
         if not rows:
             print(f"No fixtures for GW{gw}", file=sys.stderr)
             return 1
@@ -453,8 +508,16 @@ def _dispatch(args, parser) -> int:
               + ("" if args.no_write else ", stored in `predictions`") + ")\n")
         for r in rows[:args.top]:
             n, tm = names.get(r["element"], ("?", "?"))
+            flag = "" if r["availability"] == 1 else f"  flagged {r['availability']:.0%}"
             print(f"  {r['predicted_points']:5.2f}  {n[:18]:19}{tm:4}"
-                  f" {'H' if r['was_home'] else 'A'} v {r['opponent']}")
+                  f" {'H' if r['was_home'] else 'A'} v {r['opponent']}"
+                  f"  starts {r['start_chance']:.0%}{flag}")
+        print("\nCaptain shortlist (anytime-scorer odds if logged, else ownership):")
+        for r in predict_mod.captain_shortlist(args.db, gw, rows, flags):
+            n, tm = names.get(r["element"], ("?", "?"))
+            odds = f"  anytime {r['anytime']:.0%}" if r["anytime"] else ""
+            print(f"  {n[:18]:19}{tm:4} owned {r['own']:5.1f}%"
+                  f"  projected {r['predicted_points']:.2f}{odds}")
 
     elif args.command == "understat":
         import sqlite3
