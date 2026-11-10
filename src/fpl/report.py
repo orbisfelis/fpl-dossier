@@ -492,6 +492,10 @@ _NARRATIVE_SYSTEM = (
     "4. nerd — dry, analytical observations: the league vs the wider FPL world, "
     "the template-XI benchmark, defensive-contribution points, and the xPts luck "
     "story.\n\n"
+    "Before calling a manager's picks template or crowd-following, check "
+    "`running_storylines.early_calls_in_squad`: a player they bought before the "
+    "crowd did is to their credit, however popular he is now, and "
+    "`trendsetters` names the league's best early movers.\n\n"
     "CONTINUITY IS THE WHOLE POINT. The JSON includes a `season` block (standings, "
     "the title-race margin, gameweeks remaining, form, and `running_storylines`) "
     "and, when available, `story_so_far` — last week's column. Use them:\n"
@@ -714,6 +718,97 @@ def write_narrative(facts: dict, league_id: int, event: int, db_path: Path,
     finally:
         cache.close()
 
+
+
+# ---------------------------------------------------------------------------
+# The Trendsetter: credit for buying players before the crowd did
+# ---------------------------------------------------------------------------
+
+TREND_EARLY_MAX = 15.0     # global ownership % (week before purchase) to count as early
+TREND_TEMPLATE_MIN = 25.0  # ownership % the player must reach while still held
+TREND_HERD_SHARE = 1 / 3   # above this share of the league owning him by then, it's a stampede
+
+
+def _global_ownership(conn: sqlite3.Connection, event: int) -> dict[tuple[int, int], float]:
+    """Global ownership % per (element, event), from FPL's ``selected`` counts.
+
+    FPL doesn't publish the number of active teams per gameweek, so it is
+    estimated as the sum of every player's ``selected`` divided by 15. Rows are
+    per fixture, so a double gameweek is collapsed with MAX first."""
+    rows = _rows(conn.execute("""
+        SELECT element, event, MAX(selected) AS s FROM player_gameweeks
+        WHERE event <= ? AND selected IS NOT NULL
+        GROUP BY element, event""", (event,)))
+    teams: dict[int, int] = defaultdict(int)
+    for r in rows:
+        teams[r["event"]] += r["s"] or 0
+    return {(r["element"], r["event"]): 100.0 * (r["s"] or 0) * 15 / teams[r["event"]]
+            for r in rows if teams[r["event"]]}
+
+
+def _trendsetters(conn: sqlite3.Connection, event: int,
+                  owned: dict[int, dict[int, set[int]]],
+                  freehits: dict[int, set[int]]) -> dict[int, list[dict]]:
+    """Every early call per manager: a player bought while under
+    TREND_EARLY_MAX% owned who reached TREND_TEMPLATE_MIN% while still in the
+    squad. Free Hit weeks are skipped, since that squad reverts afterwards.
+
+    Each call records whether the manager was first in the league to own the
+    player and how many others bought him the same week, so a league-wide
+    stampede (16 managers buying the same player) can be told apart from a
+    lone hunch. A buy doesn't count once more than TREND_HERD_SHARE of the
+    league owns the player by that week: 4% globally means little when the
+    whole mini-league piles in together."""
+    own = _global_ownership(conn, event)
+    acquired: dict[int, list[tuple[int, int, list[int]]]] = defaultdict(list)
+    first_owned: dict[int, int] = {}
+    first_by_mgr: dict[int, dict[int, int]] = defaultdict(dict)
+    buys_by_week: dict[tuple[int, int], int] = defaultdict(int)
+    for eid, by_ev in owned.items():
+        fh = freehits.get(eid, set())
+        evs = [e for e in sorted(by_ev) if e not in fh]
+        prev: set[int] = set()
+        for i, ev in enumerate(evs):
+            squad = by_ev[ev]
+            for el in squad - prev:
+                held = []
+                for later in evs[i:]:
+                    if el not in by_ev[later]:
+                        break
+                    held.append(later)
+                acquired[eid].append((el, ev, held))
+                buys_by_week[(el, ev)] += 1
+            prev = squad
+        for ev, squad in by_ev.items():
+            for el in squad:
+                first_owned[el] = min(first_owned.get(el, ev), ev)
+                first_by_mgr[el][eid] = min(first_by_mgr[el].get(eid, ev), ev)
+    herd_cap = len(owned) * TREND_HERD_SHARE
+    calls: dict[int, list[dict]] = {}
+    for eid, buys in acquired.items():
+        out = []
+        for el, ev, held in buys:
+            then = own.get((el, max(ev - 1, 1)))
+            if then is None or then >= TREND_EARLY_MAX:
+                continue
+            peak = max((own.get((el, e), 0.0) for e in held), default=0.0)
+            if peak < TREND_TEMPLATE_MIN:
+                continue
+            league_then = sum(1 for f in first_by_mgr[el].values() if f <= ev)
+            if league_then > herd_cap:
+                continue
+            out.append({"element": el, "bought_gw": ev,
+                        "ownership_then": round(then, 1),
+                        "ownership_peak": round(peak, 1),
+                        "still_owned": event in held,
+                        "first_in_league": first_owned.get(el) == ev
+                        and buys_by_week[(el, ev)] == 1,
+                        "bought_same_week": buys_by_week[(el, ev)] - 1,
+                        "league_owners_then": league_then})
+        # Best call first: fewest league co-owners, then lowest global ownership.
+        out.sort(key=lambda c: (c["league_owners_then"], c["ownership_then"]))
+        calls[eid] = out
+    return calls
 
 # ---------------------------------------------------------------------------
 # Data collection
@@ -2454,6 +2549,23 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
     owned = {eid: {ev: {el for el, _m, _p in picks} for ev, picks in by_ev.items()}
              for eid, by_ev in squad15.items()}
 
+    # --- The Trendsetter + First to the Party ---
+    trend_calls = _trendsetters(conn, event, owned, freehits)
+
+    def _trend_rows(pred):
+        rows = []
+        for eid, cs in trend_calls.items():
+            hits = [c for c in cs if pred(c)]
+            if hits:
+                n = _name(eid)
+                rows.append({"entry_name": n[0], "player_name": n[1], "value": len(hits),
+                             "gain": sum(c["ownership_peak"] - c["ownership_then"] for c in hits)})
+        rows.sort(key=lambda r: (r["value"], r["gain"]), reverse=True)
+        return rows[:3]
+
+    trendsetter_top = _trend_rows(lambda c: True)
+    first_mover_top = _trend_rows(lambda c: c["first_in_league"])
+
     jinx_rows = []
     fomo_rows = []
     for eid, by_ev in owned.items():
@@ -2958,6 +3070,31 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
                                       for r in howlers[:2] if r["blanks"] >= 2],
                 "ghost_offenders": [{"team": _name(eid)[0], "ghost_starts": n}
                                     for eid, n in ghosts_ranked[:2] if n >= 3],
+                "trendsetters": [
+                    {"team": _name(eid)[0], "manager": _name(eid)[1],
+                     "early_calls": len(cs),
+                     "first_in_league": sum(1 for c in cs if c["first_in_league"]),
+                     "best_call": {"player": elt_names.get(cs[0]["element"]),
+                                   "bought_gw": cs[0]["bought_gw"],
+                                   "ownership_then_pct": cs[0]["ownership_then"],
+                                   "ownership_peak_pct": cs[0]["ownership_peak"]}}
+                    for eid, cs in sorted(
+                        trend_calls.items(), reverse=True,
+                        key=lambda kv: (len(kv[1]), sum(c["ownership_peak"] - c["ownership_then"]
+                                                        for c in kv[1])))[:3]
+                    if cs],
+                # Players in each current squad that the manager bought before
+                # they were popular: credit, not template, whatever they are now.
+                "early_calls_in_squad": {
+                    _name(eid)[0]: [
+                        f"{elt_names.get(c['element'])} (GW{c['bought_gw']}, "
+                        f"{c['ownership_then']:.0f}% then, {c['ownership_peak']:.0f}% peak"
+                        + (", first in league" if c["first_in_league"] else "")
+                        + (f", {c['bought_same_week']} others bought same week"
+                           if c["bought_same_week"] else "") + ")"
+                        for c in cs if c["still_owned"]]
+                    for eid, cs in trend_calls.items()
+                    if any(c["still_owned"] for c in cs)},
                 "most_weeks_on_top": ({"team": most_top["entry_name"],
                                        "weeks": most_top["weeks_first"]}
                                       if most_top and most_top["weeks_first"] else None),
@@ -3070,6 +3207,8 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
         "set_and_forget": set_and_forget,
         "mr_template": mr_template,
         "the_hipster": the_hipster,
+        "trendsetter_top": trendsetter_top,
+        "first_mover_top": first_mover_top,
         "lone_wolf": lone_wolf,
         "ride_or_die": ride_or_die,
         "captain_marvel": captain_marvel,
