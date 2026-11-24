@@ -2324,17 +2324,21 @@ def _collect_data(conn: sqlite3.Connection, league_id: int, event: int,
         r["pos"] = POS_LABEL.get(r["element_type"], "?")
 
     # --- Sliding Doors: last GW's XI scored on this GW vs what they did ---
+    # Only the XI (positions 1-11) and the captain at x2: a Bench Boost or
+    # Triple Captain last week gave bench players / the captain a multiplier,
+    # but standing pat doesn't replay the chip.
     sliding_doors = []
     if event > 1:
         actual_this = {r["entry_id"]: (r["points"] or 0) for r in leaderboard_raw}
         for r in _rows(conn.execute("""
             SELECT mp.entry_id,
-                   SUM(COALESCE(pev.event_points, 0) * mp.multiplier) AS standpat
+                   SUM(COALESCE(pev.event_points, 0) * MIN(mp.multiplier, 2)) AS standpat
             FROM manager_picks mp
             JOIN managers m ON m.entry_id = mp.entry_id
             LEFT JOIN v_player_event_points pev
               ON pev.element = mp.element AND pev.event = ?
             WHERE m.league_id = ? AND mp.event = ? AND mp.multiplier > 0
+              AND mp.position <= 11
             GROUP BY mp.entry_id
         """, (event, league_id, event - 1))):
             eid = r["entry_id"]
